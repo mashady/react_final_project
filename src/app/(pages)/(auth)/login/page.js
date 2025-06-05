@@ -40,6 +40,8 @@ const page = () => {
                 }
                 localStorage.setItem("user", JSON.stringify(user));
                 localStorage.setItem("token", token);
+                window.location.href = "/";
+
                 console.log(user)
                 console.log(token)
                })

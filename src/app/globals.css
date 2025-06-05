@@ -121,4 +121,12 @@
 
   }
 }
-
+/* cstm cnfg */
+@layer components {
+  .bg-theme-primary {
+    @apply bg-[#ffcc41];
+  }
+  .text-theme-primary {
+    @apply text-[#ffcc41];
+  }
+}

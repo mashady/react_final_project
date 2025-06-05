@@ -73,12 +73,12 @@ const Navbar = () => {
                                 />
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <span className="text-sm text-black text-[14px]" style={{fontWeight:500}}>HELLO: {USER.name}</span>
+                                        <span className="text-sm text-black text-[14px] cursor-pointer" style={{fontWeight:500}}>HELLO: {USER.name}</span>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent className="w-50 mt-4">
-                                        <DropdownMenuItem>Profile</DropdownMenuItem>
-                                        <DropdownMenuItem>Dashboard</DropdownMenuItem>
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem className='cursor-pointer'>Profile</DropdownMenuItem>
+                                        <DropdownMenuItem className='cursor-pointer'>Dashboard</DropdownMenuItem>
+                                        <DropdownMenuItem className='cursor-pointer'>
                                             <span onClick={handleLogout}>Logout</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
