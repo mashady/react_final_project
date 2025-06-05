@@ -49,7 +49,7 @@ const page = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header title="Hello user"/> */}
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-sm border-1 rounded-1xl">
           <CardHeader>
