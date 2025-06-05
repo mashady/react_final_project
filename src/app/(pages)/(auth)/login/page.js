@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from 'axios';
 import Link from "next/link";
+import Header from "@/components/shared/Header";
 // Yup Validation Schema
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
@@ -46,9 +47,7 @@ const page = () => {
 
   return (
     <>
-      <header className="bg-[#ffcc41] text-black font-medium p-4 h-60 m-6 mb-0 rounded-lg flex items-center">
-        <h1 className="text-6xl ml-40 ">User Dashboard</h1>
-      </header>
+      <Header />
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-sm border-1 rounded-1xl">
           <CardHeader>
