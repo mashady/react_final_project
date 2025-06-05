@@ -8,6 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import axios from 'axios';
 import Link from "next/link";
+import Header from "@/components/shared/Header";
 // Yup Validation Schema
 const RegisterSchema = Yup.object().shape({
   name: Yup.string()
@@ -76,9 +77,7 @@ const page = () => {
 
   return (
     <>
-      <header className="bg-[#ffcc41] text-black font-medium p-4 h-60 m-6 mb-0.5 rounded-lg flex items-center">
-        <h1 className="text-6xl ml-40 ">User Dashboard</h1>
-      </header>
+      <Header />
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-sm border rounded-lg">
           <CardHeader>
