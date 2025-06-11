@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/Home/HeroSection";
 import { PropertiesGrid } from "@/components/Home/PropertyCard";
 import {SmallDescription} from "@/components/Home/SmallDescription";
 import {HowItWorks} from "@/components/Home/HowItWorks";
+import RenovationServices from "@/components/Home/RenovationSection";
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -30,6 +31,7 @@ export default function HomePage() {
           </div>
           <SmallDescription />
           <HowItWorks />
+          <RenovationServices />
         </div>
       </div>
     </div>

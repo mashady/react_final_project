@@ -17,7 +17,7 @@ export const PropertyCard = ({ property }) => {
     <Card className="overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
       <div className="relative">
         <img
-          src={property.primary_image || "https://via.placeholder.com/400x300"}
+          src={property.primary_image || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBwaEzx_-nYeIfjU_HA1cb8r0fPTk5QZ3jQA&s"}
           alt={property.title}
           className="w-full h-56 object-cover"
         />
