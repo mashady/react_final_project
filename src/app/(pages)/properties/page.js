@@ -11,8 +11,19 @@ import {
   Bed,
   Bath,
   Car,
+  Heart,
+  Share2,
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardContent,
+  CardDescription,
+  CardAction,
+} from "@/components/ui/card";
 
 const PropertyList = () => {
   const [filters, setFilters] = useState({
@@ -21,7 +32,7 @@ const PropertyList = () => {
     location: "",
     bedrooms: "",
     bathrooms: "",
-    priceRange: [100, 10000],
+    priceRange: [100, 1000000],
     minArea: "",
     maxArea: "",
     status: "",
@@ -69,23 +80,42 @@ const PropertyList = () => {
       const mockData = [
         {
           id: 1,
-          title: "Modern Apartment (Demo)",
-          type: "apartment",
+          title: "Gardenia House",
+          type: "villas",
           description:
-            "Beautiful studio apartment in the heart of the city with modern amenities and great location...",
-          price: "1200.00",
-          location: "Downtown, Cairo",
-          space: "45.50",
+            "Lorem ipsum dolor sit amet, wisi nemore fastidii at vis, eos equidem admodum",
+          price: "265000",
+          location: "Brooklyn, NY",
+          space: "160",
           status: "published",
           primary_image:
-            "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=400&h=300&fit=crop",
-          bedrooms: 1,
-          bathrooms: 1,
-          parking: 1,
-          formatted_price: "1,200.00 EGP",
-          price_per_sqm: "26.37 EGP/m²",
-          created_at_human: "Demo data",
-          updated_at_human: "Demo data",
+            "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop",
+        },
+        {
+          id: 2,
+          title: "Wooden Bungalow",
+          type: "villas",
+          description:
+            "Lorem ipsum dolor sit amet, wisi nemore fastidii at vis, eos equidem admodum",
+          price: "89000",
+          location: "The Bronx, NY",
+          space: "120",
+          status: "published",
+          primary_image:
+            "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&h=300&fit=crop",
+        },
+        {
+          id: 3,
+          title: "Balcony Apartment",
+          type: "apartments",
+          description:
+            "Lorem ipsum dolor sit amet, wisi nemore fastidii at vis, eos equidem admodum",
+          price: "1200",
+          location: "The Bronx, NY",
+          space: "75",
+          status: "published",
+          primary_image:
+            "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&h=300&fit=crop",
         },
       ];
 
@@ -94,7 +124,7 @@ const PropertyList = () => {
         current_page: 1,
         last_page: 1,
         per_page: 10,
-        total: 1,
+        total: mockData.length,
       });
     } finally {
       setLoading(false);
@@ -127,24 +157,18 @@ const PropertyList = () => {
       );
     }
 
-    // Bedrooms filter (handle missing bedrooms data)
+    // Bedrooms filter
     if (filters.bedrooms) {
       filtered = filtered.filter((property) => {
-        // Extract bedrooms from description if not directly available
-        const bedrooms =
-          property.bedrooms ||
-          extractBedroomsFromDescription(property.description);
+        const bedrooms = property.bedrooms || 0;
         return bedrooms >= parseInt(filters.bedrooms);
       });
     }
 
-    // Bathrooms filter (handle missing bathrooms data)
+    // Bathrooms filter
     if (filters.bathrooms) {
       filtered = filtered.filter((property) => {
-        // Extract bathrooms from description if not directly available
-        const bathrooms =
-          property.bathrooms ||
-          extractBathroomsFromDescription(property.description);
+        const bathrooms = property.bathrooms || 0;
         return bathrooms >= parseInt(filters.bathrooms);
       });
     }
@@ -169,19 +193,6 @@ const PropertyList = () => {
     }
 
     setFilteredProperties(filtered);
-  };
-
-  // Helper functions to extract bedroom/bathroom info from description
-  const extractBedroomsFromDescription = (description) => {
-    if (!description) return 0;
-    const match = description.match(/(\d+)[-\s]?bedroom/i);
-    return match ? parseInt(match[1]) : 0;
-  };
-
-  const extractBathroomsFromDescription = (description) => {
-    if (!description) return 0;
-    const match = description.match(/(\d+)[-\s]?bathroom/i);
-    return match ? parseInt(match[1]) : 0;
   };
 
   // Handle filter changes
@@ -214,19 +225,20 @@ const PropertyList = () => {
       location: "",
       bedrooms: "",
       bathrooms: "",
-      priceRange: [100, 10000],
+      priceRange: [100, 1000000],
       minArea: "",
       maxArea: "",
       status: "",
     });
   };
 
-  // Format price
+  // Format price to match the image ($265,000)
   const formatPrice = (price) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(parseFloat(price));
   };
 
@@ -241,7 +253,7 @@ const PropertyList = () => {
 
   // Get unique locations from properties
   const getUniqueLocations = () => {
-    const locations = properties.map((p) => p.location);
+    const locations = properties.map((p) => p.location.split(",")[0]);
     return [...new Set(locations)];
   };
 
@@ -253,17 +265,12 @@ const PropertyList = () => {
 
   // Get property image with fallback
   const getPropertyImage = (property) => {
-    // Handle different image URL formats from API
     if (property.primary_image) {
-      // If it's a full URL, use it directly
       if (property.primary_image.startsWith("http")) {
         return property.primary_image;
       }
-      // If it's a relative path, prepend the base URL
       return `http://127.0.0.1:8000/storage/${property.primary_image}`;
     }
-
-    // Fallback to a default image
     return "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=400&h=300&fit=crop";
   };
 
@@ -290,7 +297,7 @@ const PropertyList = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Property List with Dynamic Filters
+            Property Listings
           </h1>
           <p className="text-gray-600 mt-2">
             Found {filteredProperties.length} properties
@@ -303,12 +310,12 @@ const PropertyList = () => {
         </div>
 
         {/* Filter Section */}
-        <div className="bg-white  shadow-sm p-4 md:p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
           {/* Top Row Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
             <div className="relative">
               <select
-                className="w-full p-2 pr-8 text-sm border border-gray-300  focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
+                className="w-full p-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
                 value={filters.type}
                 onChange={(e) => handleFilterChange("type", e.target.value)}
               >
@@ -338,7 +345,7 @@ const PropertyList = () => {
 
             <div className="relative">
               <select
-                className="w-full p-2 pr-8 text-sm border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
+                className="w-full p-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
                 value={filters.status}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
               >
@@ -365,7 +372,7 @@ const PropertyList = () => {
 
             <div className="relative">
               <select
-                className="w-full p-2 pr-8 text-sm border border-gray-300  focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
+                className="w-full p-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
                 value={filters.location}
                 onChange={(e) => handleFilterChange("location", e.target.value)}
               >
@@ -426,7 +433,7 @@ const PropertyList = () => {
 
             <div className="md:col-span-2">
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                Price range (EGP)
+                Price range (USD)
               </label>
               <div className="px-1">
                 <div className="flex justify-between text-xs text-gray-500 mb-3">
@@ -436,9 +443,9 @@ const PropertyList = () => {
                 <Slider
                   value={filters.priceRange}
                   onValueChange={handlePriceRangeChange}
-                  max={10000}
+                  max={1000000}
                   min={100}
-                  step={100}
+                  step={1000}
                   className="w-full"
                 />
               </div>
@@ -522,110 +529,53 @@ const PropertyList = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filteredProperties.map((property) => (
-                <div
+                <Card
                   key={property.id}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                  className="cursor-pointer hover:shadow-md transition-all overflow-hidden border-none shadow-sm"
                 >
                   {/* Property Image */}
-                  <div className="relative h-48 md:h-56 bg-gray-200">
+                  <div className="relative h-48 bg-gray-200">
                     <img
                       src={getPropertyImage(property)}
                       alt={property.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover rounded-t-lg"
                       onError={(e) => {
                         e.target.src =
                           "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=400&h=300&fit=crop";
                       }}
                     />
-                    <div className="absolute top-3 left-3">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          property.status === "published"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {property.status}
-                      </span>
-                    </div>
-                    <div className="absolute top-3 right-3">
-                      <span className="bg-white text-gray-800 px-2 py-1 rounded text-xs font-medium">
-                        {property.type}
-                      </span>
-                    </div>
                   </div>
 
-                  {/* Property Details */}
-                  <div className="p-4">
-                    {/* Location */}
-                    <div className="flex items-center text-gray-500 text-xs mb-2">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      <span>{property.location}</span>
+                  <CardContent className="p-4">
+                    {/* Property Type and Location */}
+                    <div className="text-sm font-medium text-gray-500 mb-1">
+                      {property.type.toUpperCase()} -{" "}
+                      {property.location.split(",")[0]}
                     </div>
 
                     {/* Title */}
-                    <h3 className="font-bold text-base md:text-lg text-gray-900 mb-2">
+                    <CardTitle className="text-lg font-bold mb-2">
                       {property.title}
-                    </h3>
+                    </CardTitle>
 
                     {/* Description */}
-                    <p className="text-gray-600 text-xs md:text-sm mb-4 line-clamp-2">
+                    <CardDescription className="text-gray-600 mb-4">
                       {property.description}
-                    </p>
+                    </CardDescription>
 
                     {/* Price */}
-                    <div className="mb-4">
-                      <span className="text-lg md:text-xl font-bold text-gray-900">
-                        {property.formatted_price || `${property.price} EGP`}
-                      </span>
-                      {property.price_per_sqm && (
-                        <span className="text-xs text-gray-500 ml-2">
-                          {property.price_per_sqm}
-                        </span>
-                      )}
+                    <div className="text-xl font-bold text-gray-900">
+                      {formatPrice(property.price)}
                     </div>
 
-                    {/* Property Features */}
-                    <div className="flex items-center justify-between text-gray-600 text-xs">
-                      <div className="flex items-center gap-1">
-                        <Square className="w-3 h-3" />
-                        <span>{property.space}m²</span>
+                    {/* Area */}
+                    {property.space && (
+                      <div className="text-sm text-gray-500 mt-2">
+                        {property.space}m²
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Bed className="w-3 h-3" />
-                        <span>
-                          {property.bedrooms ||
-                            extractBedroomsFromDescription(
-                              property.description
-                            ) ||
-                            0}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Bath className="w-3 h-3" />
-                        <span>
-                          {property.bathrooms ||
-                            extractBathroomsFromDescription(
-                              property.description
-                            ) ||
-                            0}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Car className="w-3 h-3" />
-                        <span>{property.parking || 0}</span>
-                      </div>
-                    </div>
-
-                    {/* Time */}
-                    <div className="mt-3 text-xs text-gray-400">
-                      Updated{" "}
-                      {property.updated_at_human ||
-                        property.created_at_human ||
-                        "recently"}
-                    </div>
-                  </div>
-                </div>
+                    )}
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
