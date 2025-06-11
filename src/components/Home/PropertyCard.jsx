@@ -10,6 +10,8 @@ import {
     CardTitle,
   } from "@/components/ui/card";
 
+import { Bath, Bed, Ruler , MapPin ,Home, Handshake, FileText, Key} from "lucide-react"; 
+
 export const PropertyCard = ({ property }) => {
   return (
     <Card className="overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300">

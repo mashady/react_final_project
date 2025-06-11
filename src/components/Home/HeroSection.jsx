@@ -72,7 +72,7 @@ export const SmallNavBar = () => {
           <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-xl w-full max-w-6xl">
             <div className="flex flex-col md:flex-row gap-6">
               <Select>
-                <SelectTrigger className="w-full text-xl py-4 px-6 h-25">
+                <SelectTrigger className="w-70 text-xl py-4 px-6 h-25 mt-4 ">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -83,7 +83,7 @@ export const SmallNavBar = () => {
               </Select>
   
               <Select>
-                <SelectTrigger className="w-full text-xl py-4 px-6 h-25">
+                <SelectTrigger className="w-70 text-xl py-4 px-6 h-25 mt-4">
                   <SelectValue placeholder="Location" />
                 </SelectTrigger>
                 <SelectContent>
@@ -93,10 +93,10 @@ export const SmallNavBar = () => {
                 </SelectContent>
               </Select>
   
-              <Button className="bg-yellow-600 hover:bg-yellow-800 text-white whitespace-nowrap h-16 px-8 text-lg">
+              <Button className="bg-yellow-400 hover:bg-yellow-800 text-white whitespace-nowrap h-16 px-8 text-lg w-70">
                 Advanced
               </Button>
-              <Button className="bg-yellow-600 hover:bg-yellow-800 text-white h-16 px-10 text-lg">
+              <Button className="bg-yellow-400 hover:bg-yellow-800 text-white h-16 px-10 text-lg w-70">
                 Search
               </Button>
             </div>
