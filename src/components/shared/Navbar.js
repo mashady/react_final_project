@@ -16,16 +16,40 @@ const NAV_LINKS = [
   { label: "BLOG", href: "/" },
 ];
 
-const USER = JSON.parse(localStorage.getItem("user")) || {
-  name: "Guest",
-  avatar:
-    "https://secure.gravatar.com/avatar/482e9e9d378d9a8895da9d16882c5c86278fbeca1cdfd95fcf5ca7078c5ddb42?s=76&d=mm&r=g",
-};
 let defaultUser =
   "https://secure.gravatar.com/avatar/482e9e9d378d9a8895da9d16882c5c86278fbeca1cdfd95fcf5ca7078c5ddb42?s=76&d=mm&r=g";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isLoggedIn = !!localStorage.getItem("user");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [USER, setUSER] = useState({
+    name: "Guest",
+    avatar: defaultUser,
+  });
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          setUSER(userObj);
+          setIsLoggedIn(true);
+        } catch (e) {
+          setUSER({
+            name: "Guest",
+            avatar: defaultUser,
+          });
+          setIsLoggedIn(false);
+        }
+      } else {
+        setUSER({
+          name: "Guest",
+          avatar: defaultUser,
+        });
+        setIsLoggedIn(false);
+      }
+    }
+  }, []);
 
   const router = useRouter();
   const toggleMenu = () => setIsMenuOpen((open) => !open);
