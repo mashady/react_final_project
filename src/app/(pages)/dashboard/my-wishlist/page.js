@@ -1,5 +1,6 @@
 "use client";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
+import LoadMoreBtn from "@/components/shared/LoadMoreBtn";
 import PropertyCard from "@/components/shared/PropertyCard";
 import React from "react";
 
@@ -78,6 +79,9 @@ const page = () => {
             className="hover:transform"
           />
         ))}
+      </div>
+      <div className="flex justify-center mt-10">
+        <LoadMoreBtn />
       </div>
     </div>
   );
