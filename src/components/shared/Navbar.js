@@ -16,11 +16,11 @@ const NAV_LINKS = [
   { label: "BLOG", href: "/" },
 ];
 
-const USER = JSON.parse(localStorage.getItem("user")) || {
-  name: "Guest",
-  avatar:
-    "https://secure.gravatar.com/avatar/482e9e9d378d9a8895da9d16882c5c86278fbeca1cdfd95fcf5ca7078c5ddb42?s=76&d=mm&r=g",
-};
+// const USER = JSON.parse(localStorage.getItem("user")) || {
+//   name: "Guest",
+//   avatar:
+//     "https://secure.gravatar.com/avatar/482e9e9d378d9a8895da9d16882c5c86278fbeca1cdfd95fcf5ca7078c5ddb42?s=76&d=mm&r=g",
+// };
 let defaultUser =
   "https://secure.gravatar.com/avatar/482e9e9d378d9a8895da9d16882c5c86278fbeca1cdfd95fcf5ca7078c5ddb42?s=76&d=mm&r=g";
 const Navbar = () => {
