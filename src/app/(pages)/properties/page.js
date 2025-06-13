@@ -253,7 +253,9 @@ const PropertyList = () => {
 
   // Get unique locations from properties
   const getUniqueLocations = () => {
-    const locations = properties.map((p) => p.location.split(",")[0]);
+    const locations = properties
+      .map((p) => (p && p.location ? p.location.split(",")[0] : null))
+      .filter((loc) => loc !== null && loc !== undefined && loc !== "");
     return [...new Set(locations)];
   };
 
@@ -377,8 +379,8 @@ const PropertyList = () => {
                 onChange={(e) => handleFilterChange("location", e.target.value)}
               >
                 <option value="">All Locations</option>
-                {getUniqueLocations().map((location) => (
-                  <option key={location} value={location}>
+                {getUniqueLocations().map((location, index) => (
+                  <option key={index} value={location}>
                     {location}
                   </option>
                 ))}
@@ -547,10 +549,9 @@ const PropertyList = () => {
                   </div>
 
                   <CardContent className="p-4">
-                    {/* Property Type and Location */}
                     <div className="text-sm font-medium text-gray-500 mb-1">
                       {property.type.toUpperCase()} -{" "}
-                      {property.location.split(",")[0]}
+                      {property.location ? property.location.split(",")[0] : ""}
                     </div>
 
                     {/* Title */}
