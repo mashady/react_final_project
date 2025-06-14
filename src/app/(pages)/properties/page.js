@@ -1,11 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import PropertyHeader from "./components/PropertyHeader";
 import PropertyFilters from "./components/PropertyFilters";
 import PropertyGrid from "./components/PropertyGrid";
 import EmptyState from "./components/EmptyState";
 import LoadingSpinner from "./components/LoadingSpinner";
-import LoadMoreButton from "./components/LoadMoreButton";
 import ErrorMessage from "./components/ErrorMessage";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -29,7 +28,6 @@ const PropertyList = () => {
     minArea: "",
     maxArea: "",
   });
-
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -41,33 +39,29 @@ const PropertyList = () => {
   const fetchProperties = async (pageNum = 1) => {
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch(
         `http://127.0.0.1:8000/api/ads?page=${pageNum}`
       );
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-
-      // Check if we have more data to load
-      if (data.data.length === 0) {
+      if (!data.data || data.data.length === 0) {
         setHasMore(false);
         return;
       }
-
       setProperties((prevProperties) => {
         if (pageNum === 1) {
           return data.data;
         }
-        // Merge new data with existing data
-        return [...prevProperties, ...data.data];
+        // Merge and remove duplicates by id
+        const merged = [...prevProperties, ...data.data];
+        const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
+        return unique;
       });
     } catch (error) {
-      console.error("Error fetching properties:", error);
-      setError(error.message);
+      setError(error.message || "Failed to load properties");
       setProperties([]);
       setHasMore(false);
     } finally {
@@ -225,6 +219,25 @@ const PropertyList = () => {
     applyFilters();
   }, [properties, filters]);
 
+  const observer = useRef();
+  const sentinelRef = useCallback(
+    (node) => {
+      if (loading || !hasMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new window.IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((prevPage) => {
+            const nextPage = prevPage + 1;
+            fetchProperties(nextPage);
+            return nextPage;
+          });
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
+
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -261,14 +274,7 @@ const PropertyList = () => {
             )}
 
             {filteredProperties.length > 0 && hasMore && (
-              <LoadMoreButton
-                onClick={() => {
-                  const nextPage = page + 1;
-                  setPage(nextPage);
-                  fetchProperties(nextPage);
-                }}
-                loading={loading}
-              />
+              <div ref={sentinelRef} style={{ height: 40 }} />
             )}
           </>
         )}
