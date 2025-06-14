@@ -247,8 +247,10 @@ export default function CompletePropertyForm() {
       if (formData.description) submitData.append("description", formData.description);
       submitData.append("price", formData.price);
       if (formData.area) submitData.append("area", formData.area);
-      if (formData.street) submitData.append("street", formData.street);
-      if (formData.block) submitData.append("block", formData.block);
+      submitData.append("block", formData.block || "");
+      submitData.append("street", formData.street || "");
+      submitData.append("number_of_beds", formData.bedrooms || "");
+      submitData.append("number_of_bathrooms", formData.bathrooms || "");
       submitData.append("space", formData.space);
       formData.media.forEach((file) => {
         submitData.append("media[]", file);
@@ -839,4 +841,3 @@ export default function CompletePropertyForm() {
     </div>
   );
 }
-
