@@ -48,25 +48,37 @@ export default function ShoppingCart() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white">
-      <CartTable
-        items={cartItems}
-        updateQuantity={updateQuantity}
-        removeItem={removeItem}
-      />
+    <div>
+      <div className="bg-yellow-400 py-16 px-6">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <h1 className="text-4xl font-bold text-black">Cart</h1>
+          <div className="text-black">
+            <span>Home</span>
+            <span className="mx-2">/</span>
+            <span>Cart</span>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-6xl mx-auto p-6 bg-white">
+        <CartTable
+          items={cartItems}
+          updateQuantity={updateQuantity}
+          removeItem={removeItem}
+        />
 
-      <CouponSection
-        couponCode={couponCode}
-        setCouponCode={setCouponCode}
-        applyCoupon={applyCoupon}
-        updateCart={updateCart}
-      />
+        <CouponSection
+          couponCode={couponCode}
+          setCouponCode={setCouponCode}
+          applyCoupon={applyCoupon}
+          updateCart={updateCart}
+        />
 
-      <CartTotals
-        subtotal={subtotal}
-        total={total}
-        proceedToCheckout={proceedToCheckout}
-      />
+        <CartTotals
+          subtotal={subtotal}
+          total={total}
+          proceedToCheckout={proceedToCheckout}
+        />
+      </div>
     </div>
   );
 }
