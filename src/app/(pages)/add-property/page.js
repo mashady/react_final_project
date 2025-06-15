@@ -10,30 +10,19 @@ import {
   Camera,
   video as VideoIcon,
 } from "lucide-react";
+import axios from "axios";
 
 export default function CompletePropertyForm() {
   const [formData, setFormData] = useState({
-    // API fields
     title: "",
     type: "apartment",
     description: "",
     price: "",
-    location: "",
+    area: "",
+    street: "",
+    block: "",
     space: "",
     media: [],
-    // Additional form fields (kept for UI completeness)
-    propertyId: "",
-    propertyStatus: "Buy",
-    displayLayout: "Default",
-    bedrooms: "",
-    bathrooms: "",
-    propertyExcerpt: "",
-    address: "",
-    city: "Brooklyn",
-    stateCountry: "",
-    locationMap: "",
-    videoUrl: "",
-    virtualTourUrl: "",
     galleryImages: [],
     videoFile: null,
   });
@@ -62,13 +51,12 @@ export default function CompletePropertyForm() {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.type) newErrors.type = "Type is required";
-    if (!formData.price || isNaN(Number(formData.price)))
-      newErrors.price = "Valid price is required";
-    if (!formData.location.trim()) newErrors.location = "Location is required";
-    if (!formData.address.trim()) newErrors.address = "Address is required";
-    if (!formData.stateCountry.trim())
-      newErrors.stateCountry = "State/Country is required";
-
+    if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) < 0) newErrors.price = "Valid price is required";
+    if (formData.street && formData.street.length > 255) newErrors.street = "Street max 255 characters";
+    if (formData.block && formData.block.length > 255) newErrors.block = "Block max 255 characters";
+    if (!formData.space || isNaN(Number(formData.space)) || Number(formData.space) < 0) newErrors.space = "Valid space is required";
+    if (formData.media.some((file) => file.size > MAX_FILE_SIZE)) newErrors.media = "Each file must be less than 10MB.";
+    if (formData.media.some((file) => ![...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES].includes(file.type))) newErrors.media = "Invalid file type detected.";
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
       setSubmitStatus({
@@ -213,21 +201,11 @@ export default function CompletePropertyForm() {
       type: "apartment",
       description: "",
       price: "",
-      location: "",
+      area: "",
+      street: "",
+      block: "",
       space: "",
       media: [],
-      propertyId: "",
-      propertyStatus: "Buy",
-      displayLayout: "Default",
-      bedrooms: "",
-      bathrooms: "",
-      propertyExcerpt: "",
-      address: "",
-      city: "Brooklyn",
-      stateCountry: "",
-      locationMap: "",
-      videoUrl: "",
-      virtualTourUrl: "",
       galleryImages: [],
       videoFile: null,
     });
@@ -257,54 +235,46 @@ export default function CompletePropertyForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
-
     setIsSubmitting(true);
     setSubmitStatus(null);
-
     try {
       const submitData = new FormData();
       submitData.append("title", formData.title);
       submitData.append("type", formData.type);
-      submitData.append("description", formData.description || "");
-      submitData.append("price", formData.price); // Send as string to match API
-
-      if (formData.space) {
-        submitData.append("space", formData.space); // Send as string
-      }
+      if (formData.description) submitData.append("description", formData.description);
+      submitData.append("price", formData.price);
+      if (formData.area) submitData.append("area", formData.area);
+      submitData.append("block", formData.block || "");
+      submitData.append("street", formData.street || "");
+      submitData.append("number_of_beds", formData.bedrooms || "");
+      submitData.append("number_of_bathrooms", formData.bathrooms || "");
+      submitData.append("space", formData.space);
       formData.media.forEach((file) => {
         submitData.append("media[]", file);
       });
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        body: submitData,
+      const response = await axios.post(API_URL, submitData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (response.ok) {
-        const result = await response.json();
+      if (response.status === 200 || response.status === 201) {
+        const result = response.data;
         setSubmitStatus({
           type: "success",
           message: `Property listing "${result.data.title}" created successfully! Price: ${result.data.formatted_price}, Created: ${result.data.created_at_human}`,
         });
         handleResetForm();
       } else {
-        const errorData = await response.json().catch(() => ({}));
         setSubmitStatus({
           type: "error",
-          message: `Failed to create property listing: ${
-            errorData.message || response.statusText
-          }`,
+          message: `Failed to create property listing: ${response.statusText}`,
         });
       }
     } catch (error) {
       setSubmitStatus({
         type: "error",
-        message:
-          "Network error. Please check if the API server is running and try again.",
+        message: `Failed to create property listing: ${error.response?.data?.message || error.message}`,
       });
     } finally {
       setIsSubmitting(false);
@@ -356,9 +326,9 @@ export default function CompletePropertyForm() {
                 <input
                   type="text"
                   name="title"
-                  value={formData.title}
+                  value={formData.title || ""}
                   onChange={handleInputChange}
-                  required
+                  
                   aria-label="Property Title"
                   aria-invalid={!!errors.title}
                   className={`w-full px-3 py-2 text-sm border ${
@@ -377,7 +347,7 @@ export default function CompletePropertyForm() {
                 <input
                   type="text"
                   name="propertyId"
-                  value={formData.propertyId}
+                  value={formData.propertyId || ""}
                   onChange={handleInputChange}
                   aria-label="Property ID"
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
@@ -393,18 +363,17 @@ export default function CompletePropertyForm() {
                 <div className="relative">
                   <select
                     name="type"
-                    value={formData.type}
+                    value={formData.type || ""}
                     onChange={handleInputChange}
-                    required
+                    
                     aria-label="Property Type"
                     className={`w-full px-3 py-2 text-sm border ${
                       errors.type ? "border-red-500" : "border-gray-300"
                     } rounded focus:outline-none focus:border-blue-500 appearance-none bg-white text-gray-600`}
                   >
                     <option value="apartment">Apartment</option>
-                    <option value="house">House</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="land">Land</option>
+                    <option value="room">room</option>
+                    <option value="bed">bed</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
@@ -420,7 +389,7 @@ export default function CompletePropertyForm() {
                 <div className="relative">
                   <select
                     name="propertyStatus"
-                    value={formData.propertyStatus}
+                    value={formData.propertyStatus || ""}
                     onChange={handleInputChange}
                     aria-label="Property Status"
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 appearance-none bg-white text-gray-600"
@@ -437,32 +406,12 @@ export default function CompletePropertyForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-black mb-1">
-                  Display layout:
-                </label>
-                <div className="relative">
-                  <select
-                    name="displayLayout"
-                    value={formData.displayLayout}
-                    onChange={handleInputChange}
-                    aria-label="Display Layout"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 appearance-none bg-white text-gray-600"
-                  >
-                    <option value="Default">Default</option>
-                    <option value="Grid">Grid</option>
-                    <option value="List">List</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-black mb-1">
                   Property Space (sq ft):
                 </label>
                 <input
                   type="number"
                   name="space"
-                  value={formData.space}
+                  value={formData.space || ""}
                   onChange={handleInputChange}
                   min="0"
                   aria-label="Property Space"
@@ -479,7 +428,7 @@ export default function CompletePropertyForm() {
                 <input
                   type="number"
                   name="bedrooms"
-                  value={formData.bedrooms}
+                  value={formData.bedrooms|| ""}
                   onChange={handleInputChange}
                   min="0"
                   aria-label="Number of Bedrooms"
@@ -494,7 +443,7 @@ export default function CompletePropertyForm() {
                 <input
                   type="number"
                   name="bathrooms"
-                  value={formData.bathrooms}
+                  value={formData.bathrooms|| ""}
                   onChange={handleInputChange}
                   min="0"
                   step="0.5"
@@ -510,25 +459,10 @@ export default function CompletePropertyForm() {
               </label>
               <textarea
                 name="description"
-                value={formData.description}
+                value={formData.description || ""}
                 onChange={handleInputChange}
                 rows={4}
                 aria-label="Property Description"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-black mb-1">
-                Property excerpt:{" "}
-                <span className="text-gray-500 font-normal">Shown on list</span>
-              </label>
-              <textarea
-                name="propertyExcerpt"
-                value={formData.propertyExcerpt}
-                onChange={handleInputChange}
-                rows={2}
-                aria-label="Property Excerpt"
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 resize-none"
               />
             </div>
@@ -554,9 +488,9 @@ export default function CompletePropertyForm() {
               <input
                 type="number"
                 name="price"
-                value={formData.price}
+                value={formData.price || ""}
                 onChange={handleInputChange}
-                required
+                
                 min="0"
                 step="0.01"
                 aria-label="Price"
@@ -587,119 +521,57 @@ export default function CompletePropertyForm() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-black mb-1">
-                  Address: <span className="text-red-500">*</span>
+                  Area
                 </label>
                 <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
+                  type="string"
+                  name="area"
+                  value={formData.area || ""}
                   onChange={handleInputChange}
-                  required
-                  aria-label="Address"
-                  aria-invalid={!!errors.address}
-                  className={`w-full px-3 py-2 text-sm border ${
-                    errors.address ? "border-red-500" : "border-gray-300"
-                  } rounded focus:outline-none focus:border-blue-500`}
+                  min="0"
+                  aria-label="Area"
+                  aria-invalid={!!errors.area}
+                  className={`w-full px-3 py-2 text-sm border ${errors.area ? "border-red-500" : "border-gray-300"} rounded focus:outline-none focus:border-blue-500`}
                 />
-                {errors.address && (
-                  <p className="text-xs text-red-500 mt-1">{errors.address}</p>
+                {errors.area && (
+                  <p className="text-xs text-red-500 mt-1">{errors.area}</p>
                 )}
               </div>
-
               <div>
                 <label className="block text-xs font-medium text-black mb-1">
-                  City:
-                </label>
-                <div className="relative">
-                  <select
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    aria-label="City"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 appearance-none bg-white text-gray-600"
-                  >
-                    <option value="Brooklyn">Brooklyn</option>
-                    <option value="Manhattan">Manhattan</option>
-                    <option value="Queens">Queens</option>
-                    <option value="Bronx">Bronx</option>
-                    <option value="Staten Island">Staten Island</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-black mb-1">
-                  State/Country: <span className="text-red-500">*</span>
+                  Street
                 </label>
                 <input
                   type="text"
-                  name="stateCountry"
-                  value={formData.stateCountry}
+                  name="street"
+                  value={formData.street || ""}
                   onChange={handleInputChange}
-                  required
-                  aria-label="State or Country"
-                  aria-invalid={!!errors.stateCountry}
-                  className={`w-full px-3 py-2 text-sm border ${
-                    errors.stateCountry ? "border-red-500" : "border-gray-300"
-                  } rounded focus:outline-none focus:border-blue-500`}
+                  maxLength={255}
+                  aria-label="Street"
+                  aria-invalid={!!errors.street}
+                  className={`w-full px-3 py-2 text-sm border ${errors.street ? "border-red-500" : "border-gray-300"} rounded focus:outline-none focus:border-blue-500`}
                 />
-                {errors.stateCountry && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.stateCountry}
-                  </p>
+                {errors.street && (
+                  <p className="text-xs text-red-500 mt-1">{errors.street}</p>
                 )}
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-black mb-1">
-                Location: <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter location for API"
-                aria-label="Location"
-                aria-invalid={!!errors.location}
-                className={`w-full px-3 py-2 text-sm border ${
-                  errors.location ? "border-red-500" : "border-gray-300"
-                } rounded focus:outline-none focus:border-blue-500`}
-              />
-              {errors.location && (
-                <p className="text-xs text-red-500 mt-1">{errors.location}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-black mb-1">
-                Location on map:
-              </label>
-              <p className="text-xs text-blue-500 mb-2">
-                If you wish to display an approximate location, simply input the
-                street name only, without including the street number
-              </p>
-              <div className="flex gap-2">
+              <div>
+                <label className="block text-xs font-medium text-black mb-1">
+                  Block
+                </label>
                 <input
                   type="text"
-                  name="locationMap"
-                  value={formData.locationMap}
+                  name="block"
+                  value={formData.block || ""}
                   onChange={handleInputChange}
-                  placeholder="Enter a location"
-                  aria-label="Location on Map"
-                  className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  maxLength={255}
+                  aria-label="Block"
+                  aria-invalid={!!errors.block}
+                  className={`w-full px-3 py-2 text-sm border ${errors.block ? "border-red-500" : "border-gray-300"} rounded focus:outline-none focus:border-blue-500`}
                 />
-                <button
-                  type="button"
-                  onClick={handleResetMarker}
-                  aria-label="Reset Map Marker"
-                  className="px-4 py-2 text-xs text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded"
-                >
-                  Reset Marker
-                </button>
+                {errors.block && (
+                  <p className="text-xs text-red-500 mt-1">{errors.block}</p>
+                )}
               </div>
             </div>
           </div>
@@ -712,7 +584,7 @@ export default function CompletePropertyForm() {
               <span className="w-4 h-4 border border-orange-500 text-orange-500 rounded-full flex items-center justify-center text-xs mr-2">
                 <Camera className="w-4 h-4" />
               </span>
-              Media Gallery (API: media[])
+            Media
             </h2>
           </div>
 
@@ -862,7 +734,7 @@ export default function CompletePropertyForm() {
               <input
                 type="url"
                 name="videoUrl"
-                value={formData.videoUrl}
+                value={formData.videoUrl || ""}
                 onChange={handleInputChange}
                 placeholder="https://www.youtube.com/watch?v=..."
                 aria-label="Video URL"
@@ -876,7 +748,7 @@ export default function CompletePropertyForm() {
               <input
                 type="url"
                 name="virtualTourUrl"
-                value={formData.virtualTourUrl}
+                value={formData.virtualTourUrl || ""}
                 onChange={handleInputChange}
                 placeholder="https://example.com/virtual-tour/..."
                 aria-label="Virtual Tour URL"
