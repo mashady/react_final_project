@@ -1,19 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import {
-  Search,
-  MapPin,
-  Home,
-  Square,
-  ChevronLeft,
-  ChevronRight,
-  SlidersHorizontal,
-  Bed,
-  Bath,
-  Car,
-  Heart,
-  Share2,
-} from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import PropertyHeader from "./components/PropertyHeader";
+import PropertyFilters from "./components/PropertyFilters";
+import PropertyGrid from "./components/PropertyGrid";
+import EmptyState from "./components/EmptyState";
+import LoadingSpinner from "./components/LoadingSpinner";
+import ErrorMessage from "./components/ErrorMessage";
 import { Slider } from "@/components/ui/slider";
 import {
   Card,
@@ -35,97 +27,43 @@ const PropertyList = () => {
     priceRange: [100, 1000000],
     minArea: "",
     maxArea: "",
-    status: "",
   });
-
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    last_page: 1,
-    per_page: 10,
-    total: 0,
-  });
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   // Fetch properties from API
-  const fetchProperties = async (page = 1) => {
+  const fetchProperties = async (pageNum = 1) => {
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/ads?page=${page}`
+        `http://127.0.0.1:8000/api/ads?page=${pageNum}`
       );
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
-
-      setProperties(data.data);
-      setPagination({
-        current_page: data.meta.current_page,
-        last_page: data.meta.last_page,
-        per_page: data.meta.per_page,
-        total: data.meta.total,
+      if (!data.data || data.data.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      setProperties((prevProperties) => {
+        if (pageNum === 1) {
+          return data.data;
+        }
+        // Merge and remove duplicates by id
+        const merged = [...prevProperties, ...data.data];
+        const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
+        return unique;
       });
     } catch (error) {
-      console.error("Error fetching properties:", error);
-      setError(error.message);
-
-      // Fallback to mock data if API fails
-      const mockData = [
-        {
-          id: 1,
-          title: "Gardenia House",
-          type: "villas",
-          description:
-            "Lorem ipsum dolor sit amet, wisi nemore fastidii at vis, eos equidem admodum",
-          price: "265000",
-          location: "Brooklyn, NY",
-          space: "160",
-          status: "published",
-          primary_image:
-            "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop",
-        },
-        {
-          id: 2,
-          title: "Wooden Bungalow",
-          type: "villas",
-          description:
-            "Lorem ipsum dolor sit amet, wisi nemore fastidii at vis, eos equidem admodum",
-          price: "89000",
-          location: "The Bronx, NY",
-          space: "120",
-          status: "published",
-          primary_image:
-            "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&h=300&fit=crop",
-        },
-        {
-          id: 3,
-          title: "Balcony Apartment",
-          type: "apartments",
-          description:
-            "Lorem ipsum dolor sit amet, wisi nemore fastidii at vis, eos equidem admodum",
-          price: "1200",
-          location: "The Bronx, NY",
-          space: "75",
-          status: "published",
-          primary_image:
-            "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&h=300&fit=crop",
-        },
-      ];
-
-      setProperties(mockData);
-      setPagination({
-        current_page: 1,
-        last_page: 1,
-        per_page: 10,
-        total: mockData.length,
-      });
+      setError(error.message || "Failed to load properties");
+      setProperties([]);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -138,22 +76,17 @@ const PropertyList = () => {
     // Type filter
     if (filters.type) {
       filtered = filtered.filter(
-        (property) => property.type.toLowerCase() === filters.type.toLowerCase()
+        (property) =>
+          property.type?.toLowerCase() === filters.type.toLowerCase()
       );
     }
 
     // Location filter
     if (filters.location) {
       filtered = filtered.filter((property) =>
-        property.location.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (filters.status) {
-      filtered = filtered.filter(
-        (property) =>
-          property.status.toLowerCase() === filters.status.toLowerCase()
+        property.location
+          ?.toLowerCase()
+          .includes(filters.location.toLowerCase())
       );
     }
 
@@ -175,20 +108,22 @@ const PropertyList = () => {
 
     // Price range filter
     filtered = filtered.filter((property) => {
-      const price = parseFloat(property.price);
+      const price = parseFloat(property.price || 0);
       return price >= filters.priceRange[0] && price <= filters.priceRange[1];
     });
 
     // Area filters
     if (filters.minArea) {
       filtered = filtered.filter(
-        (property) => parseFloat(property.space) >= parseFloat(filters.minArea)
+        (property) =>
+          parseFloat(property.space || 0) >= parseFloat(filters.minArea)
       );
     }
 
     if (filters.maxArea) {
       filtered = filtered.filter(
-        (property) => parseFloat(property.space) <= parseFloat(filters.maxArea)
+        (property) =>
+          parseFloat(property.space || 0) <= parseFloat(filters.maxArea)
       );
     }
 
@@ -209,13 +144,9 @@ const PropertyList = () => {
       priceRange: newRange,
     }));
   };
-
   const handleSearch = () => {
-    applyFilters();
-  };
-
-  const handlePageChange = (page) => {
-    fetchProperties(page);
+    setPage(1); // Reset to page 1 when searching
+    fetchProperties(1);
   };
 
   const handleReset = () => {
@@ -228,8 +159,9 @@ const PropertyList = () => {
       priceRange: [100, 1000000],
       minArea: "",
       maxArea: "",
-      status: "",
     });
+    setPage(1);
+    fetchProperties(1);
   };
 
   // Format price to match the image ($265,000)
@@ -251,17 +183,23 @@ const PropertyList = () => {
     return price.toString();
   };
 
-  // Get unique locations from properties
   const getUniqueLocations = () => {
     const locations = properties
+<<<<<<< HEAD
       .map((p) => (p && p.location ? p.location.split(",")[0] : null))
       .filter((loc) => loc !== null && loc !== undefined && loc !== "");
+=======
+      .filter((p) => p.location) // Filter out properties with no location
+      .map((p) => p.location.split(",")[0]);
+>>>>>>> 7d213106f70e916562e324ca0574959227e1d282
     return [...new Set(locations)];
   };
 
   // Get unique types from properties
   const getUniqueTypes = () => {
-    const types = properties.map((p) => p.type);
+    const types = properties
+      .filter((p) => p.type) // Filter out properties with no type
+      .map((p) => p.type);
     return [...new Set(types)];
   };
 
@@ -281,97 +219,52 @@ const PropertyList = () => {
     fetchProperties();
   }, []);
 
-  // Apply filters whenever filters change
+  // Apply filters when properties or filters change
   useEffect(() => {
-    if (properties.length > 0) {
-      applyFilters();
-    }
+    applyFilters();
   }, [properties, filters]);
 
-  // Set initial filtered properties
-  useEffect(() => {
-    setFilteredProperties(properties);
-  }, [properties]);
+  const observer = useRef();
+  const sentinelRef = useCallback(
+    (node) => {
+      if (loading || !hasMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new window.IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((prevPage) => {
+            const nextPage = prevPage + 1;
+            fetchProperties(nextPage);
+            return nextPage;
+          });
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Property Listings
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Found {filteredProperties.length} properties
-            {error && (
-              <span className="text-red-500 ml-2">
-                (Using demo data - API connection failed)
-              </span>
-            )}
-          </p>
-        </div>
+        <PropertyHeader
+          totalProperties={filteredProperties.length}
+          error={error}
+        />
 
-        {/* Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
-          {/* Top Row Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-            <div className="relative">
-              <select
-                className="w-full p-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
-                value={filters.type}
-                onChange={(e) => handleFilterChange("type", e.target.value)}
-              >
-                <option value="">All Types</option>
-                {getUniqueTypes().map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </div>
-            </div>
+        <PropertyFilters
+          filters={filters}
+          handleFilterChange={handleFilterChange}
+          handlePriceRangeChange={handlePriceRangeChange}
+          handleReset={handleReset}
+          handleSearch={handleSearch}
+          getUniqueTypes={getUniqueTypes}
+          getUniqueLocations={getUniqueLocations}
+          formatPriceShort={formatPriceShort}
+        />
 
-            <div className="relative">
-              <select
-                className="w-full p-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
-                value={filters.status}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-              >
-                <option value="">All Status</option>
-                <option value="published">Published</option>
-                <option value="pending">Pending</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </div>
-            </div>
+        {loading && !properties.length && <LoadingSpinner />}
 
+<<<<<<< HEAD
             <div className="relative">
               <select
                 className="w-full p-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
@@ -402,133 +295,13 @@ const PropertyList = () => {
               </div>
             </div>
           </div>
+=======
+        {error && !loading && <ErrorMessage error={error} />}
+>>>>>>> 7d213106f70e916562e324ca0574959227e1d282
 
-          {/* Second Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Min Bedrooms
-              </label>
-              <input
-                type="number"
-                placeholder="Any"
-                className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                value={filters.bedrooms}
-                onChange={(e) => handleFilterChange("bedrooms", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Min Bathrooms
-              </label>
-              <input
-                type="number"
-                placeholder="Any"
-                className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                value={filters.bathrooms}
-                onChange={(e) =>
-                  handleFilterChange("bathrooms", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Price range (USD)
-              </label>
-              <div className="px-1">
-                <div className="flex justify-between text-xs text-gray-500 mb-3">
-                  <span>{formatPriceShort(filters.priceRange[0])}</span>
-                  <span>{formatPriceShort(filters.priceRange[1])}</span>
-                </div>
-                <Slider
-                  value={filters.priceRange}
-                  onValueChange={handlePriceRangeChange}
-                  max={1000000}
-                  min={100}
-                  step={1000}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Third Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Min area (m²)
-              </label>
-              <input
-                type="number"
-                placeholder="Any"
-                className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                value={filters.minArea}
-                onChange={(e) => handleFilterChange("minArea", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Max area (m²)
-              </label>
-              <input
-                type="number"
-                placeholder="Any"
-                className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                value={filters.maxArea}
-                onChange={(e) => handleFilterChange("maxArea", e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={handleReset}
-                className="w-full p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex justify-center items-center gap-1 text-sm"
-              >
-                <SlidersHorizontal className="w-4 h-4 text-gray-600" />
-                Reset
-              </button>
-            </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={handleSearch}
-                className="w-full p-2 bg-[#FFCC41] hover:bg-yellow-500 text-gray-900 text-sm font-medium rounded-lg flex items-center justify-center gap-1 transition-colors"
-              >
-                <Search className="w-3 h-3" />
-                Search
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && !loading && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <div className="text-red-600 text-sm">
-                <strong>API Connection Error:</strong> {error}
-              </div>
-            </div>
-            <div className="text-red-500 text-xs mt-1">
-              Showing demo data. Please check if the API server is running at
-              http://127.0.0.1:8000
-            </div>
-          </div>
-        )}
-
-        {/* Properties Grid */}
         {!loading && (
           <>
+<<<<<<< HEAD
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filteredProperties.map((property) => (
                 <Card
@@ -593,31 +366,20 @@ const PropertyList = () => {
                   Try adjusting your filters or search criteria
                 </p>
               </div>
+=======
+            {filteredProperties.length > 0 ? (
+              <PropertyGrid
+                properties={filteredProperties}
+                getPropertyImage={getPropertyImage}
+                formatPrice={formatPrice}
+              />
+            ) : (
+              <EmptyState />
+>>>>>>> 7d213106f70e916562e324ca0574959227e1d282
             )}
 
-            {/* Pagination */}
-            {pagination.last_page > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-8">
-                <button
-                  onClick={() => handlePageChange(pagination.current_page - 1)}
-                  disabled={pagination.current_page === 1}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                <span className="px-4 py-2 text-sm text-gray-600">
-                  Page {pagination.current_page} of {pagination.last_page}
-                </span>
-
-                <button
-                  onClick={() => handlePageChange(pagination.current_page + 1)}
-                  disabled={pagination.current_page === pagination.last_page}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+            {filteredProperties.length > 0 && hasMore && (
+              <div ref={sentinelRef} style={{ height: 40 }} />
             )}
           </>
         )}

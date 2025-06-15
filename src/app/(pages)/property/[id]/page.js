@@ -1,134 +1,30 @@
 "use client";
 import { useParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import {
-  Heart,
-  Share2,
-  MapPin,
-  User,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  X,
-  AlertTriangle,
-  Info,
-} from "lucide-react";
 import axios from "axios";
+import Toast from "./components/Toast";
+import FormError from "./components/FormError";
+import LoadingButton from "./components/LoadingButton";
+import ImageCarousel from "./components/ImageCarousel";
+import PropertyDetails from "./components/PropertyDetails";
+import ReviewList from "./components/ReviewList";
+import ReviewForm from "./components/ReviewForm";
+import ContactForm from "./components/ContactForm";
+import MortgageCalculator from "./components/MortgageCalculator";
+import Tabs from "./components/Tabs";
+import { Heart, Share2, MapPin, User, AlertCircle, Loader2 } from "lucide-react";
 
-// Toast Component
-const Toast = ({ message, type, onClose }) => {
-  const [isVisible, setIsVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onClose, 300); // Allow fade out animation
-    }, 4000);
-
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  const getToastStyles = () => {
-    const baseStyles =
-      "fixed top-4 right-4 z-50 max-w-sm w-full bg-white border-l-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out";
-
-    if (!isVisible) return `${baseStyles} translate-x-full opacity-0`;
-
-    switch (type) {
-      case "success":
-        return `${baseStyles} border-green-500`;
-      case "error":
-        return `${baseStyles} border-red-500`;
-      case "warning":
-        return `${baseStyles} border-yellow-500`;
-      case "info":
-        return `${baseStyles} border-blue-500`;
-      default:
-        return `${baseStyles} border-gray-500`;
-    }
-  };
-
-  const getIcon = () => {
-    switch (type) {
-      case "success":
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case "error":
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case "warning":
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-      case "info":
-        return <Info className="w-5 h-5 text-blue-500" />;
-      default:
-        return <Info className="w-5 h-5 text-gray-500" />;
-    }
-  };
-
-  return (
-    <div className={getToastStyles()}>
-      <div className="flex items-start p-4">
-        <div className="flex-shrink-0 mr-3">{getIcon()}</div>
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-900">{message}</p>
-        </div>
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(onClose, 300);
-          }}
-          className="flex-shrink-0 ml-3 text-gray-400 hover:text-gray-600"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Toast Manager Hook
-const useToast = () => {
+function useToast() {
   const [toasts, setToasts] = useState([]);
-
   const showToast = (message, type = "info") => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
   };
-
   const removeToast = (id) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
-
   return { toasts, showToast, removeToast };
-};
-
-// Form Error Component
-const FormError = ({ message, onClose }) => (
-  <div className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
-    <AlertCircle className="w-4 h-4 text-red-500 mr-2 flex-shrink-0" />
-    <span className="text-sm text-red-700 flex-1">{message}</span>
-    {onClose && (
-      <button
-        onClick={onClose}
-        className="text-red-500 hover:text-red-700 ml-2"
-      >
-        <X className="w-4 h-4" />
-      </button>
-    )}
-  </div>
-);
-
-// Loading Button Component
-const LoadingButton = ({ loading, children, className, ...props }) => (
-  <button
-    className={`flex items-center justify-center ${className}`}
-    disabled={loading}
-    {...props}
-  >
-    {loading && <Loader2 className="animate-spin mr-2" size={16} />}
-    {children}
-  </button>
-);
+}
 
 const DynamicPropertyListing = () => {
   const { id } = useParams();
@@ -502,134 +398,17 @@ const DynamicPropertyListing = () => {
           />
         ))}
       </div>
-
-      <div className="relative w-full h-96">
-        <img
-          src={images[currentImageIndex]}
-          alt={`${property?.title || "Property"} view ${currentImageIndex + 1}`}
-          className="w-full h-full object-cover transition-opacity duration-500"
-        />
-
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={goToPrevious}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-white transition-all duration-200 shadow-lg"
-            >
-              <ChevronLeft size={20} />
-            </button>
-
-            <button
-              onClick={goToNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-white transition-all duration-200 shadow-lg"
-            >
-              <ChevronRight size={20} />
-            </button>
-
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-              {images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    index === currentImageIndex ? "bg-white" : "bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-          {currentImageIndex + 1} / {images.length}
-        </div>
-      </div>
-
+      <ImageCarousel
+        images={images}
+        currentImageIndex={currentImageIndex}
+        setCurrentImageIndex={setCurrentImageIndex}
+      />
       <main className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {property.title}
-            </h1>
-            <div className="text-2xl font-bold text-gray-900 mb-2">
-              {property.formatted_price}
-            </div>
-            <div className="text-gray-600 flex items-center space-x-4 mb-2">
-              <span>For {property.status === "rent" ? "rent" : "sale"}</span>
-              <span>•</span>
-              <span className="capitalize">{property.type}</span>
-              <span>•</span>
-              <span>{property.space} m²</span>
-              {property.price_per_sqm && (
-                <>
-                  <span>•</span>
-                  <span>{property.price_per_sqm}</span>
-                </>
-              )}
-            </div>
-            {property.location && (
-              <div className="flex items-center text-gray-600 mt-2">
-                <MapPin size={16} className="mr-1" />
-                <span>{property.location}</span>
-              </div>
-            )}
-            <div className="flex items-center space-x-4 mt-4 font-[500] text-[45px]">
-              Description
-            </div>
-            <div className="text-gray-600 leading-relaxed mt-4">
-              <p>{property.description}</p>
-            </div>
-
-            {/* Property Details */}
-            <div className="mb-8 mt-8">
-              <h2 className="font-semibold text-xl mb-4">Property features</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="text-gray-900 capitalize">
-                      {property.type}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Space:</span>
-                    <span className="text-gray-900">{property.space} m²</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Status:</span>
-                    <span className="text-gray-900 capitalize">
-                      {property.status}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Listed:</span>
-                    <span className="text-gray-900">
-                      {property.created_at_human}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Price per m²:</span>
-                    <span className="text-gray-900">
-                      {property.price_per_sqm || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Media Count:</span>
-                    <span className="text-gray-900">
-                      {property.media_count?.total || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Last Updated:</span>
-                    <span className="text-gray-900">
-                      {property.updated_at_human}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            <PropertyDetails property={property} />
+            {/* Property features, description, etc. can be further split if needed */}
             {/* Reviews Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
@@ -637,103 +416,32 @@ const DynamicPropertyListing = () => {
                   Reviews ({reviews.length})
                 </h2>
               </div>
-
               {reviewsLoading ? (
                 <div className="flex items-center space-x-2">
                   <Loader2 className="animate-spin" size={16} />
                   <span className="text-gray-600">Loading reviews...</span>
                 </div>
               ) : (
-                <>
-                  {reviews.length === 0 ? (
-                    <div className="text-gray-500 py-4">No reviews yet.</div>
-                  ) : (
-                    <div className="space-y-6">
-                      {reviews.map((review) => (
-                        <div key={review.id} className="flex space-x-4 mb-6">
-                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                            <User size={20} className="text-gray-500" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
-                                <h4 className="font-semibold text-gray-900">
-                                  {review.user?.name || "Anonymous"}
-                                </h4>
-                              </div>
-                              {currentUser &&
-                                (review.user?.id === currentUser.id ||
-                                  currentUser.role === "admin") && (
-                                  <button
-                                    onClick={() =>
-                                      handleDeleteReview(review.id)
-                                    }
-                                    className="text-red-500 hover:text-red-700 text-sm"
-                                  >
-                                    Delete
-                                  </button>
-                                )}
-                            </div>
-                            <p className="text-gray-600 text-sm leading-relaxed">
-                              {review.content}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {review.created_at}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="text-gray-500 text-sm">
-                        Showing {reviews.length} review(s)
-                      </div>
-                    </div>
-                  )}
-                </>
+                <ReviewList reviews={reviews} />
               )}
-
               {/* Review Form */}
               <div className="border-t pt-8 mt-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Leave a Review
                 </h3>
-                <div className="space-y-4">
-                  {reviewError && (
-                    <FormError
-                      message={reviewError}
-                      onClose={() => setReviewError("")}
-                    />
-                  )}
-                  <div>
-                    <textarea
-                      value={reviewForm.comment}
-                      onChange={(e) =>
-                        setReviewForm({ comment: e.target.value })
-                      }
-                      placeholder="Your Comment *"
-                      rows={6}
-                      className="w-full px-3 py-3 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <LoadingButton
-                      type="button"
-                      onClick={handleReviewSubmit}
-                      loading={submittingReview}
-                      className="bg-yellow-400 text-gray-900 py-3 px-8 rounded font-medium hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={!reviewForm.comment.trim()}
-                    >
-                      {submittingReview ? "Posting..." : "Post Review"}
-                    </LoadingButton>
-                  </div>
-                </div>
+                <ReviewForm
+                  reviewForm={reviewForm}
+                  setReviewForm={setReviewForm}
+                  submittingReview={submittingReview}
+                  reviewError={reviewError}
+                  onSubmit={handleReviewSubmit}
+                />
               </div>
             </div>
           </div>
-
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Price Card */}
+            {/* Price Card, Agent Card, etc. can be further split if needed */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -750,13 +458,11 @@ const DynamicPropertyListing = () => {
                   </div>
                 </div>
               </div>
-
               <div className="flex items-center justify-between">
                 <button className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
                   <Heart size={16} />
                   <span>Add to wishlist</span>
                 </button>
-
                 <div className="flex items-center space-x-3">
                   <button className="p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
                     <span className="text-lg font-bold">+</span>
@@ -764,71 +470,10 @@ const DynamicPropertyListing = () => {
                   <button className="p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
                     <Share2 size={16} />
                   </button>
-                  <button className="p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="6,9 6,2 18,2 18,9"></polyline>
-                      <path d="M6,18H4a2,2,0,0,1-2-2V11a2,2,0,0,1,2-2H20a2,2,0,0,1,2,2v5a2,2,0,0,1-2,2H18"></path>
-                      <rect x="6" y="14" width="12" height="8"></rect>
-                    </svg>
-                  </button>
                 </div>
               </div>
             </div>
-            {/* Agent Card */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <div className="flex items-start mb-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                  <User size={24} className="text-gray-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                    NEW HOME
-                  </p>
-                  <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                    Rachel Gray
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    569 7th Ave, New York, NY 10018, USA
-                  </p>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Office phone:</span>
-                      <span className="text-gray-900">+1(844)6557</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Mobile phone:</span>
-                      <span className="text-gray-900">+777 844 2222</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">
-                        Whatsapp, Viber phone:
-                      </span>
-                      <span className="text-gray-900">77777444222</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Email:</span>
-                      <span className="text-gray-900">
-                        rachelgray@example.com
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button className="w-full bg-yellow-400 text-gray-900 py-3 px-4 rounded font-medium hover:bg-yellow-500 transition-colors mb-4">
-                View my properties
-              </button>
-            </div>
-
-            {/* Schedule Tour Card */}
+            {/* Agent Card, Schedule Tour, etc. can be further split if needed */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Schedule tour
@@ -837,80 +482,15 @@ const DynamicPropertyListing = () => {
                 Tellus sollicitudin cursus est, ut, ut dapibus fermentum.
                 Praesent dignissim.
               </p>
-
-              <form onSubmit={handleContactSubmit} className="space-y-4">
-                {contactError && (
-                  <FormError
-                    message={contactError}
-                    onClose={() => setContactError("")}
-                  />
-                )}
-
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Your name*"
-                    value={contactForm.name}
-                    onChange={(e) =>
-                      setContactForm((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <input
-                    type="email"
-                    placeholder="Your email*"
-                    value={contactForm.email}
-                    onChange={(e) =>
-                      setContactForm((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <input
-                    type="tel"
-                    placeholder="Your phone*"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <textarea
-                    rows={4}
-                    placeholder="Message"
-                    value={contactForm.message}
-                    onChange={(e) =>
-                      setContactForm((prev) => ({
-                        ...prev,
-                        message: e.target.value,
-                      }))
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent resize-none"
-                    required
-                  />
-                </div>
-
-                <LoadingButton
-                  type="submit"
-                  loading={submittingContact}
-                  className="w-full bg-yellow-400 text-gray-900 py-3 px-4 rounded-lg font-medium hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submittingContact ? "Sending..." : "Make enquiry"}
-                </LoadingButton>
-              </form>
+              <ContactForm
+                contactForm={contactForm}
+                setContactForm={setContactForm}
+                submittingContact={submittingContact}
+                contactError={contactError}
+                onSubmit={handleContactSubmit}
+              />
             </div>
+            <MortgageCalculator calculatorInputs={calculatorInputs} />
           </div>
         </div>
       </main>
