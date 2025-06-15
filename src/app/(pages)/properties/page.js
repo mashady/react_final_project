@@ -57,7 +57,9 @@ const PropertyList = () => {
         }
         // Merge and remove duplicates by id
         const merged = [...prevProperties, ...data.data];
-        const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
+        const unique = Array.from(
+          new Map(merged.map((item) => [item.id, item])).values()
+        );
         return unique;
       });
     } catch (error) {
@@ -185,13 +187,8 @@ const PropertyList = () => {
 
   const getUniqueLocations = () => {
     const locations = properties
-<<<<<<< HEAD
-      .map((p) => (p && p.location ? p.location.split(",")[0] : null))
-      .filter((loc) => loc !== null && loc !== undefined && loc !== "");
-=======
       .filter((p) => p.location) // Filter out properties with no location
       .map((p) => p.location.split(",")[0]);
->>>>>>> 7d213106f70e916562e324ca0574959227e1d282
     return [...new Set(locations)];
   };
 
@@ -264,109 +261,10 @@ const PropertyList = () => {
 
         {loading && !properties.length && <LoadingSpinner />}
 
-<<<<<<< HEAD
-            <div className="relative">
-              <select
-                className="w-full p-2 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 appearance-none cursor-pointer"
-                value={filters.location}
-                onChange={(e) => handleFilterChange("location", e.target.value)}
-              >
-                <option value="">All Locations</option>
-                {getUniqueLocations().map((location, index) => (
-                  <option key={index} value={location}>
-                    {location}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-=======
         {error && !loading && <ErrorMessage error={error} />}
->>>>>>> 7d213106f70e916562e324ca0574959227e1d282
 
         {!loading && (
           <>
-<<<<<<< HEAD
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {filteredProperties.map((property) => (
-                <Card
-                  key={property.id}
-                  className="cursor-pointer hover:shadow-md transition-all overflow-hidden border-none shadow-sm"
-                >
-                  {/* Property Image */}
-                  <div className="relative h-48 bg-gray-200">
-                    <img
-                      src={getPropertyImage(property)}
-                      alt={property.title}
-                      className="w-full h-full object-cover rounded-t-lg"
-                      onError={(e) => {
-                        e.target.src =
-                          "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=400&h=300&fit=crop";
-                      }}
-                    />
-                  </div>
-
-                  <CardContent className="p-4">
-                    <div className="text-sm font-medium text-gray-500 mb-1">
-                      {property.type.toUpperCase()} -{" "}
-                      {property.location ? property.location.split(",")[0] : ""}
-                    </div>
-
-                    {/* Title */}
-                    <CardTitle className="text-lg font-bold mb-2">
-                      {property.title}
-                    </CardTitle>
-
-                    {/* Description */}
-                    <CardDescription className="text-gray-600 mb-4">
-                      {property.description}
-                    </CardDescription>
-
-                    {/* Price */}
-                    <div className="text-xl font-bold text-gray-900">
-                      {formatPrice(property.price)}
-                    </div>
-
-                    {/* Area */}
-                    {property.space && (
-                      <div className="text-sm text-gray-500 mt-2">
-                        {property.space}m²
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Empty State */}
-            {filteredProperties.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
-                  <Home className="w-16 h-16 mx-auto mb-4" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No properties found
-                </h3>
-                <p className="text-gray-500">
-                  Try adjusting your filters or search criteria
-                </p>
-              </div>
-=======
             {filteredProperties.length > 0 ? (
               <PropertyGrid
                 properties={filteredProperties}
@@ -375,7 +273,6 @@ const PropertyList = () => {
               />
             ) : (
               <EmptyState />
->>>>>>> 7d213106f70e916562e324ca0574959227e1d282
             )}
 
             {filteredProperties.length > 0 && hasMore && (
