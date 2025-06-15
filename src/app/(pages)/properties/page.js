@@ -57,7 +57,9 @@ const PropertyList = () => {
         }
         // Merge and remove duplicates by id
         const merged = [...prevProperties, ...data.data];
-        const unique = Array.from(new Map(merged.map(item => [item.id, item])).values());
+        const unique = Array.from(
+          new Map(merged.map((item) => [item.id, item])).values()
+        );
         return unique;
       });
     } catch (error) {

@@ -12,7 +12,14 @@ import ReviewForm from "./components/ReviewForm";
 import ContactForm from "./components/ContactForm";
 import MortgageCalculator from "./components/MortgageCalculator";
 import Tabs from "./components/Tabs";
-import { Heart, Share2, MapPin, User, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Heart,
+  Share2,
+  MapPin,
+  User,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 
 function useToast() {
   const [toasts, setToasts] = useState([]);
@@ -114,6 +121,7 @@ const DynamicPropertyListing = () => {
         );
 
         const propertyData = propertyResponse.data?.data;
+        console.log(propertyData);
         setProperty(propertyData);
 
         if (propertyData?.media) {

@@ -51,12 +51,31 @@ export default function CompletePropertyForm() {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.type) newErrors.type = "Type is required";
-    if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) < 0) newErrors.price = "Valid price is required";
-    if (formData.street && formData.street.length > 255) newErrors.street = "Street max 255 characters";
-    if (formData.block && formData.block.length > 255) newErrors.block = "Block max 255 characters";
-    if (!formData.space || isNaN(Number(formData.space)) || Number(formData.space) < 0) newErrors.space = "Valid space is required";
-    if (formData.media.some((file) => file.size > MAX_FILE_SIZE)) newErrors.media = "Each file must be less than 10MB.";
-    if (formData.media.some((file) => ![...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES].includes(file.type))) newErrors.media = "Invalid file type detected.";
+    if (
+      !formData.price ||
+      isNaN(Number(formData.price)) ||
+      Number(formData.price) < 0
+    )
+      newErrors.price = "Valid price is required";
+    if (formData.street && formData.street.length > 255)
+      newErrors.street = "Street max 255 characters";
+    if (formData.block && formData.block.length > 255)
+      newErrors.block = "Block max 255 characters";
+    if (
+      !formData.space ||
+      isNaN(Number(formData.space)) ||
+      Number(formData.space) < 0
+    )
+      newErrors.space = "Valid space is required";
+    if (formData.media.some((file) => file.size > MAX_FILE_SIZE))
+      newErrors.media = "Each file must be less than 10MB.";
+    if (
+      formData.media.some(
+        (file) =>
+          ![...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES].includes(file.type)
+      )
+    )
+      newErrors.media = "Invalid file type detected.";
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
       setSubmitStatus({
@@ -244,7 +263,8 @@ export default function CompletePropertyForm() {
       const submitData = new FormData();
       submitData.append("title", formData.title);
       submitData.append("type", formData.type);
-      if (formData.description) submitData.append("description", formData.description);
+      if (formData.description)
+        submitData.append("description", formData.description);
       submitData.append("price", formData.price);
       if (formData.area) submitData.append("area", formData.area);
       submitData.append("block", formData.block || "");
@@ -274,7 +294,9 @@ export default function CompletePropertyForm() {
     } catch (error) {
       setSubmitStatus({
         type: "error",
-        message: `Failed to create property listing: ${error.response?.data?.message || error.message}`,
+        message: `Failed to create property listing: ${
+          error.response?.data?.message || error.message
+        }`,
       });
     } finally {
       setIsSubmitting(false);
@@ -328,7 +350,6 @@ export default function CompletePropertyForm() {
                   name="title"
                   value={formData.title || ""}
                   onChange={handleInputChange}
-                  
                   aria-label="Property Title"
                   aria-invalid={!!errors.title}
                   className={`w-full px-3 py-2 text-sm border ${
@@ -365,7 +386,6 @@ export default function CompletePropertyForm() {
                     name="type"
                     value={formData.type || ""}
                     onChange={handleInputChange}
-                    
                     aria-label="Property Type"
                     className={`w-full px-3 py-2 text-sm border ${
                       errors.type ? "border-red-500" : "border-gray-300"
@@ -428,7 +448,7 @@ export default function CompletePropertyForm() {
                 <input
                   type="number"
                   name="bedrooms"
-                  value={formData.bedrooms|| ""}
+                  value={formData.bedrooms || ""}
                   onChange={handleInputChange}
                   min="0"
                   aria-label="Number of Bedrooms"
@@ -443,7 +463,7 @@ export default function CompletePropertyForm() {
                 <input
                   type="number"
                   name="bathrooms"
-                  value={formData.bathrooms|| ""}
+                  value={formData.bathrooms || ""}
                   onChange={handleInputChange}
                   min="0"
                   step="0.5"
@@ -490,7 +510,6 @@ export default function CompletePropertyForm() {
                 name="price"
                 value={formData.price || ""}
                 onChange={handleInputChange}
-                
                 min="0"
                 step="0.01"
                 aria-label="Price"
@@ -531,7 +550,9 @@ export default function CompletePropertyForm() {
                   min="0"
                   aria-label="Area"
                   aria-invalid={!!errors.area}
-                  className={`w-full px-3 py-2 text-sm border ${errors.area ? "border-red-500" : "border-gray-300"} rounded focus:outline-none focus:border-blue-500`}
+                  className={`w-full px-3 py-2 text-sm border ${
+                    errors.area ? "border-red-500" : "border-gray-300"
+                  } rounded focus:outline-none focus:border-blue-500`}
                 />
                 {errors.area && (
                   <p className="text-xs text-red-500 mt-1">{errors.area}</p>
@@ -549,7 +570,9 @@ export default function CompletePropertyForm() {
                   maxLength={255}
                   aria-label="Street"
                   aria-invalid={!!errors.street}
-                  className={`w-full px-3 py-2 text-sm border ${errors.street ? "border-red-500" : "border-gray-300"} rounded focus:outline-none focus:border-blue-500`}
+                  className={`w-full px-3 py-2 text-sm border ${
+                    errors.street ? "border-red-500" : "border-gray-300"
+                  } rounded focus:outline-none focus:border-blue-500`}
                 />
                 {errors.street && (
                   <p className="text-xs text-red-500 mt-1">{errors.street}</p>
@@ -567,7 +590,9 @@ export default function CompletePropertyForm() {
                   maxLength={255}
                   aria-label="Block"
                   aria-invalid={!!errors.block}
-                  className={`w-full px-3 py-2 text-sm border ${errors.block ? "border-red-500" : "border-gray-300"} rounded focus:outline-none focus:border-blue-500`}
+                  className={`w-full px-3 py-2 text-sm border ${
+                    errors.block ? "border-red-500" : "border-gray-300"
+                  } rounded focus:outline-none focus:border-blue-500`}
                 />
                 {errors.block && (
                   <p className="text-xs text-red-500 mt-1">{errors.block}</p>
@@ -584,7 +609,7 @@ export default function CompletePropertyForm() {
               <span className="w-4 h-4 border border-orange-500 text-orange-500 rounded-full flex items-center justify-center text-xs mr-2">
                 <Camera className="w-4 h-4" />
               </span>
-            Media
+              Media
             </h2>
           </div>
 
