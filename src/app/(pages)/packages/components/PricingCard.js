@@ -1,11 +1,42 @@
 "use client";
-const PricingCard = ({ title, price, fullPrice, features, isPopular }) => {
+import React, { useState } from "react";
+import axios from "axios";
+
+const PricingCard = ({ title, price, fullPrice, features, isPopular, planId }) => {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleAddToCart = async () => {
+    setLoading(true);
+    setMessage("");
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/plans/add-to-cart",
+        { plan_id: planId },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        }
+      );
+      setMessage(response.data.message || "Added to cart!");
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.message) {
+        setMessage(err.response.data.message);
+      } else {
+        setMessage("Error adding to cart.");
+      }
+    }
+    setLoading(false);
+  };
+
   return (
     <div
       className={`bg-white p-8 shadow-lg ${
         isPopular ? "border-2" : "border border-gray-200"
-      } hover:shadow-xl transition-shadow relative h-[
-       400px] flex flex-col `}
+      } hover:shadow-xl transition-shadow relative h-[400px] flex flex-col `}
     >
       <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
         {title}
@@ -38,9 +69,14 @@ const PricingCard = ({ title, price, fullPrice, features, isPopular }) => {
           </div>
         ))}
       </div>
-      <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6  transition-colors mt-8">
-        Get Started
+      <button
+        className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6  transition-colors mt-8"
+        onClick={handleAddToCart}
+        disabled={loading}
+      >
+        {loading ? "Adding..." : "Add to Cart"}
       </button>
+      {message && <div className="mt-2 text-center text-sm">{message}</div>}
     </div>
   );
 };
