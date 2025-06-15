@@ -6,20 +6,33 @@ import { useRouter } from 'next/navigation'
 import banner from '../../../../../public/banner.jpg'
 import owner from '../../../../../public/owner.jpg'
 import Image from 'next/image'
+import axios from 'axios'
+import PropertyCard from '@/components/shared/PropertyCard'
 const page = () => {
 
   const [userProfile, setUserProfile] = useState({})
-
+  const [id, setId] = useState(useParams().id)
   useEffect(() => {
-    setUserProfile({
-      name: "Abdelwahab Saeed",
-      bio: "Lorem ipsum dolor sit amet, pri eu denique concludaturque, qui eros utinam luptatum an, sumo nibh tantas in vis. Mel possim invenire expetendis ne, ut verear neglegentur mel. Usu cu dictas nostrum constituam, eu timeam ceteros delicata nec. In vis nostro oporteat, pri ut vide debet aeque, nec invenire referrentur eu tantas mentitum. ",
-      image: owner,
-      email: "abdo@gmail.com",
-      phone: "01025332000",
-      address: "Cairo, Egypt",
-    })
+    fetchUserProfile()
   }, [])
+
+  const fetchUserProfile = () => {
+    axios.get(`http://localhost:8000/api/users/${id}`).then((res) => {
+      console.log(res.data.data)
+      setUserProfile({
+        name: res.data.data.name,
+        bio: res.data.data.owner_profile.bio,
+        image: `https://newhome.qodeinteractive.com/wp-content/uploads/2023/03/agent2-profile-img-new-409x409.jpg`,
+        email: res.data.data.email,
+        phone: res.data.data.owner_profile.phone_number,
+        whatsapp: res.data.data.owner_profile.whatsapp_number,
+        address: res.data.data.owner_profile.address,
+        properties: res.data.data.ads 
+      })
+    }).catch((err) => {
+      console.log(err)
+    })
+  }
 
   return (
    <>
@@ -30,16 +43,20 @@ const page = () => {
       <section id="leftSide" className=''>
         <article id="infoCard" className='bg-[#edf9f9] rounded-sm flex flex-col justify-center items-center px-5 py-5 space-y-3'>
           <section id="profileImage" className=' '>
-            <Image src={userProfile.image} alt="owner image" className='rounded-sm' /> 
+            <Image src={owner} alt="owner image" className='rounded-sm' width={450} height={450} /> 
           </section>
           <section id="ownerInfo" className='my-6'>
-            <div className='flex  space-x-60 border-b-1 border-gray-200 py-2'>
+            <div className='flex space-x-60 border-b-1 border-gray-200 py-2'>
               <p className='text-gray-600'> Address:</p>
               <p> {userProfile.address} </p>
             </div>
             <div className='flex  space-x-60 border-b-1 border-gray-200 py-2'>
               <p className='text-gray-600'> Phone:</p>
-              <p> +2{userProfile.phone} </p>
+              <p> +2{userProfile.phone || "01025335022"} </p>
+            </div>
+            <div className='flex  space-x-60 border-b-1 border-gray-200 py-2'>
+              <p className='text-gray-600'> WhatsApp:</p>
+              <p> +2{userProfile.whatsapp || "01025335022"} </p>
             </div>
             <div className='flex  space-x-60 py-2'>
               <p className='text-gray-600'> Email:</p>
@@ -56,7 +73,22 @@ const page = () => {
         <article id="ownerProperties" className='w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm mt-5'>
           <h3 className='text-3xl font-medium mb-8'> Our Listing </h3>
           <div>
-            
+            {/* {userProfile.properties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                image={property.image}
+                status={property.status}
+                location={property.location}
+                title={property.title}
+                description={property.description}
+                price={property.price}
+                currency={property.currency}
+                area={property.area}
+                bedrooms={property.bedrooms}
+                bathrooms={property.bathrooms}
+                onClick={() => router.push(`/property/${property.id}`)}
+              />
+            ))} */}
           </div>
         </article>
       </section>
