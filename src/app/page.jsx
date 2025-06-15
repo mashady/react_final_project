@@ -2,14 +2,12 @@
 
 import { HeroSection } from "@/components/Home/HeroSection";
 import { PropertiesGrid } from "@/components/Home/PropertyCard";
-import {SmallDescription} from "@/components/Home/SmallDescription";
-import {HowItWorks} from "@/components/Home/HowItWorks";
+import { SmallDescription } from "@/components/Home/SmallDescription";
+import { HowItWorks } from "@/components/Home/HowItWorks";
 import RenovationServices from "@/components/Home/RenovationSection";
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-
 
 export default function HomePage() {
   return (
@@ -24,8 +22,8 @@ export default function HomePage() {
 
           <div className="flex justify-center mt-20">
             <Link href="/properties">
-              <Button className="bg-orange-500 hover:bg-yellow-800 text-white whitespace-nowrap h-16 px-8 text-lg">
-               Browse More Properties
+              <Button className="bg-yellow-500 hover:bg-yellow-600 text-white whitespace-nowrap h-16 px-8 text-lg">
+                Browse More Properties
               </Button>
             </Link>
           </div>

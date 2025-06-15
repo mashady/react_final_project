@@ -107,7 +107,7 @@ const UserProfileCard = () => {
               </div>
             </>
           )}
-
+          {/* 
           {user.role === "owner" && (
             <div className="flex flex-col sm:flex-row">
               <span
@@ -118,7 +118,7 @@ const UserProfileCard = () => {
               </span>
               <span className="text-black">{profile?.institution || "-"}</span>
             </div>
-          )}
+          )} */}
 
           {/* Common fields */}
           <div className="flex flex-col sm:flex-row">
