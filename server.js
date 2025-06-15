@@ -4,15 +4,20 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = 'https://jsphykfdufkfrpnztkvb.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcHh5a2ZkdWZrZnJwbnp0a3ZiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODIxMDI2MSwiZXhwIjoyMDYzNzg2MjYxfQ.VOXyzJeGmQe36W-Ik3N-4mDegm6leda67AiM-plDBTU';
+// Polyfill fetch for Node.js if needed
+if (!globalThis.fetch) {
+  globalThis.fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+}
+
+const SUPABASE_URL = 'https://jspxykfdufkfrpnztkvb.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcHh5a2ZkdWZrZnJwbnp0a3ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyMTAyNjEsImV4cCI6MjA2Mzc4NjI2MX0.JI4eok76n1nKbcKJc-JaqHH56Xoz9dLwMvPBqMVBlR8';
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const dev = process.env.NODE_ENV !== 'production';
 const nextApp = next({ dev });
 const handle = nextApp.getRequestHandler();
 
-nextApp.prepare().then(() => {
+nextApp.prepare().then(async () => {
   const app = express();
   const server = http.createServer(app);
   
@@ -31,38 +36,75 @@ nextApp.prepare().then(() => {
       console.log('- From:', from);
       console.log('- To:', to);
       console.log('- Message:', message);
-      console.log('- Socket rooms:', Array.from(socket.rooms));
-      console.log('- Connected users:', Array.from(connectedUsers.entries()));
 
       if (!to || !from || !message) {
         console.log('❌ Invalid message format');
+        socket.emit('error', { message: 'Invalid message format' });
         return;
       }
 
-      // Save message to Supabase
-      try {
-        await supabase.from('messages').insert([
-          {
-            sender_id: Number(from),
-            receiver_id: Number(to),
-            message,
-            is_read: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ]);
-        console.log('✅ Message saved to Supabase');
-      } catch (err) {
-        console.error('❌ Error saving message to Supabase:', err);
-      }
+      // Create message object with timestamp
+      const timestamp = new Date().toISOString();
+      const messageObj = {
+        from,
+        to,
+        message,
+        timestamp
+      };
 
-      // Send to recipient
+      // Send to recipient immediately for real-time experience
       console.log(`📤 Broadcasting to room ${to}`);
-      io.to(to).emit('private_message', { from, message });
+      io.to(to).emit('private_message', messageObj);
       
-      // Send confirmation to sender
+      // Send confirmation to sender immediately
       console.log(`📤 Sending confirmation to ${from}`);
-      io.to(from).emit('message_sent_confirmation', { from, message });
+      socket.emit('message_sent_confirmation', messageObj);
+
+      // Handle database operations asynchronously (don't block real-time)
+      setImmediate(async () => {
+        try {
+          // Validate and convert user IDs to bigint
+          const senderId = parseInt(from);
+          const receiverId = parseInt(to);
+          
+          if (isNaN(senderId) || isNaN(receiverId)) {
+            console.log('❌ Invalid user IDs');
+            return;
+          }
+
+          // Save message to database
+          const messageData = {
+            sender_id: senderId,
+            receiver_id: receiverId,
+            message: message.toString().trim(),
+            is_read: false,
+            created_at: timestamp.replace('T', ' ').substring(0, 19),
+            updated_at: timestamp.replace('T', ' ').substring(0, 19),
+          };
+
+          const { error: insertError } = await supabase
+            .from('messages')
+            .insert([messageData]);
+
+          if (insertError) {
+            console.error('❌ Database insert error:', insertError);
+            // Emit error to sender only (don't disrupt real-time for others)
+            socket.emit('database_error', { 
+              message: 'Failed to save message to database', 
+              error: insertError.message 
+            });
+          } else {
+            console.log('✅ Message saved to database');
+          }
+
+        } catch (error) {
+          console.error('❌ Database error:', error);
+          socket.emit('database_error', { 
+            message: 'Database error occurred', 
+            error: error.message 
+          });
+        }
+      });
     });
 
     socket.on('join', (userId) => {
@@ -107,6 +149,27 @@ nextApp.prepare().then(() => {
         connectedUsers.delete(socket.id);
       }
     });
+  });
+
+  // API endpoint to fetch messages between two users
+  app.get('/api/messages', async (req, res) => {
+    const { user1, user2 } = req.query;
+    if (!user1 || !user2) {
+      return res.status(400).json({ error: 'Missing user1 or user2 query parameter' });
+    }
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${user1},receiver_id.eq.${user2}),and(sender_id.eq.${user2},receiver_id.eq.${user1})`)
+        .order('created_at', { ascending: true });
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
+      return res.json({ messages: data });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
   });
 
   app.use((req, res) => {
