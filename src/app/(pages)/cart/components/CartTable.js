@@ -1,7 +1,11 @@
 "use client";
-import { X, Plus, Minus } from "lucide-react";
+import { X } from "lucide-react";
 
-export default function CartTable({ items, updateQuantity, removeItem }) {
+export default function CartTable({
+  items,
+  removeItem,
+  isLoading,
+}) {
   return (
     <div className="overflow-x-auto mb-8">
       <table className="w-full">
@@ -14,7 +18,7 @@ export default function CartTable({ items, updateQuantity, removeItem }) {
               Price
             </th>
             <th className="text-left py-4 px-4 font-medium text-gray-700">
-              Quantity
+              Billing
             </th>
             <th className="text-left py-4 px-4 font-medium text-gray-700">
               Subtotal
@@ -28,44 +32,35 @@ export default function CartTable({ items, updateQuantity, removeItem }) {
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    disabled={isLoading}
                   >
                     <X size={20} />
                   </button>
-                  <span className="font-medium text-gray-900">{item.name}</span>
+                  <div>
+                    <span className="font-medium text-gray-900 block">
+                      {item.plan?.name ?? "-"}
+                    </span>
+                    {item.plan?.features && (
+                      <span className="text-sm text-gray-500">
+                        {item.plan?.ads_limit
+                          ? `${item.plan.ads_limit} ads limit`
+                          : "Unlimited ads"}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </td>
               <td className="py-6 px-4 font-medium">
-                {item.price.toFixed(2)} $
+                ${item.plan?.price !== undefined ? item.plan.price.toFixed(2) : "0.00"}
               </td>
-              <td className="py-6 px-4">
-                <div className="flex items-center border border-gray-300 w-fit">
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="p-2 hover:bg-gray-50 transition-colors"
-                    disabled={item.quantity <= 1}
-                  >
-                    <Minus size={16} className="text-gray-600" />
-                  </button>
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      updateQuantity(item.id, parseInt(e.target.value) || 1)
-                    }
-                    className="w-12 text-center border-0 outline-none"
-                    min="1"
-                  />
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="p-2 hover:bg-gray-50 transition-colors"
-                  >
-                    <Plus size={16} className="text-gray-600" />
-                  </button>
-                </div>
+              <td className="py-6 px-4 text-sm text-gray-600">
+                {item.plan?.billing_interval ?? "-"} ({item.plan?.duration ?? "-"} days)
               </td>
               <td className="py-6 px-4 font-medium">
-                {(item.price * item.quantity).toFixed(2)} $
+                {item.plan?.price
+                  ? `$${item.plan.price.toFixed(2)}`
+                  : "0.00"}
               </td>
             </tr>
           ))}

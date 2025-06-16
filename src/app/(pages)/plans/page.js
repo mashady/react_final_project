@@ -3,65 +3,55 @@ import PricingHeader from "./components/PricingHeader";
 import HowItWorks from "./components/HowItWorks";
 import PricingCard from "./components/PricingCard";
 
-const pricingPlans = [
+const plans = [
   {
-    title: "Basic Package",
-    price: "Free",
-    features: ["5 properties included", "12 months duration", null, null],
+    id: 1,
+    title: "Free",
+    price: 0,
+    fullPrice: 0,
+    features: ["5 properties per month", "12 months duration ",'-','-'],
   },
   {
+    id: 2,
     title: "Standard",
-    price: "25",
-    fullPrice: "150",
-    features: [
-      "8 properties included",
-      "6 months duration",
-      "24/7 Support",
-      null,
-    ],
+    price: 25,
+    fullPrice: 50,
+    features: ["5 ads per month", "Priority support"],
   },
   {
-    title: "Standard Plus",
-    price: "35",
-    fullPrice: "420",
-    features: [
-      "10 properties included",
-      "12 months duration",
-      "24/7 Support",
-      null,
-    ],
-    isPopular: true,
-  },
-  {
-    title: "Advanced",
-    price: "50",
-    fullPrice: "600",
-    features: [
-      "Unlimited properties included",
-      "12 months duration",
-      "24/7 Support",
-      "Pro Features",
-    ],
+    id: 3,
+    title: "Premium",
+    price: 50,
+    fullPrice: 100,
+    features: ["Unlimited ads", "Featured listing", "Premium support"],
+  }, {
+    id: 4,
+    title: "Premium",
+    price: 50,
+    fullPrice: 100,
+    features: ["Unlimited ads", "Featured listing", "Premium support"],
   },
 ];
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white ">
       <PricingHeader />
 
       <div className="max-w-7xl mx-auto px-6 py-16">
         <HowItWorks />
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {pricingPlans.map((plan, index) => (
+          {plans.map((plan) => (
             <PricingCard
-              key={index}
+              key={plan.id}
               title={plan.title}
               price={plan.price}
               fullPrice={plan.fullPrice}
               features={plan.features}
               isPopular={plan.isPopular}
+              planId={plan.id}
+              isDisabled={plan.isDisabled}
             />
           ))}
         </div>
