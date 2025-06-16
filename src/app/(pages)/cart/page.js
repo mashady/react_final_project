@@ -49,7 +49,7 @@ export default function ShoppingCart() {
 
   return (
     <div>
-      <div className="bg-yellow-400 py-16 px-6">
+      <div className="bg-yellow-500 py-16 px-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-3xl font-[600] text-black">Cart</h1>
           <div className="text-black">
