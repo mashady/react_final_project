@@ -75,7 +75,7 @@ const PropertyCard = ({ property, onClick, className }) => {
         <div className="p-6">
           {area && (
             <div
-              className="flex items-center text-black text-[14px] mb-3"
+              className="flex items-center text-black text-[14px] mb-3 capitalize"
               style={{ fontWeight: 400 }}
             >
               <MapPin className="w-4 h-4 mr-1" />
@@ -85,7 +85,7 @@ const PropertyCard = ({ property, onClick, className }) => {
 
           {title && (
             <h3
-              className="text-[26px] text-black mb-3 truncate"
+              className="text-[26px] text-black mb-3 truncate capitalize"
               style={{ fontWeight: 500 }}
             >
               {title}
@@ -93,7 +93,7 @@ const PropertyCard = ({ property, onClick, className }) => {
           )}
 
           {description && (
-            <p className="text-[#555] text-[15px] leading-relaxed mb-6 truncate">
+            <p className="text-[#555] text-[15px] leading-relaxed mb-6 truncate capitalize">
               {description}
             </p>
           )}
