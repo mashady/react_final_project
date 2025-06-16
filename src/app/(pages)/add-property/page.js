@@ -31,7 +31,7 @@ export default function CompletePropertyForm() {
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState(null);
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif"];
   const ALLOWED_VIDEO_TYPES = ["video/mp4"];
   const API_URL =
@@ -53,7 +53,7 @@ export default function CompletePropertyForm() {
     if (!formData.type) newErrors.type = "Type is required";
     if (
       !formData.price ||
-      isNaN(Number(formData.price)) ||
+      isNaN(Number(formData.price)) ||  
       Number(formData.price) < 0
     )
       newErrors.price = "Valid price is required";
@@ -68,7 +68,7 @@ export default function CompletePropertyForm() {
     )
       newErrors.space = "Valid space is required";
     if (formData.media.some((file) => file.size > MAX_FILE_SIZE))
-      newErrors.media = "Each file must be less than 10MB.";
+      newErrors.media = "Each file must be less than 20MB.";
     if (
       formData.media.some(
         (file) =>
@@ -116,7 +116,7 @@ export default function CompletePropertyForm() {
       if (file.size > MAX_FILE_SIZE) {
         setErrors((prev) => ({
           ...prev,
-          media: `File ${file.name} exceeds 10MB limit.`,
+          media: `File ${file.name} exceeds 20MB limit.`,
         }));
         return false;
       }
@@ -180,7 +180,7 @@ export default function CompletePropertyForm() {
         if (file.size > MAX_FILE_SIZE) {
           setErrors((prev) => ({
             ...prev,
-            videoFile: `Video file exceeds 10MB limit.`,
+            videoFile: `Video file exceeds 20MB limit.`,
           }));
           return;
         }
