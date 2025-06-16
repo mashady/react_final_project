@@ -61,23 +61,22 @@ export default function CartPage() {
 
     setIsLoading(true);
     try {
-      const csrfToken =
-        document
-          .querySelector('meta[name="csrf-token"]')
-          ?.getAttribute("content") || "";
-      const response = await fetch(`${API_BASE}/cart/update`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
-        },
-        body: JSON.stringify({
+      const axios = (await import("axios")).default;
+      const token = getToken();
+      const response = await axios.patch(
+        `${API_BASE}/cart/update`,
+        {
           plan_id: id,
           quantity: newQuantity,
-        }),
-      });
-
-      const data = await response.json();
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = response.data;
       if (data.success) {
         setCartItems((items) =>
           items.map((item) =>
@@ -97,19 +96,21 @@ export default function CartPage() {
   const removeItem = async (id) => {
     setIsLoading(true);
     try {
+      const axios = (await import("axios")).default;
       const token = getToken();
-      const response = await fetch(`${API_BASE}/remove-from-cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ plan_id: id }),
-      });
-
-      const data = await response.json();
+      const response = await axios.post(
+        `${API_BASE}/remove-from-cart`,
+        { plan_id: id },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = response.data;
       if (data.success) {
-        setCartItems((items) => items.filter((item) => item.id !== id));
+        setCartItems((items) => items.filter((item) => item.plan_id !== id));
         setSubtotal(data.subtotal);
         setTotal(data.total);
       }
@@ -127,21 +128,19 @@ export default function CartPage() {
     setCouponMessage("");
 
     try {
-      const csrfToken =
-        document
-          .querySelector('meta[name="csrf-token"]')
-          ?.getAttribute("content") || "";
-      const response = await fetch(`${API_BASE}/cart/coupon`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
-        },
-        body: JSON.stringify({ coupon_code: couponCode }),
-      });
-
-      const data = await response.json();
-
+      const axios = (await import("axios")).default;
+      const token = getToken();
+      const response = await axios.post(
+        `${API_BASE}/cart/coupon`,
+        { coupon_code: couponCode },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = response.data;
       if (data.success) {
         setAppliedCoupon({
           code: couponCode,
