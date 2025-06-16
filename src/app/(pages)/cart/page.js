@@ -19,6 +19,9 @@ export default function CartPage() {
   // API base URL - adjust according to your Laravel setup
   const API_BASE = "http://127.0.0.1:8000/api/plans";
 
+  // Helper to get token from localStorage (adjust if you store it elsewhere)
+  const getToken = () => localStorage.getItem("token");
+
   // Load cart data on component mount
   useEffect(() => {
     loadCart();
@@ -27,13 +30,24 @@ export default function CartPage() {
   const loadCart = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/plans/mycart`);
-      const data = await response.json();
+      const axios = (await import("axios")).default;
+      const token = getToken();
+      const response = await axios.get(`${API_BASE}/mycart`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      if (data.success) {
-        setCartItems(data.cart_items);
-        setSubtotal(data.subtotal);
-        setTotal(data.total);
+      const data = response.data;
+
+      if (Array.isArray(data)) {
+        setCartItems(data);
+        // Optionally, calculate subtotal/total here if not provided by backend
+        // setSubtotal(...);
+        // setTotal(...);
+      } else if (data.message) {
+        setCartItems([]);
+        // Optionally, set a message to show "Your cart is empty"
       }
     } catch (error) {
       console.error("Error loading cart:", error);
@@ -83,15 +97,12 @@ export default function CartPage() {
   const removeItem = async (id) => {
     setIsLoading(true);
     try {
-      const csrfToken =
-        document
-          .querySelector('meta[name="csrf-token"]')
-          ?.getAttribute("content") || "";
-      const response = await fetch(`${API_BASE}/cart/remove`, {
-        method: "DELETE",
+      const token = getToken();
+      const response = await fetch(`${API_BASE}/remove-from-cart`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ plan_id: id }),
       });

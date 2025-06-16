@@ -1,9 +1,8 @@
 "use client";
-import { X, Plus, Minus } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function CartTable({
   items,
-  updateQuantity,
   removeItem,
   isLoading,
 }) {
@@ -20,9 +19,6 @@ export default function CartTable({
             </th>
             <th className="text-left py-4 px-4 font-medium text-gray-700">
               Billing
-            </th>
-            <th className="text-left py-4 px-4 font-medium text-gray-700">
-              Quantity
             </th>
             <th className="text-left py-4 px-4 font-medium text-gray-700">
               Subtotal
@@ -43,12 +39,12 @@ export default function CartTable({
                   </button>
                   <div>
                     <span className="font-medium text-gray-900 block">
-                      {item.name}
+                      {item.plan?.name ?? "-"}
                     </span>
-                    {item.features && (
+                    {item.plan?.features && (
                       <span className="text-sm text-gray-500">
-                        {item.ads_limit
-                          ? `${item.ads_limit} ads limit`
+                        {item.plan?.ads_limit
+                          ? `${item.plan.ads_limit} ads limit`
                           : "Unlimited ads"}
                       </span>
                     )}
@@ -56,42 +52,15 @@ export default function CartTable({
                 </div>
               </td>
               <td className="py-6 px-4 font-medium">
-                ${item.price.toFixed(2)}
+                ${item.plan?.price !== undefined ? item.plan.price.toFixed(2) : "0.00"}
               </td>
               <td className="py-6 px-4 text-sm text-gray-600">
-                {item.billing_interval} ({item.duration} days)
-              </td>
-              <td className="py-6 px-4">
-                <div className="flex items-center border border-gray-300 w-fit">
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="p-2 hover:bg-gray-50 transition-colors"
-                    disabled={item.quantity <= 1 || isLoading}
-                  >
-                    <Minus size={16} className="text-gray-600" />
-                  </button>
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      updateQuantity(item.id, parseInt(e.target.value) || 1)
-                    }
-                    className="w-12 text-center border-0 outline-none"
-                    min="1"
-                    max="10"
-                    disabled={isLoading}
-                  />
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="p-2 hover:bg-gray-50 transition-colors"
-                    disabled={isLoading}
-                  >
-                    <Plus size={16} className="text-gray-600" />
-                  </button>
-                </div>
+                {item.plan?.billing_interval ?? "-"} ({item.plan?.duration ?? "-"} days)
               </td>
               <td className="py-6 px-4 font-medium">
-                ${(item.price * item.quantity).toFixed(2)}
+                {item.plan?.price
+                  ? `$${item.plan.price.toFixed(2)}`
+                  : "0.00"}
               </td>
             </tr>
           ))}

@@ -70,19 +70,13 @@ const PricingCard = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-lg p-8 relative flex flex-col ${
+      className={`bg-gray-50  rounded-lg shadow-lg p-8 relative flex flex-col ${
         isPopular ? "border-2 border-yellow-400" : ""
       }`}
     >
-      {isPopular && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <span className="bg-yellow-400 text-black px-8 py-2 rounded-full text-sm font-semibold">
-            Most Popular
-          </span>
-        </div>
-      )}
+     
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-4">{title}</h3>
+        <h3 className="text-2xl font-[600] text-gray-900 mb-4">{title}</h3>
         <div className="flex items-center justify-center gap-2">
           <span className="text-4xl font-bold">${price}</span>
           {fullPrice && (
@@ -93,21 +87,9 @@ const PricingCard = ({
       <ul className="space-y-4 mb-8 flex-grow">
         {features.map((feature, index) => (
           <li key={index} className="flex items-start gap-3">
-            <svg
-              className="w-5 h-5 text-green-500 mt-1 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+           
             <span
-              className="text-gray-600"
+              className="text-black"
               dangerouslySetInnerHTML={{ __html: feature }}
             />
           </li>
@@ -118,14 +100,14 @@ const PricingCard = ({
           onClick={handleAddToCart}
           disabled={loading || isDisabled}
           className={`w-full py-3 px-6 rounded ${
-            isPopular
-              ? "bg-yellow-400 hover:bg-yellow-500 text-black"
-              : "bg-black hover:bg-gray-800 text-white"
+          
+               "bg-yellow-400 hover:bg-yellow-500 text-black"
+              
           } transition-colors ${
             (loading || isDisabled) && "opacity-50 cursor-not-allowed"
           }`}
         >
-          {loading ? "Adding..." : "Add to Cart"}
+          {loading ? "Adding..." : "Get started "}
         </button>
         {message && (
           <p
