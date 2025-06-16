@@ -1,21 +1,107 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useIntersection } from "../../../hooks/useIntersection";
+import { useDebounce } from "../../../hooks/useDebounce";
 import PropertyHeader from "./components/PropertyHeader";
 import PropertyFilters from "./components/PropertyFilters";
 import PropertyGrid from "./components/PropertyGrid";
 import EmptyState from "./components/EmptyState";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorMessage from "./components/ErrorMessage";
-import { Slider } from "@/components/ui/slider";
-import {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardContent,
-  CardDescription,
-  CardAction,
-} from "@/components/ui/card";
+
+const propertyService = {
+  async fetchProperties({ pageParam = 1, filters = {}, pageSize = 5 }) {
+    const params = new URLSearchParams({ 
+      page: pageParam.toString(),
+      per_page: pageSize.toString()
+    });
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== "" && value !== null && value !== undefined) {
+        if (key === "priceRange" && Array.isArray(value)) {
+          if (value[0] > 100) params.append("min_price", value[0].toString());
+          if (value[1] < 1000000) params.append("max_price", value[1].toString());
+        } else {
+          params.append(key, value.toString());
+        }
+      }
+    });
+
+    const response = await fetch(`http://127.0.0.1:8000/api/ads?${params}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+};
+
+const useProperties = (filters) => {
+  const debouncedFilters = useDebounce(filters, 300);
+  const queryClient = useQueryClient();
+  
+  const query = useInfiniteQuery({
+    queryKey: ["properties", debouncedFilters],
+    queryFn: ({ pageParam }) => 
+      propertyService.fetchProperties({ 
+        pageParam, 
+        filters: debouncedFilters,
+        pageSize: pageParam === 1 ? 5 : 10 // First page: 5 items, subsequent pages: 10 items
+      }),
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.data || lastPage.data.length === 0) return undefined;
+      
+      const expectedPageSize = allPages.length === 1 ? 5 : 10;
+      if (lastPage.data.length < expectedPageSize) return undefined;
+      
+      return allPages.length + 1;
+    },
+    initialPageParam: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (updated from cacheTime)
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+
+  useEffect(() => {
+    if (query.hasNextPage && !query.isFetchingNextPage) {
+      const nextPage = query.data?.pages?.length ? query.data.pages.length + 1 : 1;
+      queryClient.prefetchInfiniteQuery({
+        queryKey: ["properties", debouncedFilters],
+        queryFn: () => propertyService.fetchProperties({
+          pageParam: nextPage,
+          filters: debouncedFilters,
+          pageSize: nextPage === 1 ? 5 : 10
+        }),
+        pages: 1,
+      });
+    }
+  }, [query.data?.pages?.length, query.hasNextPage, query.isFetchingNextPage, debouncedFilters, queryClient]);
+
+  return query;
+};
+
+const useVirtualScrolling = (items, itemHeight = 300, containerHeight = 800) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  
+  const visibleItems = useMemo(() => {
+    const startIndex = Math.floor(scrollTop / itemHeight);
+    const endIndex = Math.min(
+      startIndex + Math.ceil(containerHeight / itemHeight) + 2,
+      items.length
+    );
+    
+    return {
+      startIndex: Math.max(0, startIndex - 1),
+      endIndex,
+      visibleItems: items.slice(startIndex, endIndex),
+      totalHeight: items.length * itemHeight,
+      offsetY: startIndex * itemHeight,
+    };
+  }, [items, itemHeight, containerHeight, scrollTop]);
+  
+  return { visibleItems, setScrollTop };
+};
 
 const PropertyList = () => {
   const [filters, setFilters] = useState({
@@ -24,134 +110,55 @@ const PropertyList = () => {
     location: "",
     bedrooms: "",
     bathrooms: "",
-    priceRange: [100, 1000000],
+    priceRange: [0, 10000],
     minArea: "",
     maxArea: "",
   });
-  const [properties, setProperties] = useState([]);
-  const [filteredProperties, setFilteredProperties] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  // Fetch properties from API
-  const fetchProperties = async (pageNum = 1) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/ads?page=${pageNum}`
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  const queryClient = useQueryClient();
+  
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useProperties(filters);
+
+  // Flatten all pages into a single array
+  const properties = useMemo(() => {
+    return data?.pages?.flatMap(page => page.data) || [];
+  }, [data]);
+
+  // Get total count from the first page
+  const totalCount = data?.pages?.[0]?.total || properties.length;
+
+  // Intersection observer for infinite scroll
+  const { ref: sentinelRef } = useIntersection({
+    onIntersect: () => {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
       }
-      const data = await response.json();
-      if (!data.data || data.data.length === 0) {
-        setHasMore(false);
-        return;
-      }
-      setProperties((prevProperties) => {
-        if (pageNum === 1) {
-          return data.data;
-        }
-        // Merge and remove duplicates by id
-        const merged = [...prevProperties, ...data.data];
-        const unique = Array.from(
-          new Map(merged.map((item) => [item.id, item])).values()
-        );
-        return unique;
-      });
-    } catch (error) {
-      setError(error.message || "Failed to load properties");
-      setProperties([]);
-      setHasMore(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    rootMargin: "100px", // Trigger loading when sentinel is 100px away from viewport
+  });
 
-  // Apply filters to properties
-  const applyFilters = () => {
-    let filtered = [...properties];
+  // Virtual scrolling (optional - for very large lists)
+  const { visibleItems } = useVirtualScrolling(properties);
 
-    // Type filter
-    if (filters.type) {
-      filtered = filtered.filter(
-        (property) =>
-          property.type?.toLowerCase() === filters.type.toLowerCase()
-      );
-    }
+  // Optimized handlers
+  const handleFilterChange = useCallback((key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
 
-    // Location filter
-    if (filters.location) {
-      filtered = filtered.filter((property) =>
-        property.location
-          ?.toLowerCase()
-          .includes(filters.location.toLowerCase())
-      );
-    }
+  const handlePriceRangeChange = useCallback((newRange) => {
+    setFilters(prev => ({ ...prev, priceRange: newRange }));
+  }, []);
 
-    // Bedrooms filter
-    if (filters.bedrooms) {
-      filtered = filtered.filter((property) => {
-        const bedrooms = property.bedrooms || 0;
-        return bedrooms >= parseInt(filters.bedrooms);
-      });
-    }
-
-    // Bathrooms filter
-    if (filters.bathrooms) {
-      filtered = filtered.filter((property) => {
-        const bathrooms = property.bathrooms || 0;
-        return bathrooms >= parseInt(filters.bathrooms);
-      });
-    }
-
-    // Price range filter
-    filtered = filtered.filter((property) => {
-      const price = parseFloat(property.price || 0);
-      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-    });
-
-    // Area filters
-    if (filters.minArea) {
-      filtered = filtered.filter(
-        (property) =>
-          parseFloat(property.space || 0) >= parseFloat(filters.minArea)
-      );
-    }
-
-    if (filters.maxArea) {
-      filtered = filtered.filter(
-        (property) =>
-          parseFloat(property.space || 0) <= parseFloat(filters.maxArea)
-      );
-    }
-
-    setFilteredProperties(filtered);
-  };
-
-  // Handle filter changes
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  const handlePriceRangeChange = (newRange) => {
-    setFilters((prev) => ({
-      ...prev,
-      priceRange: newRange,
-    }));
-  };
-  const handleSearch = () => {
-    setPage(1); // Reset to page 1 when searching
-    fetchProperties(1);
-  };
-
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setFilters({
       type: "",
       category: "",
@@ -162,46 +169,30 @@ const PropertyList = () => {
       minArea: "",
       maxArea: "",
     });
-    setPage(1);
-    fetchProperties(1);
-  };
+    queryClient.invalidateQueries({ queryKey: ["properties"] });
+  }, [queryClient]);
 
-  // Format price to match the image ($265,000)
-  const formatPrice = (price) => {
+  const handleSearch = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Memoized utility functions
+  const formatPrice = useCallback((price) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(parseFloat(price));
-  };
+  }, []);
 
-  const formatPriceShort = (price) => {
-    if (price >= 1000000) {
-      return `${(price / 1000000).toFixed(1)}M`;
-    } else if (price >= 1000) {
-      return `${(price / 1000).toFixed(0)}K`;
-    }
+  const formatPriceShort = useCallback((price) => {
+    if (price >= 1000000) return `${(price / 1000000).toFixed(1)}M`;
+    if (price >= 1000) return `${(price / 1000).toFixed(0)}K`;
     return price.toString();
-  };
+  }, []);
 
-  const getUniqueLocations = () => {
-    const locations = properties
-      .filter((p) => p.location) // Filter out properties with no location
-      .map((p) => p.location.split(",")[0]);
-    return [...new Set(locations)];
-  };
-
-  // Get unique types from properties
-  const getUniqueTypes = () => {
-    const types = properties
-      .filter((p) => p.type) // Filter out properties with no type
-      .map((p) => p.type);
-    return [...new Set(types)];
-  };
-
-  // Get property image with fallback
-  const getPropertyImage = (property) => {
+  const getPropertyImage = useCallback((property) => {
     if (property.primary_image) {
       if (property.primary_image.startsWith("http")) {
         return property.primary_image;
@@ -209,44 +200,38 @@ const PropertyList = () => {
       return `http://127.0.0.1:8000/storage/${property.primary_image}`;
     }
     return "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=400&h=300&fit=crop";
-  };
-
-  // Initialize component
-  useEffect(() => {
-    fetchProperties();
   }, []);
 
-  // Apply filters when properties or filters change
-  useEffect(() => {
-    applyFilters();
-  }, [properties, filters]);
+  // Memoized unique values
+  const { uniqueTypes, uniqueLocations } = useMemo(() => {
+    const types = new Set();
+    const locations = new Set();
+    
+    properties.forEach(property => {
+      if (property.type) types.add(property.type);
+      if (property.location) {
+        locations.add(property.location.split(",")[0]);
+      }
+    });
+    
+    return {
+      uniqueTypes: Array.from(types),
+      uniqueLocations: Array.from(locations),
+    };
+  }, [properties]);
 
-  const observer = useRef();
-  const sentinelRef = useCallback(
-    (node) => {
-      if (loading || !hasMore) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new window.IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prevPage) => {
-            const nextPage = prevPage + 1;
-            fetchProperties(nextPage);
-            return nextPage;
-          });
-        }
-      });
-      if (node) observer.current.observe(node);
-    },
-    [loading, hasMore]
-  );
+  // Debug log to see how many properties are loaded
+  useEffect(() => {
+    console.log(`Properties loaded: ${properties.length}, Has next page: ${hasNextPage}`);
+  }, [properties.length, hasNextPage]);
+
+  if (isLoading) return <LoadingSpinner />;
+  if (isError) return <ErrorMessage error={error?.message || "Failed to load properties"} />;
 
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <PropertyHeader
-          totalProperties={filteredProperties.length}
-          error={error}
-        />
+        <PropertyHeader totalProperties={totalCount} error={null} />
 
         <PropertyFilters
           filters={filters}
@@ -254,35 +239,57 @@ const PropertyList = () => {
           handlePriceRangeChange={handlePriceRangeChange}
           handleReset={handleReset}
           handleSearch={handleSearch}
-          getUniqueTypes={getUniqueTypes}
-          getUniqueLocations={getUniqueLocations}
+          getUniqueTypes={() => uniqueTypes}
+          getUniqueLocations={() => uniqueLocations}
           formatPriceShort={formatPriceShort}
         />
 
-        {loading && !properties.length && <LoadingSpinner />}
-
-        {error && !loading && <ErrorMessage error={error} />}
-
-        {!loading && (
+        {properties.length > 0 ? (
           <>
-            {filteredProperties.length > 0 ? (
-              <PropertyGrid
-                properties={filteredProperties}
-                getPropertyImage={getPropertyImage}
-                formatPrice={formatPrice}
-              />
-            ) : (
-              <EmptyState />
+            <PropertyGrid
+              properties={properties} // Use visibleItems.visibleItems for virtual scrolling
+              getPropertyImage={getPropertyImage}
+              formatPrice={formatPrice}
+            />
+
+            {/* Infinite scroll sentinel - only show if there are more pages */}
+            {hasNextPage && (
+              <div
+                ref={sentinelRef}
+                className="h-20 flex items-center justify-center mt-8"
+              >
+                {isFetchingNextPage ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="text-gray-600">Loading more properties...</span>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="animate-pulse h-2 w-32 bg-gray-200 rounded mb-2"></div>
+                    <span className="text-gray-400 text-sm">Scroll for more</span>
+                  </div>
+                )}
+              </div>
             )}
 
-            {filteredProperties.length > 0 && hasMore && (
-              <div ref={sentinelRef} style={{ height: 40 }} />
+            {/* End message when all properties are loaded */}
+            {!hasNextPage && properties.length > 5 && (
+              <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8">
+                <p className="text-lg font-medium">You've seen all {totalCount} properties</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Started with 5, loaded {properties.length} total
+                </p>
+              </div>
             )}
           </>
+        ) : (
+          <EmptyState />
         )}
       </div>
     </div>
   );
 };
+
+
 
 export default PropertyList;
