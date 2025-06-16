@@ -1,13 +1,22 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { User, Settings, House, FilePlus, Heart, LogOut } from "lucide-react";
+import {
+  User,
+  Settings,
+  House,
+  FilePlus,
+  Heart,
+  LogOut,
+  Archive,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const DashboardNav = () => {
   const navLinks = [
     { href: "/dashboard", label: "My Profile", icon: User },
     { href: "/dashboard/edit-profile", label: "Edit Profile", icon: Settings },
+    { href: "/dashboard/my-packages", label: "My Packages", icon: Archive },
     { href: "/dashboard/my-properties", label: "My Properties", icon: House },
     { href: "/dashboard/add-property", label: "Add Property", icon: FilePlus },
     { href: "/dashboard/my-wishlist", label: "My Wishlist", icon: Heart },
