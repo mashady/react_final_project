@@ -60,12 +60,20 @@ export const HeroSection = () => {
         style={{ backgroundImage: `url(${images[currentImage]})` }}
       />
 
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 max-h-4000">
-        <h1 className="text-6xl md:text-6xl font-bold text-white mb-8 max-w-6xl">
+      <div className="relative z-10 flex flex-col justify-center h-full px-4 max-h-4000">
+        <h1
+          className="text-[75px] ml-6 font-bold text-white mb-8 max-w-6xl"
+          style={{
+            fontWeight: 500,
+            fontWeight: 500,
+            lineHeight: 1.1,
+            width: "70%",
+          }}
+        >
           Buy or rent properties with no commission
         </h1>
 
-        <div className="flex space-x-4 justify-start w-220 max-w-8xl mb-0">
+        {/* <div className="flex space-x-4 justify-start w-220 max-w-8xl mb-0">
           <SmallNavBar />
         </div>
 
@@ -100,7 +108,7 @@ export const HeroSection = () => {
               Search
             </Button>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );
