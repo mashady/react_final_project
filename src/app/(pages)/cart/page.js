@@ -4,81 +4,100 @@ import CartTable from "./components/CartTable";
 import CouponSection from "./components/CouponSection";
 import CartTotals from "./components/CartTotals";
 
+import axios from "axios";
 export default function ShoppingCart() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Basic Package",
-      price: 0.0,
-      quantity: 1,
-    },
-  ]);
+    const [cartItems, setCartItems] = useState([{
+        id: 1,
+        name: "Basic Package",
+        price: 0.0,
+        quantity: 1,
+    }, ]);
 
-  const [couponCode, setCouponCode] = useState("");
+    const [couponCode, setCouponCode] = useState("");
 
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
+    const updateQuantity = (id, newQuantity) => {
+        if (newQuantity < 1) return;
+        setCartItems((items) =>
+            items.map((item) =>
+                item.id === id ? {...item, quantity: newQuantity } : item
+            )
+        );
+    };
+
+    const removeItem = (id) => {
+        setCartItems((items) => items.filter((item) => item.id !== id));
+    };
+
+    const subtotal = cartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
     );
-  };
+    const total = subtotal;
 
-  const removeItem = (id) => {
-    setCartItems((items) => items.filter((item) => item.id !== id));
-  };
+    const applyCoupon = () => {
+        console.log("Applying coupon:", couponCode);
+    };
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const total = subtotal;
+    const updateCart = () => {
+        console.log("Cart updated");
+    };
 
-  const applyCoupon = () => {
-    console.log("Applying coupon:", couponCode);
-  };
+    const proceedToCheckout = async(planId) => {
+        try {
+            console.log("Proceeding to checkout...");
 
-  const updateCart = () => {
-    console.log("Cart updated");
-  };
+            const response = await axios.post(`http://localhost:8000/api/pay/${planId}`, {
+                // optional data: user info, billing address, etc.
+            });
 
-  const proceedToCheckout = () => {
-    console.log("Proceeding to checkout");
-  };
+            const iframeUrl = response.data.iframe_url;
 
-  return (
-    <div>
-      <div className="bg-yellow-400 py-16 px-6">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-3xl font-[600] text-black">Cart</h1>
-          <div className="text-black">
-            <span>Home</span>
-            <span className="mx-2">/</span>
-            <span>Cart</span>
-          </div>
-        </div>
-      </div>
-      <div className="max-w-6xl mx-auto p-6 bg-white">
-        <CartTable
-          items={cartItems}
-          updateQuantity={updateQuantity}
-          removeItem={removeItem}
+            // Redirect the user to Paymob payment page
+            window.location.href = iframeUrl;
+
+        } catch (error) {
+            console.error("Payment error:", error);
+            alert("Failed to initiate payment. Please try again.");
+        }
+    };
+
+    return ( <
+        div >
+        <
+        div className = "bg-yellow-400 py-16 px-6" >
+        <
+        div className = "max-w-6xl mx-auto flex justify-between items-center" >
+        <
+        h1 className = "text-3xl font-[600] text-black" > Cart < /h1> <
+        div className = "text-black" >
+        <
+        span > Home < /span> <
+        span className = "mx-2" > /</span >
+        <
+        span > Cart < /span> < /
+        div > <
+        /div> < /
+        div > <
+        div className = "max-w-6xl mx-auto p-6 bg-white" >
+        <
+        CartTable items = { cartItems }
+        updateQuantity = { updateQuantity }
+        removeItem = { removeItem }
         />
 
-        <CouponSection
-          couponCode={couponCode}
-          setCouponCode={setCouponCode}
-          applyCoupon={applyCoupon}
-          updateCart={updateCart}
+        <
+        CouponSection couponCode = { couponCode }
+        setCouponCode = { setCouponCode }
+        applyCoupon = { applyCoupon }
+        updateCart = { updateCart }
         />
 
-        <CartTotals
-          subtotal={subtotal}
-          total={total}
-          proceedToCheckout={proceedToCheckout}
-        />
-      </div>
-    </div>
-  );
+        <
+        CartTotals subtotal = { subtotal }
+        total = { total }
+        proceedToCheckout = { proceedToCheckout }
+        /> < /
+        div > <
+        /div>
+    );
 }
