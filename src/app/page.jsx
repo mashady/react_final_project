@@ -11,18 +11,25 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen ">
       <HeroSection />
-      <div className="bg-gray-100 py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-6xl font-bold mb-8 max-w-3xl">
+      <div className="bg-white py-16 ">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h2
+            className="text-[45px] font-bold mb-8 max-w-3xl"
+            style={{
+              fontWeight: 500,
+              width: "500px",
+              lineHeight: 1.1,
+            }}
+          >
             Our choice of popular real estate
           </h2>
           <PropertiesGrid />
 
           <div className="flex justify-center mt-20">
             <Link href="/properties">
-              <Button className="bg-yellow-500 hover:bg-yellow-600 text-white whitespace-nowrap h-16 px-8 text-lg">
+              <Button className="bg-yellow-500 hover:bg-yellow-600 rounded-none text-black whitespace-nowrap h-16 px-8 text-[15px] cursor-pointer">
                 Browse More Properties
               </Button>
             </Link>

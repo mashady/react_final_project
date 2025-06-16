@@ -30,9 +30,9 @@ const PropertyCard = ({ property, onClick, className }) => {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative h-64 bg-gray-200 overflow-hidden">
-          {primary_image.file_path ? (
+          {primary_image && primary_image.file_path ? (
             <img
-              src={"http://localhost:8000/storage/" + primary_image?.file_path}
+              src={"http://localhost:8000/storage/" + primary_image.file_path}
               alt={title || "Property image"}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />
