@@ -31,7 +31,7 @@ export default function CartTable({
               <td className="py-6 px-4">
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(item.plan.id)}
                     className="text-gray-400 hover:text-red-500 transition-colors"
                     disabled={isLoading}
                   >

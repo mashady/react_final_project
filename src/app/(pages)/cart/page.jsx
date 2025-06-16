@@ -81,7 +81,7 @@ export default function CartPage() {
           },
         }
       );
-      
+
       const data = response.data;
       if (data.success) {
         const updatedItems = cartItems.map((item) =>
@@ -111,11 +111,17 @@ export default function CartPage() {
             Authorization: `Bearer ${token}`,
           },
         }
-      );
-      
+      ).then((response) => {
+        console.log(response.data);
+        loadCart();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
       const data = response.data;
       if (data.success) {
-        const updatedItems = cartItems.filter((item) => item.plan_id !== id);
+        const updatedItems = cartItems.filter((item) => item.id !== id);
         setCartItems(updatedItems);
         calculateTotals(updatedItems);
       }
@@ -145,7 +151,7 @@ export default function CartPage() {
           },
         }
       );
-      
+
       const data = response.data;
       if (data.success) {
         setAppliedCoupon({
@@ -184,10 +190,9 @@ export default function CartPage() {
 
     if (total === 0) {
       alert("Your cart total is $0.00. Proceeding to free checkout...");
-      router.push(`/payment/${planId}`);
-    } else {
-      router.push(`/payment/${planId}`);
     }
+
+    router.push(`/payment/${planId}`);
   };
 
   if (isLoading && cartItems.length === 0) {
@@ -249,10 +254,10 @@ export default function CartPage() {
             />
 
             <CartTotals
-              subtotal={subtotal}
+              subtotal={cartItems}
               discount={discount}
               total={total}
-              proceedToCheckout={() => proceedToCheckout(cartItems[0].plan_id)}
+              proceedToCheckout={() => proceedToCheckout(cartItems[0]?.id)}
               isLoading={isLoading}
               appliedCoupon={appliedCoupon}
             />

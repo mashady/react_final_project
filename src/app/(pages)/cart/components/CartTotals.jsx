@@ -8,7 +8,8 @@ export default function CartTotals({
   proceedToCheckout,
   isLoading,
   appliedCoupon,
-}) {
+}) 
+{
   return (
     <div className="flex justify-start">
       <div className="w-full max-w-md">
@@ -17,7 +18,7 @@ export default function CartTotals({
         <div className="space-y-4 mb-6">
           <div className="flex justify-between items-center py-3 border-b border-gray-200">
             <span className="text-gray-700 font-medium">Subtotal</span>
-            <span className="font-medium">${subtotal?.toFixed(2) ?? "0.00"}</span>
+            <span className="font-medium">${subtotal[0].plan?.price.toFixed(2) ?? "0.00"}</span>
           </div>
 
           {/*
@@ -36,7 +37,7 @@ export default function CartTotals({
 
           <div className="flex justify-between items-center py-3 border-b border-gray-200">
             <span className="text-gray-900 font-bold">Total</span>
-            <span className="font-bold text-lg">${total?.toFixed(2) ?? "0.00"}</span>
+            <span className="font-bold text-lg">${subtotal[0].plan?.price.toFixed(2) ?? "0.00"}</span>
           </div>
         </div>
 
