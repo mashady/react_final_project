@@ -43,22 +43,9 @@ export default function ShoppingCart() {
     };
 
     const proceedToCheckout = async(planId) => {
-        try {
-            console.log("Proceeding to checkout...");
-
-            const response = await axios.post(`http://localhost:8000/api/pay/${planId}`, {
-                // optional data: user info, billing address, etc.
-            });
-
-            const iframeUrl = response.data.iframe_url;
-
-            // Redirect the user to Paymob payment page
-            window.location.href = iframeUrl;
-
-        } catch (error) {
-            console.error("Payment error:", error);
-            alert("Failed to initiate payment. Please try again.");
-        }
+        // go to payment page
+        console.log("Proceeding to checkout");
+        window.location.href = `/payment/${planId}`;
     };
 
     return ( <
@@ -83,21 +70,47 @@ export default function ShoppingCart() {
         CartTable items = { cartItems }
         updateQuantity = { updateQuantity }
         removeItem = { removeItem }
-        />
+        const proceedToCheckout = () => {
+            console.log("Proceeding to checkout");
+        };
 
-        <
-        CouponSection couponCode = { couponCode }
-        setCouponCode = { setCouponCode }
-        applyCoupon = { applyCoupon }
-        updateCart = { updateCart }
-        />
+        return ( <
+            div >
+            <
+            div className = "bg-yellow-500 py-16 px-6" >
+            <
+            div className = "max-w-6xl mx-auto flex justify-between items-center" >
+            <
+            h1 className = "text-3xl font-[600] text-black" > Cart < /h1> <
+            div className = "text-black" >
+            <
+            span > Home < /span> <
+            span className = "mx-2" > /</span >
+            <
+            span > Cart < /span> < /
+            div > <
+            /div> < /
+            div > <
+            div className = "max-w-6xl mx-auto p-6 bg-white" >
+            <
+            CartTable items = { cartItems }
+            updateQuantity = { updateQuantity }
+            removeItem = { removeItem }
+            />
 
-        <
-        CartTotals subtotal = { subtotal }
-        total = { total }
-        proceedToCheckout = { proceedToCheckout }
-        /> < /
-        div > <
-        /div>
-    );
-}
+            <
+            CouponSection couponCode = { couponCode }
+            setCouponCode = { setCouponCode }
+            applyCoupon = { applyCoupon }
+            updateCart = { updateCart }
+            />
+
+            <
+            CartTotals subtotal = { subtotal }
+            total = { total }
+            proceedToCheckout = { proceedToCheckout }
+            /> < /
+            div > <
+            /div>
+        );
+    }
