@@ -23,9 +23,7 @@ const UserProfileCard = () => {
   }, [userId, dispatch]);
 
   if (loading)
-    return (
-      <div className="p-8 text-center text-gray-500">Loading profile...</div>
-    );
+    return <div className="p-8 text-center text-black">Loading profile...</div>;
 
   if (error)
     return (
@@ -35,17 +33,13 @@ const UserProfileCard = () => {
     );
 
   if (!user)
-    return (
-      <div className="p-8 text-center text-gray-500">No user data found</div>
-    );
+    return <div className="p-8 text-center text-black">No user data found</div>;
 
-  // Get profile data based on user role
   const profile =
     user.role === "student" ? user.student_profile : user.owner_profile;
 
   return (
     <div className="flex flex-col lg:flex-row bg-white mt-15">
-      {/* Profile Picture Section */}
       <div className="flex-shrink-0 mb-6 lg:mb-0 lg:mr-8">
         <div className="w-64 h-64 lg:w-80 lg:h-80 bg-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
           <img
@@ -63,7 +57,6 @@ const UserProfileCard = () => {
         </div>
       </div>
 
-      {/* Profile Details Section */}
       <div className="flex-1 space-y-6">
         <h2
           className="text-[26px] lg:text-3xl text-black break-words"
@@ -73,7 +66,6 @@ const UserProfileCard = () => {
         </h2>
 
         <div className="space-y-4">
-          {/* Email (always shown) */}
           <div className="flex flex-col sm:flex-row">
             <span
               className="text-[#555] text-[15px] mb-1 sm:mb-0"
@@ -84,7 +76,6 @@ const UserProfileCard = () => {
             <span className="text-black">{user.email}</span>
           </div>
 
-          {/* Role-specific fields */}
           {user.role === "student" && (
             <>
               <div className="flex flex-col sm:flex-row">
@@ -120,7 +111,6 @@ const UserProfileCard = () => {
             </div>
           )} */}
 
-          {/* Common fields */}
           <div className="flex flex-col sm:flex-row">
             <span
               className="text-[#555] text-[15px] mb-1 sm:mb-0"
