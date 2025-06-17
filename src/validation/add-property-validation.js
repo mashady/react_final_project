@@ -15,15 +15,15 @@ export const validationSchema = Yup.object({
     .positive('Space must be a positive number')
     .integer('Space must be a whole number'),
   
-  bedrooms: Yup.number()
-    .required('Bedrooms is required')
-    .min(0, 'Bedrooms cannot be negative')
-    .integer('Bedrooms must be a whole number'),
+  number_of_beds: Yup.number()
+    .required('Number of bedrooms is required')
+    .min(0, 'Number of bedrooms cannot be negative')
+    .integer('Number of bedrooms must be a whole number'),
   
-  bathrooms: Yup.number()
-    .required('Bathrooms is required')
-    .min(0, 'Bathrooms cannot be negative')
-    .integer('Bathrooms must be a whole number'),
+  number_of_bathrooms: Yup.number()
+    .required('Number of bathrooms is required')
+    .min(0, 'Number of bathrooms cannot be negative')
+    .integer('Number of bathrooms must be a whole number'),
   
   description: Yup.string()
     .required('Description is required')

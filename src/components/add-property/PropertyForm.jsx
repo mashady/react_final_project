@@ -99,18 +99,6 @@ const PropertyForm = () => {
             {/* Media Upload Section */}
             <MediaUpload />
 
-            {/* Debug Info (remove in production) */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-                <h3 className="text-sm font-medium mb-2">Debug Info:</h3>
-                <div className="text-xs space-y-1">
-                  <p>Images: {values.galleryImages?.length || 0}</p>
-                  <p>Errors: {Object.keys(errors).length}</p>
-                  <p>Touched: {Object.keys(touched).length}</p>
-                </div>
-              </div>
-            )}
-
             {/* Action Buttons */}
             <div className="flex justify-end gap-3 pt-6">
               <button
