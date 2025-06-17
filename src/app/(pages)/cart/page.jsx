@@ -4,8 +4,10 @@ import { ShoppingCart } from "lucide-react";
 import CartTable from "./components/CartTable";
 import CouponSection from "./components/CouponSection";
 import CartTotals from "./components/CartTotals";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
+  const router = useRouter();
   const [cartItems, setCartItems] = useState([]);
   const [couponCode, setCouponCode] = useState("");
   const [subtotal, setSubtotal] = useState(0);
@@ -16,13 +18,10 @@ export default function CartPage() {
   const [couponMessage, setCouponMessage] = useState("");
   const [couponStatus, setCouponStatus] = useState("");
 
-  // API base URL - adjust according to your Laravel setup
   const API_BASE = "http://127.0.0.1:8000/api/plans";
 
-  // Helper to get token from localStorage (adjust if you store it elsewhere)
   const getToken = () => localStorage.getItem("token");
 
-  // Load cart data on component mount
   useEffect(() => {
     loadCart();
   }, []);
@@ -42,18 +41,24 @@ export default function CartPage() {
 
       if (Array.isArray(data)) {
         setCartItems(data);
-        // Optionally, calculate subtotal/total here if not provided by backend
-        // setSubtotal(...);
-        // setTotal(...);
+        calculateTotals(data);
       } else if (data.message) {
         setCartItems([]);
-        // Optionally, set a message to show "Your cart is empty"
       }
     } catch (error) {
       console.error("Error loading cart:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const calculateTotals = (items) => {
+    const calculatedSubtotal = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    setSubtotal(calculatedSubtotal);
+    setTotal(calculatedSubtotal - discount);
   };
 
   const updateQuantity = async (id, newQuantity) => {
@@ -76,15 +81,14 @@ export default function CartPage() {
           },
         }
       );
+
       const data = response.data;
       if (data.success) {
-        setCartItems((items) =>
-          items.map((item) =>
-            item.id === id ? { ...item, quantity: newQuantity } : item
-          )
+        const updatedItems = cartItems.map((item) =>
+          item.id === id ? { ...item, quantity: newQuantity } : item
         );
-        setSubtotal(data.subtotal);
-        setTotal(data.total);
+        setCartItems(updatedItems);
+        calculateTotals(updatedItems);
       }
     } catch (error) {
       console.error("Error updating quantity:", error);
@@ -107,12 +111,19 @@ export default function CartPage() {
             Authorization: `Bearer ${token}`,
           },
         }
-      );
+      ).then((response) => {
+        console.log(response.data);
+        loadCart();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
       const data = response.data;
       if (data.success) {
-        setCartItems((items) => items.filter((item) => item.plan_id !== id));
-        setSubtotal(data.subtotal);
-        setTotal(data.total);
+        const updatedItems = cartItems.filter((item) => item.id !== id);
+        setCartItems(updatedItems);
+        calculateTotals(updatedItems);
       }
     } catch (error) {
       console.error("Error removing item:", error);
@@ -140,6 +151,7 @@ export default function CartPage() {
           },
         }
       );
+
       const data = response.data;
       if (data.success) {
         setAppliedCoupon({
@@ -147,7 +159,7 @@ export default function CartPage() {
           discount_percent: data.discount_percent,
         });
         setDiscount(data.discount_amount);
-        setTotal(data.total);
+        setTotal(subtotal - data.discount_amount);
         setCouponMessage(data.message);
         setCouponStatus("success");
       } else {
@@ -170,15 +182,17 @@ export default function CartPage() {
     await loadCart();
   };
 
-  const proceedToCheckout = () => {
+  const proceedToCheckout = (planId) => {
+    if (!planId) {
+      console.error("No plan ID provided for checkout");
+      return;
+    }
+
     if (total === 0) {
       alert("Your cart total is $0.00. Proceeding to free checkout...");
-      // Redirect to checkout or handle free checkout
-      window.location.href = "/checkout";
-    } else {
-      // Redirect to payment checkout
-      window.location.href = "/checkout";
     }
+
+    router.push(`/payment/${planId}`);
   };
 
   if (isLoading && cartItems.length === 0) {
@@ -214,7 +228,7 @@ export default function CartPage() {
             </h2>
             <p className="text-gray-600 mb-8">Add some plans to get started!</p>
             <button
-              onClick={() => (window.location.href = "/plans")}
+              onClick={() => router.push("/plans")}
               className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black font-medium transition-colors"
             >
               Browse Plans
@@ -240,10 +254,10 @@ export default function CartPage() {
             />
 
             <CartTotals
-              subtotal={subtotal}
+              subtotal={cartItems}
               discount={discount}
               total={total}
-              proceedToCheckout={proceedToCheckout}
+              proceedToCheckout={() => proceedToCheckout(cartItems[0]?.id)}
               isLoading={isLoading}
               appliedCoupon={appliedCoupon}
             />
