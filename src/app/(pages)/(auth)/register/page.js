@@ -1,6 +1,5 @@
 "use client";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import {
   Card, CardContent, CardFooter, CardHeader, CardTitle
@@ -9,40 +8,27 @@ import { Input } from "@/components/ui/input";
 import axios from 'axios';
 import Link from "next/link";
 import Header from "@/components/shared/Header";
-// Yup Validation Schema
-const RegisterSchema = Yup.object().shape({
-  name: Yup.string()
-  .matches(
-    /^[A-Za-zÀ-ÿ' -]{3,70}$/, 
-    "Invalid name! Name must be 3–70 characters and only include letters, spaces, hyphens, or apostrophes."
-  )
-  .required("Name is required")
-  ,
-  email: Yup.string()
-  .matches(
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    "Invalid email format! It must be like m@example.com"
-  )
-  .required("Email is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  password_confirmation: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required("Password confirmation is required"),
-  role: Yup.string()
-    .required("Role is required"),
-  verification_document: Yup.mixed()
-    .required("Verification document is required")
-    .test("fileSize", "File size is too large", value => {
-      return value && value.size <= 5242880; // 5MB limit
-    })
-    .test("fileType", "Unsupported file format", value => {
-      return value && ["image/jpeg", "image/png", "application/pdf"].includes(value.type);
-    }),
-});
+import { RegisterSchema } from "@/validation/register-validation";
+import Toast from "../../property/[id]/components/Toast";
+import { useState } from "react";
 
 const page = () => {
+  // Toast component for notifications
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+
+   const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
+
+  // Function to handle registration
   const handleRegister = (values) => {
     console.log("Register Data:", values);
     // API call goes here
@@ -59,35 +45,46 @@ const page = () => {
         'Content-Type': 'multipart/form-data',
       },
     }).then( (res) => {
-        const data = res.data.data;
-        const token = res.data.token
-        console.log(data, token);
-        const user = {
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          role: data.role
-        }
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("token", token);
-        window.location.href = "/";
+          const data = res.data.data;
+          const token = res.data.token
+          console.log(data, token);
+          const user = {
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            role: data.role
+          }
+          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("token", token);
+          showToast("Registration successful!", "success");
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 3000);
+          
 
-        console.log(user)
-        console.log(token)
-        })
+          console.log(user);
+          console.log(token);
+        }).catch((error) => {
+          console.error("Registration error:", error);
+          if (error.response && error.response.data) {
+            showToast(error.response.data.message || "Registration failed!", "error");
+          } else {
+            showToast("An unexpected error occurred!", "error");
+          }
+        }
+    );
   };
 
   return (
     <>
-      <Header title="Hello user"/>
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-sm border rounded-lg">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-[500px] border rounded-lg shadow-lg py-6">
           <CardHeader>
             <CardTitle className="text-center text-3xl">Register</CardTitle>
           </CardHeader>
           <CardContent>
             <Formik
-              initialValues={{  name: "", email: "", password: "", password_confirmation: "", role: "student", verification_document: "", }}
+              initialValues={{  name: "", email: "", password: "", password_confirmation: "", role: "", verification_document: "", }}
               validationSchema={RegisterSchema}
               onSubmit={(values, actions) => {
                 handleRegister(values);
@@ -173,6 +170,7 @@ const page = () => {
                       className="border rounded-none p-4 text-1xl text-muted-foreground"
                       title="Please select a role"
                     >
+                      <option value="" label="Select role*" />
                       <option value="student" label="Student" />
                       <option value="owner" label="Owner" />
                     </Field>
@@ -190,7 +188,7 @@ const page = () => {
                       onChange={(event) => {
                         setFieldValue("verification_document", event.currentTarget.files[0]);
                       }}
-                      className="border rounded-none text-muted-foreground p-4"
+                      className="border rounded-none text-muted-foreground py-4 px-1"
                     />
                     <ErrorMessage
                       name="verification_document"
@@ -216,6 +214,13 @@ const page = () => {
           </CardFooter>
         </Card>
       </div>
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleCloseToast}
+        />
+      )}
     </>
   );
 };

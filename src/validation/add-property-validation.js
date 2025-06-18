@@ -4,7 +4,7 @@ export const validationSchema = Yup.object({
   title: Yup.string()
     .required('Property title is required')
     .min(3, 'Title must be at least 3 characters')
-    .max(100, 'Title must be less than 100 characters'),
+    .max(255, 'Title must be less than 255 characters'),
 
   type: Yup.string()
     .required('Property type is required')
@@ -37,15 +37,17 @@ export const validationSchema = Yup.object({
   
   area: Yup.string()
     .required('Area is required')
+    .min(3, 'Area must be at least 3 characters')
     .max(100, 'Area must be less than 100 characters'),
   
   street: Yup.string()
     .required('Street is required')
-    .min(10, 'Street must be at least 10 characters')
+    .min(5, 'Street must be at least 5 characters')
     .max(255, 'Street must be less than 255 characters'),
   
   block: Yup.string()
     .required('Block is required')
+    .min(1, 'Block must be at least 1 character')
     .max(255, 'Block must be less than 255 characters'),
   
   media: Yup.array()
