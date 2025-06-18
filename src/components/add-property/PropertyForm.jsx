@@ -7,8 +7,23 @@ import FormSection from "./FormSection";
 import MediaUpload from "./MediaUpload";
 import SubmitStatus from "./SubmitStatus";
 import axios from "axios";
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
 const PropertyForm = () => {
   const [submitStatus, setSubmitStatus] = useState(null);
+  // Toast component for notifications
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+
+   const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitStatus(null);
@@ -33,7 +48,7 @@ const PropertyForm = () => {
       console.log("Form values:", values);
       console.log("Submitting form data:", Object.fromEntries(submitData.entries()));
       
-      // Simulate API call
+      // API call
       await axios.post("http://127.0.0.1:8000/api/ads", submitData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -41,24 +56,40 @@ const PropertyForm = () => {
           "Accept": "application/json",
         },
       }).then((response) => {
-        console.log("Response:", response.data);
         resetForm();
+        // setSubmitStatus({
+        //   type: "success",
+        //   message: "Property listing created successfully!",
+        //   details: `Property ID: ${response.data.data.id}`
+        // });
+        showToast("Property listing created successfully!", "success");
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 3000);
+        console.log("Property created successfully:", response.data);
       }).catch((error) => {
         console.error("Submission error:", error);
-        setSubmitStatus({
-          type: "error",
-          message: "Failed to create property listing",
-          details: error.message
-        });
+        // setSubmitStatus({
+        //   type: "error",
+        //   message: "Failed to create property listing",
+        //   details: error.message
+        // });
+        if (error.response && error.response.data) {
+          showToast(error.response.data.message || "Failed to create property", "error");
+        }
+        else {
+          showToast("An unexpected error occurred!", "error");
+        }
       })     
       
     } catch (error) {
       console.error("Submission error:", error);
-      setSubmitStatus({
-        type: "error",
-        message: "Failed to create property listing",
-        details: error.message
-      });
+      // setSubmitStatus({
+      //   type: "error",
+      //   message: "Failed to create property",
+      //   details: error.message
+      // });
+      showToast("Failed to create property!", "error");
     } finally {
       setSubmitting(false);
     }
@@ -70,7 +101,7 @@ const PropertyForm = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 min-h-screen">
+    <div className="p-4 md:p-6 min-h-screen">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-semibold text-black mb-2">Add New Property</h1>
         <p className="text-sm text-gray-600">
@@ -147,6 +178,13 @@ const PropertyForm = () => {
           </Form>
         )}
       </Formik>
+      {toast.visible && (
+              <Toast
+                message={toast.message}
+                type={toast.type}
+                onClose={handleCloseToast}
+              />
+            )}  
     </div>
   );
 };
