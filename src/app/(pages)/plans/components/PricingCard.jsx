@@ -11,6 +11,7 @@ const PricingCard = ({
   isPopular,
   planId,
   isDisabled = false,
+  isUpgrade,
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -96,19 +97,26 @@ const PricingCard = ({
         ))}
       </ul>
       <div>
-        <button
-          onClick={handleAddToCart}
-          disabled={loading || isDisabled}
-          className={`w-full py-3 px-6 rounded ${
-          
-               "bg-yellow-400 hover:bg-yellow-500 text-black"
-              
-          } transition-colors ${
-            (loading || isDisabled) && "opacity-50 cursor-not-allowed"
-          }`}
-        >
-          {loading ? "Adding..." : "Get started "}
-        </button>
+      <button
+                onClick={handleAddToCart}
+                disabled={loading || isDisabled}
+                className={`w-full py-3 px-6 rounded transition-colors ${
+                  isDisabled
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : isUpgrade
+                    ? "bg-yellow-400 hover:bg-yellow-500 text-white"
+                    : "bg-yellow-400 hover:bg-yellow-500 text-black"
+                } ${loading && "opacity-50 cursor-wait"}`}
+              >
+                {loading
+                  ? "Adding..."
+                  : isDisabled
+                  ? "Current Plan"
+                  : isUpgrade
+                  ? "Upgrade"
+                  : "Get Started"}
+              </button>
+
         {message && (
           <p
             className={`text-sm mt-2 text-center ${
