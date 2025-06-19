@@ -1,151 +1,90 @@
 "use client";
-
 import React, { useEffect } from "react";
-import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUser } from "../../../features/user/userSlice";
+import { fetchUser } from "@/features/user/userSlice";
+import { useRouter } from "next/navigation";
+// import LoadingSpinner from "@/components/LoadingSpinner";
 
 const UserProfileCard = () => {
-  const params = useParams();
-  const userId =
-    typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const dispatch = useDispatch();
+  const router = useRouter();
   const { data: user, loading, error } = useSelector((state) => state.user);
 
   useEffect(() => {
-    if (userId) {
-      console.log(JSON.stringify(userId));
-      const parsedUser = JSON.parse(userId);
-      console.log(parsedUser.id);
-      dispatch(fetchUser(parsedUser.id));
-      // dispatch(fetchUser(userId.id));
+    if (user?.id) {
+      dispatch(fetchUser(user.id));
+    } else {
+      router.push("/login");
     }
-  }, [userId, dispatch]);
+  }, [dispatch, user?.id, router]);
 
-  if (loading)
-    return <div className="p-8 text-center text-black">Loading profile...</div>;
+  if (loading) return <div>loading...</div>;
 
-  if (error)
+  if (error) {
     return (
       <div className="p-8 text-center text-red-500">
         Error loading profile: {error}
       </div>
     );
+  }
 
-  if (!user)
+  if (!user) {
     return <div className="p-8 text-center text-black">No user data found</div>;
+  }
 
   const profile =
     user.role === "student" ? user.student_profile : user.owner_profile;
 
   return (
-    <div className="flex flex-col lg:flex-row bg-white mt-15">
+    <div className="flex flex-col lg:flex-row bg-white mt-15 p-6 rounded-lg shadow">
       <div className="flex-shrink-0 mb-6 lg:mb-0 lg:mr-8">
-        <div className="w-64 h-64 lg:w-80 lg:h-80 bg-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+        <div className="w-64 h-64 lg:w-80 lg:h-80 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
           <img
             src={
               profile?.picture ||
-              "https://secure.gravatar.com/avatar/2e4f394b7744b481c1a87797f8a5cf2021d287bd1fe66bcfe0115a21fd1f709b?s=341&d=mm&r=g"
+              "https://secure.gravatar.com/avatar/placeholder?s=341&d=mm&r=g"
             }
             alt="User Avatar"
             className="w-full h-full object-cover"
             onError={(e) => {
               e.target.src =
-                "https://secure.gravatar.com/avatar/2e4f394b7744b481c1a87797f8a5cf2021d287bd1fe66bcfe0115a21fd1f709b?s=341&d=mm&r=g";
+                "https://secure.gravatar.com/avatar/placeholder?s=341&d=mm&r=g";
             }}
           />
         </div>
       </div>
 
       <div className="flex-1 space-y-6">
-        <h2
-          className="text-[26px] lg:text-3xl text-black break-words"
-          style={{ fontWeight: 500 }}
-        >
+        <h2 className="text-2xl lg:text-3xl font-medium text-gray-900 break-words">
           {user.name}
         </h2>
 
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row">
-            <span
-              className="text-[#555] text-[15px] mb-1 sm:mb-0"
-              style={{ fontWeight: 400, width: "22%" }}
-            >
-              Email:
-            </span>
-            <span className="text-black">{user.email}</span>
-          </div>
+          <ProfileField label="Email" value={user.email} />
 
           {user.role === "student" && (
             <>
-              <div className="flex flex-col sm:flex-row">
-                <span
-                  className="text-[#555] text-[15px] mb-1 sm:mb-0"
-                  style={{ fontWeight: 400, width: "22%" }}
-                >
-                  University:
-                </span>
-                <span className="text-black">{profile?.university || "-"}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row">
-                <span
-                  className="text-[#555] text-[15px] mb-1 sm:mb-0"
-                  style={{ fontWeight: 400, width: "22%" }}
-                >
-                  Major:
-                </span>
-                <span className="text-black">{profile?.major || "-"}</span>
-              </div>
+              <ProfileField label="University" value={profile?.university} />
+              {/* <ProfileField label="Major" value={profile?.major} /> */}
             </>
           )}
-          {/* 
-          {user.role === "owner" && (
-            <div className="flex flex-col sm:flex-row">
-              <span
-                className="text-[#555] text-[15px] mb-1 sm:mb-0"
-                style={{ fontWeight: 400, width: "22%" }}
-              >
-                Institution:
-              </span>
-              <span className="text-black">{profile?.institution || "-"}</span>
-            </div>
-          )} */}
 
-          <div className="flex flex-col sm:flex-row">
-            <span
-              className="text-[#555] text-[15px] mb-1 sm:mb-0"
-              style={{ fontWeight: 400, width: "22%" }}
-            >
-              Phone:
-            </span>
-            <span className="text-black">{profile?.phone_number || "-"}</span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row">
-            <span
-              className="text-[#555] text-[15px] mb-1 sm:mb-0"
-              style={{ fontWeight: 400, width: "22%" }}
-            >
-              WhatsApp:
-            </span>
-            <span className="text-black">
-              {profile?.whatsapp_number || "-"}
-            </span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row">
-            <span
-              className="text-[#555] text-[15px] mb-1 sm:mb-0"
-              style={{ fontWeight: 400, width: "22%" }}
-            >
-              Address:
-            </span>
-            <span className="text-black">{profile?.address || "-"}</span>
-          </div>
+          <ProfileField label="Phone" value={profile?.phone_number} />
+          <ProfileField label="WhatsApp" value={profile?.whatsapp_number} />
+          <ProfileField label="Address" value={profile?.address} />
         </div>
       </div>
     </div>
   );
 };
+
+const ProfileField = ({ label, value }) => (
+  <div className="flex flex-col sm:flex-row">
+    <span className="text-gray-500 text-sm sm:text-base font-normal sm:w-1/4">
+      {label}:
+    </span>
+    <span className="text-gray-900 sm:w-3/4">{value || "-"}</span>
+  </div>
+);
 
 export default UserProfileCard;

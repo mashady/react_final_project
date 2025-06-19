@@ -21,15 +21,14 @@ const page = () => {
       .then((res) => {
         console.log(res.data.data.ads);
         setUserProfile({
-          ads: res.data.data.ads,
-          name: res.data.data.name,
-          bio: res.data.data.owner_profile.bio,
-          image: `https://newhome.qodeinteractive.com/wp-content/uploads/2023/03/agent2-profile-img-new-409x409.jpg`,
-          email: res.data.data.email,
-          phone: res.data.data.owner_profile.phone_number,
-          whatsapp: res.data.data.owner_profile.whatsapp_number,
-          address: res.data.data.owner_profile.address,
-          properties: res.data.data.ads,
+          ads: res.data.data.ads || [],
+          name: res.data.data.name || "No Name",
+          bio: res.data.data.owner_profile.bio || "No Bio",
+          image: `https://secure.gravatar.com/avatar/2e4f394b7744b481c1a87797f8a5cf2021d287bd1fe66bcfe0115a21fd1f709b?s=341&d=mm&r=g`,
+          email: res.data.data.email || "No Email",
+          phone: res.data.data.owner_profile.phone_number  || "No Phone Number",
+          whatsapp: res.data.data.owner_profile.whatsapp_number || "No WhatsApp Number",
+          address: res.data.data.owner_profile.address || "No Address",
         });
       })
       .catch((err) => {
