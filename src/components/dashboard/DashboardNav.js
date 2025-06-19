@@ -9,6 +9,7 @@ import {
   Heart,
   LogOut,
   Archive,
+  MessageSquareDot,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
@@ -23,6 +24,7 @@ const DashboardNav = () => {
   const baseNavLinks = [
     { href: "/dashboard", label: "My Profile", icon: User },
     { href: "/dashboard/edit-profile", label: "Edit Profile", icon: Settings },
+    { href: "/dashboard/messages", label: "Messages", icon: MessageSquareDot },
   ];
 
   const studentLinks = [
