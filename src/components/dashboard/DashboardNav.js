@@ -11,19 +11,55 @@ import {
   Archive,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
 const DashboardNav = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const navLinks = [
+  const { data: user } = useSelector((state) => state.user);
+  const userRole = user?.role;
+
+  const baseNavLinks = [
     { href: "/dashboard", label: "My Profile", icon: User },
     { href: "/dashboard/edit-profile", label: "Edit Profile", icon: Settings },
+  ];
+
+  const studentLinks = [
+    { href: "/dashboard/my-wishlist", label: "My Wishlist", icon: Heart },
+  ];
+
+  const ownerLinks = [
     { href: "/dashboard/my-packages", label: "My Packages", icon: Archive },
     { href: "/dashboard/my-properties", label: "My Properties", icon: House },
     { href: "/dashboard/add-property", label: "Add Property", icon: FilePlus },
-    { href: "/dashboard/my-wishlist", label: "My Wishlist", icon: Heart },
   ];
+
+  const adminLinks = [
+    { href: "/dashboard/users", label: "Users", icon: User },
+    { href: "/dashboard/properties", label: "Properties", icon: House },
+    {
+      href: "/dashboard/verify-pending",
+      label: "Verify Pending",
+      icon: FilePlus,
+    },
+  ];
+
+  const getNavLinks = () => {
+    let links = [...baseNavLinks];
+
+    if (userRole === "student") {
+      links = [...links, ...studentLinks];
+    } else if (userRole === "owner") {
+      links = [...links, ...ownerLinks];
+    } else if (userRole === "admin") {
+      links = [...links, ...adminLinks];
+    }
+
+    return links;
+  };
+
+  const navLinks = getNavLinks();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -50,7 +86,7 @@ const DashboardNav = () => {
               hover:text-yellow-500`}
           >
             <Icon className="h-6 w-6 mb-1 mx-auto" />
-            <span>{label}</span>
+            <span className="text-sm">{label}</span>
           </Link>
         );
       })}
@@ -60,7 +96,7 @@ const DashboardNav = () => {
         className="flex flex-col items-center text-center transition-colors duration-200 text-black hover:text-yellow-500 cursor-pointer"
       >
         <LogOut className="h-6 w-6 mb-1 mx-auto" />
-        <span>Log Out</span>
+        <span className="text-sm">Log Out</span>
       </button>
     </div>
   );

@@ -26,9 +26,8 @@ const Navbar = () => {
   const dispatch = useDispatch();
 
   const { data: user, token } = useSelector((state) => state.user);
-  console.log(user);
-  console.log(token);
   const isLoggedIn = !!token;
+  const userRole = user?.role;
 
   const toggleMenu = () => setIsMenuOpen((open) => !open);
 
@@ -36,6 +35,44 @@ const Navbar = () => {
     dispatch(logout());
     router.push("/");
   };
+
+  const baseDropdownItems = [
+    { href: "/dashboard", label: "My Profile" },
+    { href: "/dashboard/edit-profile", label: "Edit Profile" },
+  ];
+
+  const studentDropdownItems = [
+    { href: "/dashboard/my-wishlist", label: "My Wishlist" },
+  ];
+
+  const ownerDropdownItems = [
+    { href: "/dashboard/my-packages", label: "My Packages" },
+
+    { href: "/dashboard/my-properties", label: "My Properties" },
+    { href: "/dashboard/add-property", label: "Add Property" },
+  ];
+
+  const adminDropdownItems = [
+    { href: "/dashboard/users", label: "Users" },
+    { href: "/dashboard/properties", label: "All Properties" },
+    { href: "/dashboard/verify-pending", label: "Verify Pending" },
+  ];
+
+  const getDropdownItems = () => {
+    let items = [...baseDropdownItems];
+
+    if (userRole === "student") {
+      items = [...items, ...studentDropdownItems];
+    } else if (userRole === "owner") {
+      items = [...items, ...ownerDropdownItems];
+    } else if (userRole === "admin") {
+      items = [...items, ...adminDropdownItems];
+    }
+
+    return items;
+  };
+
+  const dropdownItems = getDropdownItems();
 
   return (
     <nav className="bg-white">
@@ -87,42 +124,13 @@ const Navbar = () => {
                     </span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-50 mt-4">
-                    <Link href="/dashboard/">
-                      <DropdownMenuItem className="cursor-pointer">
-                        My Profile
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/dashboard/edit-profile">
-                      <DropdownMenuItem className="cursor-pointer">
-                        Edit Profile
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/dashboard/my-packages">
-                      <DropdownMenuItem className="cursor-pointer">
-                        My Packages
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/dashboard/my-properties">
-                      <DropdownMenuItem className="cursor-pointer">
-                        My Properties
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/dashboard/add-property">
-                      <DropdownMenuItem className="cursor-pointer">
-                        Add Property
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/dashboard/my-wishlist">
-                      <DropdownMenuItem className="cursor-pointer">
-                        My Wishlist
-                      </DropdownMenuItem>
-                    </Link>
-
+                    {dropdownItems.map((item) => (
+                      <Link key={item.href} href={item.href}>
+                        <DropdownMenuItem className="cursor-pointer">
+                          {item.label}
+                        </DropdownMenuItem>
+                      </Link>
+                    ))}
                     <DropdownMenuItem
                       className="cursor-pointer text-red-600"
                       onClick={handleLogout}
@@ -140,12 +148,14 @@ const Navbar = () => {
                 JOIN US
               </Link>
             )}
-            <Link href="/dashboard/add-property">
-              <button className="bg-white text-gray-900 px-4 py-2 text font-medium hover:text-yellow-600 transition-colors flex items-center space-x-2 cursor-pointer">
-                <Plus className="w-4 h-4" />
-                <span>ADD PROPERTY</span>
-              </button>
-            </Link>
+            {(userRole === "owner" || userRole === "admin") && (
+              <Link href="/dashboard/add-property">
+                <button className="bg-white text-gray-900 px-4 py-2 text font-medium hover:text-yellow-600 transition-colors flex items-center space-x-2 cursor-pointer">
+                  <Plus className="w-4 h-4" />
+                  <span>ADD PROPERTY</span>
+                </button>
+              </Link>
+            )}
           </div>
 
           <div className="md:hidden">
@@ -193,12 +203,14 @@ const Navbar = () => {
                     HELLO: {user?.name || "User"}
                   </span>
                 </div>
-                <Link href="/dashboard/add-property">
-                  <button className="w-full bg-white text-black px-4 py-2 text-sm font-medium hover:text-yellow-600 transition-colors flex items-center justify-center space-x-2">
-                    <Plus className="w-4 h-4" />
-                    <span>ADD PROPERTY</span>
-                  </button>
-                </Link>
+                {(userRole === "owner" || userRole === "admin") && (
+                  <Link href="/dashboard/add-property">
+                    <button className="w-full bg-white text-black px-4 py-2 text-sm font-medium hover:text-yellow-600 transition-colors flex items-center justify-center space-x-2">
+                      <Plus className="w-4 h-4" />
+                      <span>ADD PROPERTY</span>
+                    </button>
+                  </Link>
+                )}
               </>
             ) : (
               <Link
