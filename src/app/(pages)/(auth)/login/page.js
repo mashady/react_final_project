@@ -3,38 +3,41 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import {
-  Card, CardContent, CardFooter, CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import axios from 'axios';
 import Link from "next/link";
 import Toast from "../../property/[id]/components/Toast";
 import { useState } from "react";
-// Yup Validation Schema
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "@/features/user/userSlice";
+import { useRouter } from "next/navigation";
+
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
-  .matches(
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    "Invalid email format"
-  )
-  .required("Email is required"),
+    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
+    .required("Email is required"),
   password: Yup.string()
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
 });
 
+const LoginPage = () => {
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { loading, error } = useSelector((state) => state.user);
 
-
-const page = () => {
-
-  // Toast component for notifications
   const [toast, setToast] = useState({
     message: "",
     type: "",
     visible: false,
   });
 
-   const showToast = (message, type) => {
+  const showToast = (message, type) => {
     setToast({ message, type, visible: true });
   };
 
@@ -42,37 +45,21 @@ const page = () => {
     setToast({ ...toast, visible: false });
   };
 
-  const handleLogin = (values) => {
-    console.log("Login Data:", values);
-    // API call goes here
-    axios.post('http://localhost:8000/api/login',values)
-               .then( (res) => {
-                const data = res.data.data;
-                const token = res.data.token
-                console.log(data, token);
-                const user = {
-                  id: data.id,
-                  name: data.name,
-                  email: data.email,
-                  role: data.role
-                }
-                localStorage.setItem("user", JSON.stringify(user));
-                localStorage.setItem("token", token);
-                showToast("Registration successful!", "success");
-                setTimeout(() => {
-                  window.location.href = "/";
-                }, 3000);
+  const handleLogin = async (values) => {
+    try {
+      const resultAction = await dispatch(loginUser(values));
 
-                console.log(user)
-                console.log(token)
-               }).catch((error) => {
-                  console.error("Registration error:", error);
-                  if (error.response && error.response.data) {
-                    showToast(error.response.data.message || "Registration failed!", "error");
-                  } else {
-                    showToast("An unexpected error occurred!", "error");
-                  }
-              });
+      if (loginUser.fulfilled.match(resultAction)) {
+        showToast("Login successful!", "success");
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
+      } else {
+        throw resultAction.payload;
+      }
+    } catch (error) {
+      showToast(error || "Login failed", "error");
+    }
   };
 
   return (
@@ -93,16 +80,13 @@ const page = () => {
             >
               {({ isSubmitting }) => (
                 <Form className="flex flex-col gap-6">
-                  {/* Email */}
                   <div className="grid gap-2">
-                    
                     <Field
                       name="email"
                       type="text"
                       as={Input}
                       placeholder="Email*"
                       className="border rounded-none p-6 text-5xl"
-                      title="Please fill out this field"
                     />
                     <ErrorMessage
                       name="email"
@@ -111,16 +95,13 @@ const page = () => {
                     />
                   </div>
 
-                  {/* Password */}
                   <div className="grid gap-2">
-                    
                     <Field
                       name="password"
                       type="password"
                       as={Input}
                       placeholder="Password*"
                       className="border rounded-none p-6 text-5xl"
-                      title="Please fill out this field"
                     />
                     <ErrorMessage
                       name="password"
@@ -129,8 +110,12 @@ const page = () => {
                     />
                   </div>
 
-                  <Button type="submit" disabled={isSubmitting} className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400">
-                    {isSubmitting ? "Logging in..." : "Login"}
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
+                  >
+                    {loading ? "Logging in..." : "Login"}
                   </Button>
                 </Form>
               )}
@@ -139,7 +124,11 @@ const page = () => {
           <CardFooter className="flex-col gap-2">
             <div className="text-center">
               <span className="text-muted-foreground">Not a member?</span>
-              <Link href="/register" passHref  className="text-black m-2 hover:underline" >
+              <Link
+                href="/register"
+                passHref
+                className="text-black m-2 hover:underline"
+              >
                 Register here
               </Link>
             </div>
@@ -152,9 +141,9 @@ const page = () => {
           type={toast.type}
           onClose={handleCloseToast}
         />
-      )}  
+      )}
     </>
   );
 };
 
-export default page
+export default LoginPage;

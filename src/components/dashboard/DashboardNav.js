@@ -10,21 +10,63 @@ import {
   LogOut,
   Archive,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
 const DashboardNav = () => {
-  const navLinks = [
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const { data: user } = useSelector((state) => state.user);
+  const userRole = user?.role;
+
+  const baseNavLinks = [
     { href: "/dashboard", label: "My Profile", icon: User },
     { href: "/dashboard/edit-profile", label: "Edit Profile", icon: Settings },
+  ];
+
+  const studentLinks = [
+    { href: "/dashboard/my-wishlist", label: "My Wishlist", icon: Heart },
+  ];
+
+  const ownerLinks = [
     { href: "/dashboard/my-packages", label: "My Packages", icon: Archive },
     { href: "/dashboard/my-properties", label: "My Properties", icon: House },
     { href: "/dashboard/add-property", label: "Add Property", icon: FilePlus },
-    { href: "/dashboard/my-wishlist", label: "My Wishlist", icon: Heart },
-    { href: "/dashboard/logout", label: "Log Out", icon: LogOut },
   ];
 
-  const pathname = usePathname();
-  console.log(`Current Pathname: ${pathname}`);
+  const adminLinks = [
+    { href: "/dashboard/users", label: "Users", icon: User },
+    { href: "/dashboard/properties", label: "Properties", icon: House },
+    {
+      href: "/dashboard/verify-pending",
+      label: "Verify Pending",
+      icon: FilePlus,
+    },
+  ];
+
+  const getNavLinks = () => {
+    let links = [...baseNavLinks];
+
+    if (userRole === "student") {
+      links = [...links, ...studentLinks];
+    } else if (userRole === "owner") {
+      links = [...links, ...ownerLinks];
+    } else if (userRole === "admin") {
+      links = [...links, ...adminLinks];
+    }
+
+    return links;
+  };
+
+  const navLinks = getNavLinks();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/");
+  };
+
   return (
     <div
       className="flex h-[90px] justify-center space-x-12 bg-white py-4 border-1 rounded mx-20"
@@ -44,10 +86,18 @@ const DashboardNav = () => {
               hover:text-yellow-500`}
           >
             <Icon className="h-6 w-6 mb-1 mx-auto" />
-            <span>{label}</span>
+            <span className="text-sm">{label}</span>
           </Link>
         );
       })}
+
+      <button
+        onClick={handleLogout}
+        className="flex flex-col items-center text-center transition-colors duration-200 text-black hover:text-yellow-500 cursor-pointer"
+      >
+        <LogOut className="h-6 w-6 mb-1 mx-auto" />
+        <span className="text-sm">Log Out</span>
+      </button>
     </div>
   );
 };

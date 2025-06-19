@@ -2,25 +2,33 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Button } from "@/components/ui/button";
 import {
-  Card, CardContent, CardFooter, CardHeader, CardTitle
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import axios from 'axios';
 import Link from "next/link";
-import Header from "@/components/shared/Header";
 import { RegisterSchema } from "@/validation/register-validation";
 import Toast from "../../property/[id]/components/Toast";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "@/features/user/userSlice";
+import { useRouter } from "next/navigation";
 
-const page = () => {
-  // Toast component for notifications
+const RegisterPage = () => {
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { loading, error } = useSelector((state) => state.user);
+
   const [toast, setToast] = useState({
     message: "",
     type: "",
     visible: false,
   });
 
-   const showToast = (message, type) => {
+  const showToast = (message, type) => {
     setToast({ message, type, visible: true });
   };
 
@@ -28,51 +36,21 @@ const page = () => {
     setToast({ ...toast, visible: false });
   };
 
-  // Function to handle registration
-  const handleRegister = (values) => {
-    console.log("Register Data:", values);
-    // API call goes here
-    const formData = new FormData();
-    formData.append("name", values.name);
-    formData.append("email", values.email);
-    formData.append("password", values.password);
-    formData.append("password_confirmation", values.password_confirmation);
-    formData.append("role", values.role);
-    formData.append("verification_document", values.verification_document);
+  const handleRegister = async (values) => {
+    try {
+      const resultAction = await dispatch(registerUser(values));
 
-    axios.post('http://localhost:8000/api/register', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }).then( (res) => {
-          const data = res.data.data;
-          const token = res.data.token
-          console.log(data, token);
-          const user = {
-            id: data.id,
-            name: data.name,
-            email: data.email,
-            role: data.role
-          }
-          localStorage.setItem("user", JSON.stringify(user));
-          localStorage.setItem("token", token);
-          showToast("Registration successful!", "success");
-          setTimeout(() => {
-            window.location.href = "/";
-          }, 3000);
-          
-
-          console.log(user);
-          console.log(token);
-        }).catch((error) => {
-          console.error("Registration error:", error);
-          if (error.response && error.response.data) {
-            showToast(error.response.data.message || "Registration failed!", "error");
-          } else {
-            showToast("An unexpected error occurred!", "error");
-          }
-        }
-    );
+      if (registerUser.fulfilled.match(resultAction)) {
+        showToast("Registration successful!", "success");
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
+      } else {
+        throw resultAction.payload;
+      }
+    } catch (error) {
+      showToast(error || "Registration failed", "error");
+    }
   };
 
   return (
@@ -84,7 +62,14 @@ const page = () => {
           </CardHeader>
           <CardContent>
             <Formik
-              initialValues={{  name: "", email: "", password: "", password_confirmation: "", role: "", verification_document: "", }}
+              initialValues={{
+                name: "",
+                email: "",
+                password: "",
+                password_confirmation: "",
+                role: "",
+                verification_document: null,
+              }}
               validationSchema={RegisterSchema}
               onSubmit={(values, actions) => {
                 handleRegister(values);
@@ -92,17 +77,14 @@ const page = () => {
               }}
             >
               {({ isSubmitting, setFieldValue }) => (
-                <Form className="flex flex-col gap-6" encType="multipart/form-data">
-                  {/* Name */}
+                <Form className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    
                     <Field
                       name="name"
                       type="text"
                       as={Input}
                       placeholder="Name*"
                       className="border rounded-none p-6 text-muted-foreground"
-                      title="Please fill out this field"
                     />
                     <ErrorMessage
                       name="name"
@@ -110,16 +92,14 @@ const page = () => {
                       className="text-red-500 text-sm"
                     />
                   </div>
-                  {/* Email */}
+
                   <div className="grid gap-2">
-                    
                     <Field
                       name="email"
                       type="text"
                       as={Input}
                       placeholder="Email*"
                       className="border rounded-none p-6 text-muted-foreground"
-                      title="Please fill out this field"
                     />
                     <ErrorMessage
                       name="email"
@@ -128,16 +108,13 @@ const page = () => {
                     />
                   </div>
 
-                  {/* Password */}
                   <div className="grid gap-2">
-                    
                     <Field
                       name="password"
                       type="password"
                       as={Input}
                       placeholder="Password*"
                       className="border rounded-none p-6 text-muted-foreground"
-                      title="Please fill out this field"
                     />
                     <ErrorMessage
                       name="password"
@@ -145,16 +122,14 @@ const page = () => {
                       className="text-red-500 text-sm"
                     />
                   </div>
-                  {/* Password_confirmation */}
+
                   <div className="grid gap-2">
-                    
                     <Field
                       name="password_confirmation"
                       type="password"
                       as={Input}
                       placeholder="Confirm Password*"
                       className="border rounded-none p-6 text-muted-foreground"
-                      title="Please fill out this field"
                     />
                     <ErrorMessage
                       name="password_confirmation"
@@ -162,17 +137,16 @@ const page = () => {
                       className="text-red-500 text-sm"
                     />
                   </div>
-                  {/* Role */}
+
                   <div className="grid gap-2">
                     <Field
                       name="role"
                       as="select"
                       className="border rounded-none p-4 text-1xl text-muted-foreground"
-                      title="Please select a role"
                     >
-                      <option value="" label="Select role*" />
-                      <option value="student" label="Student" />
-                      <option value="owner" label="Owner" />
+                      <option value="">Select role*</option>
+                      <option value="student">Student</option>
+                      <option value="owner">Owner</option>
                     </Field>
                     <ErrorMessage
                       name="role"
@@ -180,13 +154,16 @@ const page = () => {
                       className="text-red-500 text-sm"
                     />
                   </div>
-                  {/* Verification Document */}
+
                   <div className="grid gap-2">
                     <input
                       name="verification_document"
                       type="file"
                       onChange={(event) => {
-                        setFieldValue("verification_document", event.currentTarget.files[0]);
+                        setFieldValue(
+                          "verification_document",
+                          event.currentTarget.files[0]
+                        );
                       }}
                       className="border rounded-none text-muted-foreground py-4 px-1"
                     />
@@ -196,9 +173,13 @@ const page = () => {
                       className="text-red-500 text-sm"
                     />
                   </div>
-                  {/* Submit Button */}
-                  <Button type="submit" disabled={isSubmitting} className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400">
-                    {isSubmitting ? "Redirecting..." : "Register"}
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
+                  >
+                    {loading ? "Registering..." : "Register"}
                   </Button>
                 </Form>
               )}
@@ -207,7 +188,11 @@ const page = () => {
           <CardFooter className="flex-col gap-2">
             <div className="text-center">
               <span className="text-muted-foreground">Have an account?</span>
-              <Link href="/login" passHref  className="text-black m-2 hover:underline" >
+              <Link
+                href="/login"
+                passHref
+                className="text-black m-2 hover:underline"
+              >
                 Log in
               </Link>
             </div>
@@ -225,4 +210,4 @@ const page = () => {
   );
 };
 
-export default page
+export default RegisterPage;
