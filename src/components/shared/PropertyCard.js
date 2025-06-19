@@ -55,9 +55,7 @@ const PropertyCard = ({ property, onClick, className }) => {
           <div className="absolute bottom-4 left-4 flex items-center space-x-2">
             {owner.owner_profile && owner.owner_profile.picture ? (
               <img
-                src={
-                  "http://localhost:8000/storage/" + owner.owner_profile.picture
-                }
+                src={owner.owner_profile.picture}
                 alt={owner.name + " profile"}
                 className="w-8 h-8 rounded-full object-cover border border-gray-200"
               />

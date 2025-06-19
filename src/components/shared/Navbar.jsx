@@ -15,6 +15,7 @@ import { logout } from "@/features/user/userSlice";
 const NAV_LINKS = [
   { label: "HOME", href: "/" },
   { label: "PROPERTIES", href: "/properties" },
+  { label: "PLANS", href: "/plans" },
 ];
 
 const defaultUser =
