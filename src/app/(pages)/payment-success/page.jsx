@@ -10,9 +10,26 @@ export default function PaymentSuccessPage() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const searchParams = useSearchParams()
+  const [formData , setFormData] = useState({
+    plan_id: '',
+    session_id: '',
+  })
 
   const sessionId = searchParams.get('session_id')
   const planId = searchParams.get('plan_id')
+
+
+  useEffect(() => {
+    if (sessionId && planId) {
+      setFormData({
+        plan_id: planId,
+        session_id: sessionId,
+      });
+    }
+  }, [sessionId, planId]);
+  
+
+console.log(formData)
 
   const removeFromCart = async (planId) => {
     try {
@@ -37,62 +54,80 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     document.title = 'Payment Successful'
-
+  
     const processPaymentSuccess = async () => {
       try {
         if (!sessionId || !planId) {
           throw new Error('Missing session ID or plan ID')
         }
-
-        // Step 1: Verify payment with your backend
-        // const paymentResponse = await axios.post(
-        //   `http://localhost:8000/api/add-to-payment/${planId}`,
-        //   {sessionId},
-        //   {
-        //     withCredentials: true,
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //       'Accept': 'application/json',
-        //       'Authorization': `Bearer ${localStorage.getItem('token')}`
-        //     },
-        //   }
-        // )
-
-        // Step 2: Remove from cart after successful payment
+  
+        const token = localStorage.getItem('token');
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        };
+  
+        // Step 1: Verify payment
+        await axios.post(
+          `http://localhost:8000/api/add-to-payment`,
+          { plan_id: planId, session_id: sessionId },
+          { headers }
+        );
+  
+        // Step 2: Remove from cart
         await removeFromCart(planId);
-
-        // Step 3: Subscribe user to the plan
-        const subscribeResponse = await axios.post(
-          'http://localhost:8000/api/plans/subscribe',
-          { plan_id: planId },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
+  
+        // Step 3: Check if user has an active plan
+        let hasActivePlan = false;
+        try {
+          const planResponse = await axios.get('http://localhost:8000/api/plans/my-subscription', {
+            headers,
+          });
+  
+          if (planResponse.data && planResponse.data.active) {
+            hasActivePlan = true;
           }
-        )
-
-        if (subscribeResponse.status !== 200) {
-          throw new Error('Subscription failed')
+        } catch (err) {
+          console.warn('No active plan detected');
+          hasActivePlan = false;
         }
-
-        setSuccess(true)
+  
+        // Step 4: Subscribe or Upgrade
+        const endpoint = hasActivePlan
+          ? `http://localhost:8000/api/plans/${planId}/upgrade-subscribe`
+          : 'http://localhost:8000/api/plans/subscribe';
+  
+        const subscribeResponse = await axios.post(
+          endpoint,
+          { plan_id: planId },
+          { headers }
+        );
+  
+        if (subscribeResponse.status !== 200) {
+          throw new Error('Subscription failed');
+        }
+  
+        setSuccess(true);
       } catch (err) {
-        console.error('Payment success processing error:', err)
-        setError(err.response?.data?.message || err.message || 'Payment processing failed')
+        console.error('Payment success processing error:', err);
+        setError(
+          err.response?.data?.message ||
+          err.message ||
+          'Payment processing failed'
+        );
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-
+    };
+  
     if (sessionId && planId) {
-      processPaymentSuccess()
+      processPaymentSuccess();
     } else {
-      setError('Missing payment verification details')
-      setLoading(false)
+      setError('Missing payment verification details');
+      setLoading(false);
     }
-  }, [sessionId, planId])
+  }, []);
+  
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-green-50 text-center px-4">
@@ -150,14 +185,14 @@ export default function PaymentSuccessPage() {
             </p>
             <div className="flex justify-center space-x-4">
               <Link
-                href="/account/subscriptions"
-                className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                href="/dashboard/my-packages"
+                className="px-6 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition"
               >
                 Manage Subscription
               </Link>
               <Link
-                href="/"
-                className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
+                href="/dashboard"
+                className="px-6 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition"
               >
                 Go to Dashboard
               </Link>

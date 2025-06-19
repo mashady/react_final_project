@@ -1,23 +1,33 @@
+"use client";
+
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUser, clearUser } from "../features/user/userSlice";
+import {
+  fetchUser,
+  updateUser,
+  clearUser,
+  selectCurrentUser,
+  selectUserLoading,
+  selectUserError,
+  selectUpdateStatus,
+} from "@/lib/features/user/userSlice";
 
 export const useUser = () => {
   const dispatch = useDispatch();
-  const { data, loading, error } = useSelector((state) => state.user);
-
-  const getUser = (userId) => {
-    dispatch(fetchUser(userId));
-  };
-
-  const resetUser = () => {
-    dispatch(clearUser());
-  };
+  const user = useSelector(selectCurrentUser);
+  const loading = useSelector(selectUserLoading);
+  const error = useSelector(selectUserError);
+  const updateStatus = useSelector(selectUpdateStatus);
 
   return {
-    user: data,
+    user,
     loading,
     error,
-    getUser,
-    resetUser,
+    updateStatus,
+    isAuthenticated: !!user,
+
+    getUser: (userId) => dispatch(fetchUser(userId)),
+    updateUserData: (userId, userData) =>
+      dispatch(updateUser({ userId, userData })),
+    logout: () => dispatch(clearUser()),
   };
 };

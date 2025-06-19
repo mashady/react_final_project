@@ -17,6 +17,7 @@ export default function CartPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
   const [couponStatus, setCouponStatus] = useState("");
+  const [session , $session] = useState("");
 
   const API_BASE = "http://127.0.0.1:8000/api/plans";
 
@@ -182,16 +183,18 @@ export default function CartPage() {
     await loadCart();
   };
 
-  const proceedToCheckout = (planId) => {
+  const proceedToCheckout = (planId, id) => {
     if (!planId) {
       console.error("No plan ID provided for checkout");
       return;
     }
 
-    if (total === 0) {
-      alert("Your cart total is $0.00. Proceeding to free checkout...");
-    }
 
+    if(planId === 1) {
+      const  $session= "freeplan"+id;
+      router.push(`/payment-success?session_id=${$session}&plan_id=${planId}`);
+      return;
+    }
     router.push(`/payment/${planId}`);
   };
 
@@ -257,7 +260,7 @@ export default function CartPage() {
               subtotal={cartItems}
               discount={discount}
               total={total}
-              proceedToCheckout={() => proceedToCheckout(cartItems[0]?.id)}
+              proceedToCheckout={() => proceedToCheckout(cartItems[0]?.plan_id, cartItems[0]?.id)}
               isLoading={isLoading}
               appliedCoupon={appliedCoupon}
             />

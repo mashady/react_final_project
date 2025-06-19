@@ -67,6 +67,7 @@ export const PropertiesGrid = () => {
       .get("http://127.0.0.1:8000/api/ads")
       .then((response) => {
         console.log(response.data.data);
+        console.log(response);
         setAds(response.data.data.slice(0, 6));
       })
       .catch((error) => {

@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import {
   ChevronDown,
   Upload,
@@ -11,6 +13,7 @@ import {
   video as VideoIcon,
 } from "lucide-react";
 import axios from "axios";
+import { Router } from "next/router";
 
 export default function CompletePropertyForm() {
   const [formData, setFormData] = useState({
@@ -26,7 +29,7 @@ export default function CompletePropertyForm() {
     galleryImages: [],
     videoFile: null,
   });
-
+  let router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState(null);
@@ -37,7 +40,6 @@ export default function CompletePropertyForm() {
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/ads";
 
-  // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
       formData.galleryImages.forEach((file) => URL.revokeObjectURL(file));
@@ -53,7 +55,7 @@ export default function CompletePropertyForm() {
     if (!formData.type) newErrors.type = "Type is required";
     if (
       !formData.price ||
-      isNaN(Number(formData.price)) ||  
+      isNaN(Number(formData.price)) ||
       Number(formData.price) < 0
     )
       newErrors.price = "Valid price is required";
@@ -275,8 +277,12 @@ export default function CompletePropertyForm() {
       formData.media.forEach((file) => {
         submitData.append("media[]", file);
       });
+      const token = localStorage.getItem("token");
       const response = await axios.post(API_URL, submitData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
       });
       if (response.status === 200 || response.status === 201) {
         const result = response.data;
@@ -284,6 +290,7 @@ export default function CompletePropertyForm() {
           type: "success",
           message: `Property listing "${result.data.title}" created successfully! Price: ${result.data.formatted_price}, Created: ${result.data.created_at_human}`,
         });
+        router.push("/dashboard/my-properties");
         handleResetForm();
       } else {
         setSubmitStatus({
@@ -305,7 +312,6 @@ export default function CompletePropertyForm() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-semibold text-black mb-2">
           Add New Property
@@ -328,7 +334,6 @@ export default function CompletePropertyForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Property Info Section */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h2 className="text-sm font-medium text-black flex items-center">
@@ -489,7 +494,6 @@ export default function CompletePropertyForm() {
           </div>
         </div>
 
-        {/* Price Settings Section */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h2 className="text-sm font-medium text-black flex items-center">
@@ -525,7 +529,6 @@ export default function CompletePropertyForm() {
           </div>
         </div>
 
-        {/* Location Settings Section */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h2 className="text-sm font-medium text-black flex items-center">
@@ -602,7 +605,6 @@ export default function CompletePropertyForm() {
           </div>
         </div>
 
-        {/* Image Gallery Settings Section */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h2 className="text-sm font-medium text-black flex items-center">
@@ -740,7 +742,6 @@ export default function CompletePropertyForm() {
           </div>
         </div>
 
-        {/* Video Upload Section */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h2 className="text-sm font-medium text-black flex items-center">
@@ -839,7 +840,6 @@ export default function CompletePropertyForm() {
           </div>
         </div>
 
-        {/* Form Submission Buttons */}
         <div className="flex justify-end gap-3">
           <button
             type="button"

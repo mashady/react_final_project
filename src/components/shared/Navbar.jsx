@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { Menu, X, Plus, User } from "lucide-react";
 import Link from "next/link";
@@ -9,56 +9,71 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "@/features/user/userSlice";
+
 const NAV_LINKS = [
   { label: "HOME", href: "/" },
-  { label: "PAGES", href: "/" },
   { label: "PROPERTIES", href: "/properties" },
-  { label: "BLOG", href: "/" },
 ];
 
-let defaultUser =
-  "https://secure.gravatar.com/avatar/482e9e9d378d9a8895da9d16882c5c86278fbeca1cdfd95fcf5ca7078c5ddb42?s=76&d=mm&r=g";
+const defaultUser =
+  "https://secure.gravatar.com/avatar/placeholder?s=76&d=mm&r=g";
+
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [USER, setUSER] = useState({
-    name: "Guest",
-    avatar: defaultUser,
-  });
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        try {
-          const userObj = JSON.parse(userStr);
-          setUSER(userObj);
-          setIsLoggedIn(true);
-        } catch (e) {
-          setUSER({
-            name: "Guest",
-            avatar: defaultUser,
-          });
-          setIsLoggedIn(false);
-        }
-      } else {
-        setUSER({
-          name: "Guest",
-          avatar: defaultUser,
-        });
-        setIsLoggedIn(false);
-      }
-    }
-  }, []);
-
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
+
+  const { data: user, token } = useSelector((state) => state.user);
+  const isLoggedIn = !!token;
+  const userRole = user?.role;
+
   const toggleMenu = () => setIsMenuOpen((open) => !open);
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.reload();
-    // router.push('/');
+    dispatch(logout());
+    router.push("/");
   };
+
+  const baseDropdownItems = [
+    { href: "/dashboard", label: "My Profile" },
+    { href: "/dashboard/edit-profile", label: "Edit Profile" },
+  ];
+
+  const studentDropdownItems = [
+    { href: "/dashboard/my-wishlist", label: "My Wishlist" },
+  ];
+
+  const ownerDropdownItems = [
+    { href: "/dashboard/my-packages", label: "My Packages" },
+
+    { href: "/dashboard/my-properties", label: "My Properties" },
+    { href: "/dashboard/add-property", label: "Add Property" },
+  ];
+
+  const adminDropdownItems = [
+    { href: "/dashboard/users", label: "Users" },
+    { href: "/dashboard/properties", label: "All Properties" },
+    { href: "/dashboard/verify-pending", label: "Verify Pending" },
+  ];
+
+  const getDropdownItems = () => {
+    let items = [...baseDropdownItems];
+
+    if (userRole === "student") {
+      items = [...items, ...studentDropdownItems];
+    } else if (userRole === "owner") {
+      items = [...items, ...ownerDropdownItems];
+    } else if (userRole === "admin") {
+      items = [...items, ...adminDropdownItems];
+    }
+
+    return items;
+  };
+
+  const dropdownItems = getDropdownItems();
+
   return (
     <nav className="bg-white">
       <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,7 +106,11 @@ const Navbar = () => {
             {isLoggedIn ? (
               <div className="flex items-center space-x-2">
                 <img
-                  src={defaultUser}
+                  src={
+                    user?.owner_profile?.picture ||
+                    user?.student_profile?.picture ||
+                    defaultUser
+                  }
                   alt="User"
                   className="w-8 h-8 rounded object-cover"
                 />
@@ -101,23 +120,22 @@ const Navbar = () => {
                       className="text-sm text-black text-[14px] cursor-pointer"
                       style={{ fontWeight: 500 }}
                     >
-                      HELLO: {USER.name}
+                      {user?.name || "User"}
                     </span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-50 mt-4">
-                    <Link href="/profile" className="text-sm text-black">
-                      <DropdownMenuItem className="cursor-pointer">
-                        Profile
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/dashboard" className="text-sm text-black">
-                      <DropdownMenuItem className="cursor-pointer">
-                        Dashboard
-                      </DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuItem className="cursor-pointer">
-                      <span onClick={handleLogout}>Logout</span>
+                    {dropdownItems.map((item) => (
+                      <Link key={item.href} href={item.href}>
+                        <DropdownMenuItem className="cursor-pointer">
+                          {item.label}
+                        </DropdownMenuItem>
+                      </Link>
+                    ))}
+                    <DropdownMenuItem
+                      className="cursor-pointer text-red-600"
+                      onClick={handleLogout}
+                    >
+                      Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -130,10 +148,14 @@ const Navbar = () => {
                 JOIN US
               </Link>
             )}
-            <button className="bg-white text-gray-900 px-4 py-2 text font-medium hover:text-yellow-600 transition-colors flex items-center space-x-2 cursor-pointer">
-              <Plus className="w-4 h-4" />
-              <span>ADD PROPERTY</span>
-            </button>
+            {(userRole === "owner" || userRole === "admin") && (
+              <Link href="/dashboard/add-property">
+                <button className="bg-white text-gray-900 px-4 py-2 text font-medium hover:text-yellow-600 transition-colors flex items-center space-x-2 cursor-pointer">
+                  <Plus className="w-4 h-4" />
+                  <span>ADD PROPERTY</span>
+                </button>
+              </Link>
+            )}
           </div>
 
           <div className="md:hidden">
@@ -155,38 +177,48 @@ const Navbar = () => {
         <div className="md:hidden bg-white border-t border-gray-100">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 block px-3 py-2 text-base font-medium"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
           <div className="px-4 py-3 border-t border-gray-100">
             {isLoggedIn ? (
               <>
                 <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-gray-600" />
-                  </div>
+                  <img
+                    src={
+                      user?.owner_profile?.picture ||
+                      user?.student_profile?.picture ||
+                      defaultUser
+                    }
+                    alt="User"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
                   <span className="text-sm text-gray-700">
-                    HELLO: {USER.name}
+                    HELLO: {user?.name || "User"}
                   </span>
                 </div>
-                <button className="w-50 bg-white text-black px-4 py-2 text-sm font-medium hover:text-yellow-600 transition-colors flex items-center justify-center space-x-2">
-                  <Plus className="w-4 h-4" />
-                  <span>ADD PROPERTY</span>
-                </button>
+                {(userRole === "owner" || userRole === "admin") && (
+                  <Link href="/dashboard/add-property">
+                    <button className="w-full bg-white text-black px-4 py-2 text-sm font-medium hover:text-yellow-600 transition-colors flex items-center justify-center space-x-2">
+                      <Plus className="w-4 h-4" />
+                      <span>ADD PROPERTY</span>
+                    </button>
+                  </Link>
+                )}
               </>
             ) : (
-              <a
-                href="#"
+              <Link
+                href="/register"
                 className="block w-full bg-yellow-500 text-white px-4 py-2 rounded font-medium text-center hover:bg-yellow-600 transition-colors"
               >
                 JOIN US
-              </a>
+              </Link>
             )}
           </div>
         </div>
