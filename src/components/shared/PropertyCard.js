@@ -1,12 +1,13 @@
 "use client";
 import React from "react";
-import { MapPin, Home, Bath, Star } from "lucide-react";
+import { MapPin, Home, Bath, Star, User } from "lucide-react";
 import api from "../../api/axiosConfig";
 import Link from "next/link";
 const PropertyCard = ({ property, onClick, className }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
   const {
+    // id=null,
     primary_image = null,
     type = null,
     title = null,
@@ -51,7 +52,20 @@ const PropertyCard = ({ property, onClick, className }) => {
         )}
 
         {owner && (
-          <div className="absolute bottom-4 left-4">
+          <div className="absolute bottom-4 left-4 flex items-center space-x-2">
+            {owner.owner_profile && owner.owner_profile.picture ? (
+              <img
+                src={
+                  "http://localhost:8000/storage/" + owner.owner_profile.picture
+                }
+                alt={owner.name + " profile"}
+                className="w-8 h-8 rounded-full object-cover border border-gray-200"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                <User className="w-5 h-5 text-gray-400" />
+              </div>
+            )}
             <Link href={`/owner-profile/${owner.id}`}>
               <span className="bg-white text-gray-800 px-3 py-1 text-sm font-medium rounded shadow-sm">
                 {owner.name}
@@ -98,7 +112,7 @@ const PropertyCard = ({ property, onClick, className }) => {
             className="text-[26px] text-black mb-3 truncate capitalize"
             style={{ fontWeight: 500 }}
           >
-            {title}
+            <Link href={`/property/${property.id}`}>{title}</Link>
           </h3>
         )}
 
@@ -109,11 +123,11 @@ const PropertyCard = ({ property, onClick, className }) => {
         )}
 
         {(title || description || location) &&
-          (price || area || bedrooms || bathrooms) && (
+          (price || area || number_of_bedrooms || number_of_bathrooms) && (
             <hr className="border-gray-200 mb-6" />
           )}
 
-        {(price || area || bedrooms || bathrooms) && (
+        {(price || area || number_of_bedrooms || number_of_bathrooms) && (
           <div className="flex items-center justify-between">
             {price && (
               <div
@@ -143,7 +157,7 @@ const PropertyCard = ({ property, onClick, className }) => {
                       <path d="M20 9.556V3h-2v2H6V3H4v6.557C2.81 10.25 2 11.526 2 13v4a1 1 0 0 0 1 1h1v4h2v-4h12v4h2v-4h1a1 1 0 0 0 1-1v-4c0-1.474-.811-2.75-2-3.444zM11 9H4V7h7v2zm9 0h-7V7h7v2z" />
                     </svg>
                   </div>
-                  <span className="text-sm">{bedrooms}</span>
+                  <span className="text-sm">{number_of_bedrooms}</span>
                 </div>
               )}
 

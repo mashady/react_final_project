@@ -10,12 +10,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import axios from "axios";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import Header from "@/components/shared/Header";
-// Yup Validation Schema
+import Toast from "../../property/[id]/components/Toast";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "@/features/user/userSlice";
+import { useRouter } from "next/navigation";
+
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
     .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
@@ -25,131 +26,124 @@ const LoginSchema = Yup.object().shape({
     .required("Password is required"),
 });
 
-const page = () => {
+const LoginPage = () => {
+  const dispatch = useDispatch();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const returnTo = searchParams.get("returnTo") || "/";
+  const { loading, error } = useSelector((state) => state.user);
 
-  const handleLogin = async (values, { setSubmitting, setFieldError }) => {
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
+
+  const handleLogin = async (values) => {
     try {
-      const response = await axios.post("/api/login", values);
-      const { data, token } = response.data;
+      const resultAction = await dispatch(loginUser(values));
 
-      const user = {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-      };
-
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", token);
-
-      // Redirect to the return URL or home
-      router.push(returnTo);
-    } catch (error) {
-      if (error.response?.data?.errors) {
-        // Handle validation errors
-        Object.keys(error.response.data.errors).forEach((key) => {
-          setFieldError(key, error.response.data.errors[key][0]);
-        });
+      if (loginUser.fulfilled.match(resultAction)) {
+        showToast("Login successful!", "success");
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
       } else {
-        // Handle general error
-        setFieldError(
-          "email",
-          error.response?.data?.message || "Login failed. Please try again."
-        );
+        throw resultAction.payload;
       }
-    } finally {
-      setSubmitting(false);
+    } catch (error) {
+      showToast(error || "Login failed", "error");
     }
   };
 
   return (
     <>
-      <Header />
-      <div className="h-screen flex items-center justify-center">
-        <Card className="w-[400px]">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-[450px] min-h-[450px] border-1 rounded-1xl shadow-lg py-16">
           <CardHeader>
-            <CardTitle>Log In</CardTitle>
+            <CardTitle className="text-center text-3xl">Login</CardTitle>
           </CardHeader>
-          <Formik
-            initialValues={{
-              email: "",
-              password: "",
-            }}
-            validationSchema={LoginSchema}
-            onSubmit={handleLogin}
-          >
-            {({ isSubmitting, errors, touched }) => (
-              <Form>
-                <CardContent>
-                  <div className="grid w-full items-center gap-4">
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor="email">Email</Label>
-                      <Field
-                        as={Input}
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className={
-                          errors.email && touched.email ? "border-red-500" : ""
-                        }
-                      />
-                      <ErrorMessage
-                        name="email"
-                        component="div"
-                        className="text-sm text-red-500"
-                      />
-                    </div>
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor="password">Password</Label>
-                      <Field
-                        as={Input}
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        className={
-                          errors.password && touched.password
-                            ? "border-red-500"
-                            : ""
-                        }
-                      />
-                      <ErrorMessage
-                        name="password"
-                        component="div"
-                        className="text-sm text-red-500"
-                      />
-                    </div>
+          <CardContent>
+            <Formik
+              initialValues={{ email: "", password: "" }}
+              validationSchema={LoginSchema}
+              onSubmit={(values, actions) => {
+                handleLogin(values);
+                actions.setSubmitting(false);
+              }}
+            >
+              {({ isSubmitting }) => (
+                <Form className="flex flex-col gap-6">
+                  <div className="grid gap-2">
+                    <Field
+                      name="email"
+                      type="text"
+                      as={Input}
+                      placeholder="Email*"
+                      className="border rounded-none p-6 text-5xl"
+                    />
+                    <ErrorMessage
+                      name="email"
+                      component="div"
+                      className="text-red-500 text-sm"
+                    />
                   </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-4">
+
+                  <div className="grid gap-2">
+                    <Field
+                      name="password"
+                      type="password"
+                      as={Input}
+                      placeholder="Password*"
+                      className="border rounded-none p-6 text-5xl"
+                    />
+                    <ErrorMessage
+                      name="password"
+                      component="div"
+                      className="text-red-500 text-sm"
+                    />
+                  </div>
+
                   <Button
                     type="submit"
-                    className="w-full"
-                    disabled={isSubmitting}
+                    disabled={loading}
+                    className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
                   >
-                    {isSubmitting ? "Logging in..." : "Log In"}
+                    {loading ? "Logging in..." : "Login"}
                   </Button>
-                  <div className="text-sm text-center space-x-1">
-                    <span>Don&apos;t have an account?</span>
-                    <Link
-                      href="/register"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Register
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Form>
-            )}
-          </Formik>
+                </Form>
+              )}
+            </Formik>
+          </CardContent>
+          <CardFooter className="flex-col gap-2">
+            <div className="text-center">
+              <span className="text-muted-foreground">Not a member?</span>
+              <Link
+                href="/register"
+                passHref
+                className="text-black m-2 hover:underline"
+              >
+                Register here
+              </Link>
+            </div>
+          </CardFooter>
         </Card>
       </div>
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleCloseToast}
+        />
+      )}
     </>
   );
 };
 
-export default page;
+export default LoginPage;

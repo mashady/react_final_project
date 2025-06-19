@@ -10,9 +10,12 @@ import {
   LogOut,
   Archive,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const DashboardNav = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const navLinks = [
     { href: "/dashboard", label: "My Profile", icon: User },
     { href: "/dashboard/edit-profile", label: "Edit Profile", icon: Settings },
@@ -20,11 +23,14 @@ const DashboardNav = () => {
     { href: "/dashboard/my-properties", label: "My Properties", icon: House },
     { href: "/dashboard/add-property", label: "Add Property", icon: FilePlus },
     { href: "/dashboard/my-wishlist", label: "My Wishlist", icon: Heart },
-    { href: "/dashboard/logout", label: "Log Out", icon: LogOut },
   ];
 
-  const pathname = usePathname();
-  console.log(`Current Pathname: ${pathname}`);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/");
+  };
+
   return (
     <div
       className="flex h-[90px] justify-center space-x-12 bg-white py-4 border-1 rounded mx-20"
@@ -48,6 +54,14 @@ const DashboardNav = () => {
           </Link>
         );
       })}
+
+      <button
+        onClick={handleLogout}
+        className="flex flex-col items-center text-center transition-colors duration-200 text-black hover:text-yellow-500 cursor-pointer"
+      >
+        <LogOut className="h-6 w-6 mb-1 mx-auto" />
+        <span>Log Out</span>
+      </button>
     </div>
   );
 };
