@@ -1,64 +1,65 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import PropertyForm from '@/components/add-property/PropertyForm'
-import Link from 'next/link'
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import PropertyForm from "@/components/add-property/PropertyForm";
+import Link from "next/link";
 
 const Page = () => {
-  const [loading, setLoading] = useState(true)
-  const [hasSubscription, setHasSubscription] = useState(false)
-  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [hasSubscription, setHasSubscription] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const checkSubscription = async () => {
       try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem("token");
         if (!token) {
-          throw new Error('User not authenticated')
+          throw new Error("User not authenticated");
         }
 
-        const response = await axios.get('http://localhost:8000/api/plans/my-subscription', {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        const response = await axios.get(
+          "http://localhost:8000/api/plans/my-subscription",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        })
+        );
 
-        // if API returns success and subscription info
         if (response.data && response.data.active) {
-          setHasSubscription(true)
+          setHasSubscription(true);
         } else {
-          setHasSubscription(false)
+          setHasSubscription(false);
         }
       } catch (err) {
-        // check if specific no-subscription message returned
-        if (err?.response?.data?.message === 'No active subscription found') {
-          setHasSubscription(false)
+        if (err?.response?.data?.message === "No active subscription found") {
+          setHasSubscription(false);
         } else {
-          setError(err?.response?.data?.message || err.message || 'Something went wrong')
+          setError(
+            err?.response?.data?.message ||
+              err.message ||
+              "Something went wrong"
+          );
         }
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    checkSubscription()
-  }, [])
+    checkSubscription();
+  }, []);
 
   if (loading) {
     return (
       <div className="text-center py-10 text-gray-500">
         Checking subscription status...
       </div>
-    )
+    );
   }
 
   if (error) {
-    return (
-      <div className="text-center py-10 text-red-500">
-        Error: {error}
-      </div>
-    )
+    return <div className="text-center py-10 text-red-500">Error: {error}</div>;
   }
 
   if (!hasSubscription) {
@@ -77,15 +78,14 @@ const Page = () => {
           View Plans
         </Link>
       </div>
-    )
+    );
   }
 
   return (
     <div>
       <PropertyForm />
     </div>
-  )
-}
+  );
+};
 
-export default Page
-
+export default Page;

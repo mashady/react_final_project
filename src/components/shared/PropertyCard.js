@@ -18,7 +18,7 @@ const PropertyCard = ({ property, onClick, className }) => {
     block = null,
     street = null,
     area = null,
-    number_of_bedrooms = null,
+    number_of_beds = null,
     number_of_bathrooms = null,
     owner = null,
   } = property || {};
@@ -121,11 +121,11 @@ const PropertyCard = ({ property, onClick, className }) => {
         )}
 
         {(title || description || location) &&
-          (price || area || number_of_bedrooms || number_of_bathrooms) && (
+          (price || area || number_of_beds || number_of_bathrooms) && (
             <hr className="border-gray-200 mb-6" />
           )}
 
-        {(price || area || number_of_bedrooms || number_of_bathrooms) && (
+        {(price || area || number_of_beds || number_of_bathrooms) && (
           <div className="flex items-center justify-between">
             {price && (
               <div
@@ -144,7 +144,7 @@ const PropertyCard = ({ property, onClick, className }) => {
                 </div>
               )}
 
-              {number_of_bedrooms && (
+              {number_of_beds && (
                 <div className="flex items-center space-x-1">
                   <div className="w-4 h-4 flex items-center justify-center">
                     <svg
@@ -155,7 +155,7 @@ const PropertyCard = ({ property, onClick, className }) => {
                       <path d="M20 9.556V3h-2v2H6V3H4v6.557C2.81 10.25 2 11.526 2 13v4a1 1 0 0 0 1 1h1v4h2v-4h12v4h2v-4h1a1 1 0 0 0 1-1v-4c0-1.474-.811-2.75-2-3.444zM11 9H4V7h7v2zm9 0h-7V7h7v2z" />
                     </svg>
                   </div>
-                  <span className="text-sm">{number_of_bedrooms}</span>
+                  <span className="text-sm">{number_of_beds}</span>
                 </div>
               )}
 
