@@ -1,374 +1,279 @@
 "use client";
-import { useParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import Toast from "./components/Toast";
-import FormError from "./components/FormError";
-import LoadingButton from "./components/LoadingButton";
-import ImageCarousel from "./components/ImageCarousel";
-import PropertyDetails from "./components/PropertyDetails";
-import ReviewList from "./components/ReviewList";
-import ReviewForm from "./components/ReviewForm";
-import ContactForm from "./components/ContactForm";
-import MortgageCalculator from "./components/MortgageCalculator";
-import Tabs from "./components/Tabs";
 import {
   Heart,
   Share2,
+  Plus,
+  Phone,
+  MessageSquare,
+  Star,
   MapPin,
-  User,
-  AlertCircle,
+  Home,
+  Bath,
+  Ruler,
+  Calendar,
+  Building,
+  Maximize,
   Loader2,
 } from "lucide-react";
+import ReviewList from "./components/ReviewList";
+import ReviewForm from "./components/ReviewForm";
+import axios from "axios";
+import { useParams } from "next/navigation";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
 
-function useToast() {
-  const [toasts, setToasts] = useState([]);
-  const showToast = (message, type = "info") => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-  const removeToast = (id) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
-  return { toasts, showToast, removeToast };
-}
+const PropertyListing = () => {
+  const params = useParams();
+  const propertyId = params.id;
 
-const DynamicPropertyListing = () => {
-  const { id } = useParams();
-  const { toasts, showToast, removeToast } = useToast();
-
-  const [property, setProperty] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState("schedule");
-  const [images, setImages] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-
-  // Form states
-  const [reviewForm, setReviewForm] = useState({
-    comment: "",
-  });
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewError, setReviewError] = useState("");
-
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
     message: "",
   });
-  const [submittingContact, setSubmittingContact] = useState(false);
-  const [contactError, setContactError] = useState("");
+  const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ comment: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [ownerDetails, setOwnerDetails] = useState(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
-  const [calculatorInputs] = useState({
-    downPayment: 20,
-    loanTerm: 30,
-    interestRate: 5.5,
-  });
-
+  // Fetch property data
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        setCurrentUser({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          isLoggedIn: true,
-          isAdmin: user.role === "admin",
-        });
-      } catch (err) {
-        console.error("Error parsing user data:", err);
-        showToast("Error loading user data", "error");
-      }
-    }
-  }, []);
-
-  const refetchReviews = async () => {
-    try {
-      setReviewsLoading(true);
-      const token = localStorage.getItem("token");
-      const reviewsResponse = await axios.get(
-        `http://127.0.0.1:8000/api/ads/${id}/reviews`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setReviews(reviewsResponse.data?.data || []);
-    } catch (error) {
-      console.error("Failed to refetch reviews:", error);
-      showToast("Failed to load reviews", "error");
-    } finally {
-      setReviewsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const fetchPropertyAndReviews = async () => {
+    const fetchProperty = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
-
-        const propertyResponse = await axios.get(
-          `http://127.0.0.1:8000/api/ads/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/ads/${propertyId}`
         );
 
-        const propertyData = propertyResponse.data?.data;
-        console.log(propertyData);
-        setProperty(propertyData);
-
-        if (propertyData?.media) {
-          setImages(propertyData.media.map((m) => m.url));
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        await refetchReviews();
+        const result = await response.json();
+        setProperty(result.data);
+        setError(null);
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || "Failed to load property data";
-        setError(errorMessage);
-        showToast(errorMessage, "error");
+        setError(err.message);
+        console.error("Error fetching property:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchPropertyAndReviews();
+    fetchProperty();
+  }, [propertyId]);
+
+  const images =
+    property?.media?.filter((item) => item.is_image).map((item) => item.url) ||
+    [];
+
+  const agent = {
+    name: property?.owner?.name || "Property Owner",
+
+    address: `${property?.street || ""}, ${property?.area || ""}, ${
+      property?.block || ""
+    }`
+      .trim()
+      .replace(/^,|,$/, ""),
+    mobile: "+7774442225",
+    whatsapp: "7774442225",
+    email: "agent@example.com",
+    avatar: "/api/placeholder/100/100",
+  };
+
+  // Map API data to features
+  const features = property
+    ? [
+        { icon: Ruler, label: "Size:", value: `${property.space}m²` },
+        {
+          icon: Home,
+          label: "Bedrooms:",
+          value: property.number_of_beds?.toString() || "N/A",
+        },
+        {
+          icon: Bath,
+          label: "Bathrooms:",
+          value: property.number_of_bathrooms?.toString() || "N/A",
+        },
+        { icon: MapPin, label: "Area:", value: property.area || "N/A" },
+        {
+          icon: Building,
+          label: "Type:",
+          value:
+            property.type?.charAt(0).toUpperCase() + property.type?.slice(1) ||
+            "N/A",
+        },
+        {
+          icon: Calendar,
+          label: "Listed:",
+          value: property.created_at_human || "N/A",
+        },
+      ]
+    : [];
+
+  useEffect(() => {
+    if (images.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+      }, 4000);
+      return () => clearInterval(interval);
     }
-  }, [id]);
-
-  useEffect(() => {
-    console.log("Reviews state updated:", reviews);
-  }, [reviews]);
-
-  useEffect(() => {
-    if (images.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) =>
-        prevIndex === images.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 4000);
-
-    return () => clearInterval(interval);
   }, [images.length]);
 
-  const goToSlide = (index) => {
-    setCurrentImageIndex(index);
+  const handleContactSubmit = () => {
+    console.log("Contact form submitted:", contactForm);
   };
 
-  const goToPrevious = () => {
-    setCurrentImageIndex(
-      currentImageIndex === 0 ? images.length - 1 : currentImageIndex - 1
-    );
-  };
+  // Fetch reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(
+          `http://127.0.0.1:8000/api/ads/${propertyId}/reviews`,
+          { headers }
+        );
+        setReviews(res.data.data || []);
+      } catch (err) {
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+    if (property) fetchReviews();
+  }, [property, propertyId]);
 
-  const goToNext = () => {
-    setCurrentImageIndex(
-      currentImageIndex === images.length - 1 ? 0 : currentImageIndex + 1
-    );
-  };
+  // Fetch user
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        setCurrentUser(JSON.parse(userData));
+      } catch {}
+    }
+  }, []);
 
   const handleReviewSubmit = async () => {
     setReviewError("");
-
     if (!currentUser) {
       setReviewError("Please log in to submit a review");
       return;
     }
-
     if (!reviewForm.comment.trim()) {
       setReviewError("Please enter a comment");
       return;
     }
-
     try {
       setSubmittingReview(true);
-      const reviewData = {
-        ad_id: property.id,
-        content: reviewForm.comment.trim(),
-      };
-
       const token = localStorage.getItem("token");
-      if (!token) {
-        setReviewError("Authentication required. Please log in again.");
-        return;
-      }
-
-      console.log("Submitting review:", reviewData);
-
-      const response = await axios.post(
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.post(
         `http://127.0.0.1:8000/api/reviews`,
-        reviewData,
         {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+          ad_id: propertyId,
+          content: reviewForm.comment.trim(),
+        },
+        { headers }
       );
-
-      console.log("Review submission response:", response.data);
-
       setReviewForm({ comment: "" });
-
-      if (response.data?.data) {
-        const apiReview = response.data.data;
-
-        const newReview = {
-          id: apiReview.id || Date.now(),
-          content: apiReview.content || reviewForm.comment.trim(),
-          created_at:
-            apiReview.created_at ||
-            new Date().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }),
-          user: apiReview.user || {
-            id: currentUser.id,
-            name: currentUser.name,
-          },
-          ad_id: apiReview.ad_id || property.id,
-          ...apiReview,
-        };
-
-        console.log("Adding new review:", newReview);
-
-        setReviews((prevReviews) => {
-          const updatedReviews = [newReview, ...prevReviews];
-          console.log("Updated reviews list:", updatedReviews);
-          return updatedReviews;
-        });
-
-        showToast("Review submitted successfully!", "success");
-      } else {
-        console.warn(
-          "API didn't return review data, refetching all reviews..."
-        );
-        await refetchReviews();
-        showToast("Review submitted successfully!", "success");
-      }
-    } catch (error) {
-      console.error("Review submission error:", error);
-      if (error.response?.status === 401) {
-        setReviewError("Session expired. Please log in again.");
-      } else {
-        const errorMessage =
-          error.response?.data?.message || "Failed to submit review";
-        setReviewError(errorMessage);
-        showToast(errorMessage, "error");
-      }
+      // Refetch reviews
+      const reviewsRes = await axios.get(
+        `http://127.0.0.1:8000/api/ads/${propertyId}/reviews`,
+        { headers }
+      );
+      setReviews(reviewsRes.data.data || []);
+    } catch (err) {
+      setReviewError("Failed to submit review");
     } finally {
       setSubmittingReview(false);
     }
   };
 
-  const handleDeleteReview = async (reviewId) => {
+  useEffect(() => {
+    const fetchOwnerDetails = async () => {
+      if (!property?.user_id && !property?.owner?.id) return;
+      try {
+        const ownerId = property.owner?.id || property.user_id;
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(
+          `http://127.0.0.1:8000/api/oneowner/${ownerId}`,
+          { headers }
+        );
+        setOwnerDetails(res.data.data);
+      } catch (err) {
+        setOwnerDetails(null);
+      }
+    };
+    if (property) fetchOwnerDetails();
+  }, [property]);
+
+  const handleToggleWishlist = async () => {
     if (!currentUser) {
-      showToast("Please log in to delete a review", "warning");
+      alert("Please log in to use wishlist.");
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this review?")) {
+    if (!propertyId) {
+      alert("Invalid property ID.");
       return;
     }
 
+    setWishlistLoading(true);
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        showToast("Authentication required. Please log in again.", "error");
-        return;
-      }
-
-      setReviews((prevReviews) =>
-        prevReviews.filter((review) => review.id !== reviewId)
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.post(
+        `http://127.0.0.1:8000/api/wishlist/toggle/${propertyId}`,
+        {},
+        { headers }
       );
-
-      await axios.delete(`http://127.0.0.1:8000/api/reviews/${reviewId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      showToast("Review deleted successfully!", "success");
-    } catch (error) {
-      console.error("Delete review error:", error);
-
-      await refetchReviews();
-
-      if (error.response?.status === 401) {
-        showToast("Session expired. Please log in again.", "error");
-      } else {
-        const errorMessage =
-          error.response?.data?.message || "Failed to delete review";
-        showToast(errorMessage, "error");
-      }
-    }
-  };
-
-  const handleContactSubmit = async (e) => {
-    e.preventDefault();
-    setContactError("");
-
-    if (!currentUser) {
-      setContactError("Please log in to send a message");
-      return;
-    }
-
-    if (
-      !contactForm.name.trim() ||
-      !contactForm.email.trim() ||
-      !contactForm.message.trim()
-    ) {
-      setContactError("Please fill in all fields");
-      return;
-    }
-
-    try {
-      setSubmittingContact(true);
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setContactError("Authentication required. Please log in again.");
-        return;
-      }
-
-      await axios.post(
-        `http://127.0.0.1:8000/api/contact`,
-        {
-          ...contactForm,
-          ad_id: property.id,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      showToast("Message sent successfully!", "success");
-      setContactForm({
-        name: "",
-        email: "",
-        message: "",
-      });
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        "Failed to send message. Please try again.";
-      setContactError(errorMessage);
-      showToast(errorMessage, "error");
+      setIsInWishlist(res.data.is_in_wishlist);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update wishlist. Please try again.");
     } finally {
-      setSubmittingContact(false);
+      setWishlistLoading(false);
     }
   };
+
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (!currentUser) return;
+      try {
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(
+          `http://127.0.0.1:8000/api/wishlist/${propertyId}`,
+          { headers }
+        );
+        setIsInWishlist(res.data.is_in_wishlist);
+      } catch (err) {
+        setIsInWishlist(false);
+      }
+    };
+    checkWishlistStatus();
+  }, [currentUser, propertyId]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <Loader2 className="animate-spin" size={24} />
-          <span>Loading property...</span>
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>
+            <LoadingSpinner />
+          </span>
         </div>
       </div>
     );
@@ -376,10 +281,12 @@ const DynamicPropertyListing = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="flex items-center space-x-2 text-red-600">
-          <AlertCircle size={24} />
-          <span>Error: {error}</span>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-2">
+            Error loading property
+          </div>
+          <div className="text-gray-600">{error}</div>
         </div>
       </div>
     );
@@ -387,56 +294,117 @@ const DynamicPropertyListing = () => {
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-600">Property not found</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-gray-500 text-xl">Property not found</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Toast Container */}
-      <div className="toast-container">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            onClose={() => removeToast(toast.id)}
-          />
-        ))}
+    <div className="min-h-screen bg-gray-50">
+      <div className="relative h-96 bg-gray-200 overflow-hidden">
+        {images.length > 0 ? (
+          <>
+            <img
+              src={images[currentImageIndex]}
+              alt="Property"
+              className="w-full h-full object-cover"
+            />
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentImageIndex ? "bg-white" : "bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-300">
+            <span className="text-gray-500">No images available</span>
+          </div>
+        )}
       </div>
-      <ImageCarousel
-        images={images}
-        currentImageIndex={currentImageIndex}
-        setCurrentImageIndex={setCurrentImageIndex}
-      />
-      <main className="max-w-7xl mx-auto px-4 py-10">
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
-            <PropertyDetails property={property} />
-            {/* Property features, description, etc. can be further split if needed */}
-            {/* Reviews Section */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Reviews ({reviews.length})
-                </h2>
-              </div>
-              {reviewsLoading ? (
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="animate-spin" size={16} />
-                  <span className="text-gray-600">Loading reviews...</span>
+          <div className="lg:col-span-2 space-y-8">
+            {/* Header */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    {property.title}
+                  </h1>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span className="uppercase font-medium">
+                      {property.type}
+                    </span>
+                    <span> {property.created_at_human}</span>
+                    <div className="flex items-center"></div>
+                  </div>
+                  {agent.address && (
+                    <div className="flex items-center mt-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      <span>{agent.address}</span>
+                    </div>
+                  )}
                 </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Description
+              </h2>
+              <p className="text-gray-600 leading-relaxed">
+                {property.description}
+              </p>
+            </div>
+
+            {/* Property Features */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Property details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {features.map((feature, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <feature.icon className="w-5 h-5 text-gray-400" />
+                    <span className="text-gray-600">{feature.label}</span>
+                    <span className="font-semibold text-gray-900 ml-auto">
+                      {feature.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {property.price_per_sqm && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="text-lg font-semibold text-gray-900">
+                    {property.price_per_sqm}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Reviews Section */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Reviews</h2>
+              {reviewsLoading ? (
+                <div className="text-gray-500 mb-6">Loading reviews...</div>
               ) : (
                 <ReviewList reviews={reviews} />
               )}
-              {/* Review Form */}
-              <div className="border-t pt-8 mt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Leave a Review
-                </h3>
+              <div className="border-t border-gray-100 pt-6 mt-6">
                 <ReviewForm
                   reviewForm={reviewForm}
                   setReviewForm={setReviewForm}
@@ -447,63 +415,160 @@ const DynamicPropertyListing = () => {
               </div>
             </div>
           </div>
+
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Price Card, Agent Card, etc. can be further split if needed */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
+            {/* Price Card */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    Price:
-                  </h3>
+                  <div className="text-sm text-gray-600 mb-1">Price:</div>
                   <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-gray-900">
+                    <span className="text-3xl font-bold text-gray-900">
                       {property.formatted_price}
                     </span>
-                    {property.status === "rent" && (
-                      <span className="text-sm text-gray-600 ml-1">/month</span>
-                    )}
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <button className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  <Heart size={16} />
-                  <span>Add to wishlist</span>
-                </button>
-                <div className="flex items-center space-x-3">
-                  <button className="p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-                    <span className="text-lg font-bold">+</span>
+                <div className="flex space-x-2">
+                  <button
+                    className={`flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors ${
+                      isInWishlist ? "text-red-500" : ""
+                    }`}
+                    onClick={handleToggleWishlist}
+                    disabled={wishlistLoading}
+                  >
+                    <Heart className="w-5 h-5" />
+                    <span className="text-sm">
+                      {isInWishlist
+                        ? "Remove from wishlist"
+                        : "Add to wishlist"}
+                    </span>
                   </button>
-                  <button className="p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-                    <Share2 size={16} />
-                  </button>
+                  <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors"></button>
+                  <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors"></button>
                 </div>
               </div>
             </div>
-            {/* Agent Card, Schedule Tour, etc. can be further split if needed */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Schedule tour
-              </h3>
-              <p className="text-sm text-gray-600 mb-6">
-                Tellus sollicitudin cursus est, ut, ut dapibus fermentum.
-                Praesent dignissim.
-              </p>
-              <ContactForm
-                contactForm={contactForm}
-                setContactForm={setContactForm}
-                submittingContact={submittingContact}
-                contactError={contactError}
-                onSubmit={handleContactSubmit}
-              />
+
+            {/* Agent Card (Owner Details) */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              {property && property.owner === null ? (
+                <div className="text-gray-500">Owner not found</div>
+              ) : ownerDetails ? (
+                <>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <img
+                      src={
+                        ownerDetails.picture
+                          ? `http://localhost:8000/storage/${ownerDetails.picture}`
+                          : "/owner.jpg"
+                      }
+                      alt={ownerDetails.user?.name || "Owner"}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Property Owner
+                      </div>
+                      <h3 className="font-bold text-gray-900">
+                        {ownerDetails.user?.name}
+                      </h3>
+                      {ownerDetails.bio && (
+                        <p className="text-sm text-gray-600">
+                          {ownerDetails.bio}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    {ownerDetails.phone_number && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="font-medium">
+                          {ownerDetails.phone_number}
+                        </span>
+                      </div>
+                    )}
+                    {ownerDetails.whatsapp_number && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Whatsapp:</span>
+                        <span className="font-medium">
+                          {ownerDetails.whatsapp_number}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Email:</span>
+                      <span className="font-medium text-blue-600">
+                        {ownerDetails.user?.email}
+                      </span>
+                    </div>
+                  </div>
+                  {ownerDetails.user_id && (
+                    <a
+                      href={`/owner-profile/${ownerDetails.user_id}`}
+                      className="block w-full bg-yellow-400 text-black font-semibold py-2 px-4 rounded mt-4 hover:bg-yellow-500 transition-colors text-center"
+                    >
+                      View my properties
+                    </a>
+                  )}
+                </>
+              ) : (
+                <div className="text-gray-500">
+                  <LoadingSpinner />
+                </div>
+              )}
             </div>
-            <MortgageCalculator calculatorInputs={calculatorInputs} />
+
+            {/* Schedule Tour */}
+            {/* <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="font-bold text-gray-900 mb-2">Contact Owner</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Get in touch with the property owner for more information or to
+                schedule a viewing.
+              </p>
+
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Your name*"
+                  value={contactForm.name}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, name: e.target.value })
+                  }
+                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                />
+                <input
+                  type="email"
+                  placeholder="Your email*"
+                  value={contactForm.email}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, email: e.target.value })
+                  }
+                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                />
+                <textarea
+                  placeholder="Message"
+                  value={contactForm.message}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, message: e.target.value })
+                  }
+                  rows={4}
+                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none"
+                />
+                <button
+                  onClick={handleContactSubmit}
+                  className="w-full bg-yellow-400 text-black font-semibold py-3 px-4 rounded hover:bg-yellow-500 transition-colors"
+                >
+                  Send Message
+                </button>
+              </div>
+            </div> */}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
 
-export default DynamicPropertyListing;
+export default PropertyListing;

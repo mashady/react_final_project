@@ -1,4 +1,5 @@
 "use client";
+import React, { useState } from "react";
 import { Search, RefreshCcw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
@@ -12,115 +13,135 @@ export default function PropertyFilters({
   getUniqueLocations,
   formatPriceShort,
 }) {
+  const [localFilters, setLocalFilters] = useState(filters);
+
+  React.useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
+  const handleLocalChange = (key, value) => {
+    setLocalFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleLocalPriceRange = (range) => {
+    setLocalFilters((prev) => ({ ...prev, priceRange: range }));
+  };
+
+  const onSearch = () => {
+
+    Object.entries(localFilters).forEach(([key, value]) => {
+      handleFilterChange(key, value);
+    });
+    if (handlePriceRangeChange) handlePriceRangeChange(localFilters.priceRange);
+    if (handleSearch) handleSearch();
+  };
+
+  const onReset = () => {
+    setLocalFilters({
+      title: "",
+      description: "",
+      type: "",
+      area: "",
+      street: "",
+      block: "",
+      number_of_beds: "",
+      number_of_bathrooms: "",
+      space: "",
+      priceRange: [100, 1000000],
+    });
+    handleReset();
+  };
+
   return (
     <div
       className="bg-[#fbfbfb] text-[#555] rounded p-6 md:p-6 mb-10"
-      style={{
-        border: "1px solid #e8e8e8",
-      }}
+      style={{ border: "1px solid #e8e8e8" }}
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-        <div className="relative">
-          <select
-            className="w-full h-[50px] pl-4 p-2 pr-8 text-sm border-1 focus:border-0 border-gray-300 bg-white text-gray-700 appearance-none cursor-pointer"
-            value={filters.type}
-            onChange={(e) => handleFilterChange("type", e.target.value)}
-          >
-            <option value="">Types</option>
-            {getUniqueTypes().map((type) => (
-              <option key={type} value={type}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-            <svg
-              className="w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 9l-7 7-7-7"
-              ></path>
-            </svg>
-          </div>
-        </div>
-
-        <div className="relative">
-          <select
-            className="w-full h-[50px] pl-4  p-2 pr-8 text-sm border bg-white text-gray-700 appearance-none cursor-pointer"
-            value={filters.location}
-            onChange={(e) => handleFilterChange("location", e.target.value)}
-          >
-            <option value="">Locations</option>
-            {getUniqueLocations().map((location) => (
-              <option key={location} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-            <svg
-              className="w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 9l-7 7-7-7"
-              ></path>
-            </svg>
-          </div>
-        </div>
+        <input
+          type="text"
+          placeholder="Title"
+          className="w-full h-[50px] pl-4 p-2 text-sm border border-gray-300 bg-white text-gray-700 rounded"
+          value={localFilters.title || ""}
+          onChange={(e) => handleLocalChange("title", e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Description"
+          className="w-full h-[50px] pl-4 p-2 text-sm border border-gray-300 bg-white text-gray-700 rounded"
+          value={localFilters.description || ""}
+          onChange={(e) => handleLocalChange("description", e.target.value)}
+        />
+        <select
+          className="w-full h-[50px] pl-4 p-2 pr-8 text-sm border-1 focus:border-0 border-gray-300 bg-white text-gray-700 appearance-none cursor-pointer"
+          value={localFilters.type}
+          onChange={(e) => handleLocalChange("type", e.target.value)}
+        >
+          <option value="">Types</option>
+          {getUniqueTypes().map((type) => (
+            <option key={type} value={type}>
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </option>
+          ))}
+        </select>
       </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Area"
+          className="w-full h-[50px] pl-4 p-2 text-sm border border-gray-300 bg-white text-gray-700 rounded"
+          value={localFilters.area || ""}
+          onChange={(e) => handleLocalChange("area", e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Street"
+          className="w-full h-[50px] pl-4 p-2 text-sm border border-gray-300 bg-white text-gray-700 rounded"
+          value={localFilters.street || ""}
+          onChange={(e) => handleLocalChange("street", e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Block"
+          className="w-full h-[50px] pl-4 p-2 text-sm border border-gray-300 bg-white text-gray-700 rounded"
+          value={localFilters.block || ""}
+          onChange={(e) => handleLocalChange("block", e.target.value)}
+        />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-        <div>
-          {/* <label className="block text-xs font-medium text-gray-500 mb-1">
-            Min Bedrooms
-          </label> */}
-          <input
-            type="number"
-            placeholder="Number of bedrooms"
-            className="w-full pl-4  p-2 text-sm border bg-white placeholder:text-gray-700 h-[50px]"
-            value={filters.bedrooms}
-            onChange={(e) => handleFilterChange("bedrooms", e.target.value)}
-          />
-        </div>
-
-        <div>
-          {/* <label className="block text-xs font-medium text-gray-500 mb-1">
-            Min Bathrooms
-          </label> */}
-          <input
-            type="number"
-            placeholder="Number of bathrooms"
-            className="w-full pl-4  p-2 text-sm border bg-white placeholder:text-gray-700 h-[50px]"
-            value={filters.bathrooms}
-            onChange={(e) => handleFilterChange("bathrooms", e.target.value)}
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          {/* <label className="block text-xs font-medium text-gray-500 mb-1">
-            Price range (USD)
-          </label> */}
+        <input
+          type="number"
+          placeholder="Number of bedrooms"
+          className="w-full pl-4  p-2 text-sm border bg-white placeholder:text-gray-700 h-[50px]"
+          value={localFilters.number_of_beds || ""}
+          onChange={(e) => handleLocalChange("number_of_beds", e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Number of bathrooms"
+          className="w-full pl-4  p-2 text-sm border bg-white placeholder:text-gray-700 h-[50px]"
+          value={localFilters.number_of_bathrooms || ""}
+          onChange={(e) =>
+            handleLocalChange("number_of_bathrooms", e.target.value)
+          }
+        />
+        <input
+          type="number"
+          placeholder="Space (m²)"
+          className="w-full pl-4  p-2 text-sm border bg-white placeholder:text-gray-700 h-[50px]"
+          value={localFilters.space || ""}
+          onChange={(e) => handleLocalChange("space", e.target.value)}
+        />
+        <div className="md:col-span-1">
           <div className="px-1">
             <div className="flex justify-between text-xs text-gray-500 mb-3">
-              <span>{formatPriceShort(filters.priceRange[0])}</span>
-              <span>{formatPriceShort(filters.priceRange[1])}</span>
+              <span>{formatPriceShort(localFilters.priceRange?.[0] || 0)}</span>
+              <span>{formatPriceShort(localFilters.priceRange?.[1] || 0)}</span>
             </div>
             <Slider
-              value={filters.priceRange}
-              onValueChange={handlePriceRangeChange}
-              max={50000}
+              value={localFilters.priceRange}
+              onValueChange={handleLocalPriceRange}
+              max={1000000}
               min={100}
               step={1000}
               className="w-full"
@@ -128,49 +149,20 @@ export default function PropertyFilters({
           </div>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div>
-          {/* <label className="block text-xs font-medium text-gray-500 mb-1">
-            Min area (m²)
-          </label> */}
-          <input
-            type="number"
-            placeholder="Min Area"
-            className="w-full p-2 pl-4  text-sm border bg-white placeholder:text-gray-700 h-[50px]"
-            value={filters.minArea}
-            onChange={(e) => handleFilterChange("minArea", e.target.value)}
-          />
-        </div>
-
-        <div>
-          {/* <label className="block text-xs font-medium text-gray-500 mb-1">
-            Max area (m²)
-          </label> */}
-          <input
-            type="number"
-            placeholder="Max Area"
-            className="w-full pl-4 p-2 text-sm border bg-white placeholder:text-gray-700 h-[50px]"
-            value={filters.maxArea}
-            onChange={(e) => handleFilterChange("maxArea", e.target.value)}
-          />
-        </div>
-
-        <div className="flex items-end">
+        <div className="md:col-span-4 flex items-end justify-end gap-3">
           <button
-            onClick={handleReset}
-            className="w-full h-[50px] cursor-pointer p-2 border border-gray-300 hover:bg-gray-50 transition-colors flex justify-center items-center gap-1 text-sm"
+            onClick={onReset}
+            className="h-[50px] w-[180px] px-4 cursor-pointer p-2 border border-gray-300 hover:bg-gray-50 transition-colors flex justify-center items-center gap-1 text-base font-semibold"
           >
-            <RefreshCcw className="w-4 h-4 text-gray-600" />
+            <RefreshCcw className="w-5 h-5 text-gray-600" />
             Reset
           </button>
-        </div>
-
-        <div className="flex items-end">
           <button
-            onClick={handleSearch}
-            className="w-full p-2 h-[50px] cursor-pointer bg-[#FFCC41] hover:bg-yellow-500 text-black text-sm font-medium flex items-center justify-center gap-1 transition-colors"
+            onClick={onSearch}
+            className="p-2 w-[350px] h-[50px] px-8 cursor-pointer bg-[#FFCC41] hover:bg-yellow-500 text-black text-base font-semibold flex items-center justify-center gap-2 transition-colors"
           >
+            <Search className="w-5 h-5" />
             Search
           </button>
         </div>

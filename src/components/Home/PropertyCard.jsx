@@ -15,6 +15,7 @@ import {
   FileText,
   Key,
 } from "lucide-react";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 
 // export const PropertyCard = ({ property }) => {
 //   return (
@@ -79,7 +80,7 @@ export const PropertiesGrid = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-10 text-black">Loading ads...</div>;
+    return <LoadingSpinner />;
   }
 
   return (

@@ -3,12 +3,76 @@ import React from "react";
 import { MapPin, Home, Bath, Star, User } from "lucide-react";
 import api from "../../api/axiosConfig";
 import Link from "next/link";
+import Image from "next/image";
+
+const ProfileImage = ({ owner, API_BASE_URL }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (imgError || !owner?.owner_profile?.picture) {
+    return (
+      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+        <User className="w-5 h-5 text-gray-400" />
+      </div>
+    );
+  }
+
+  const imageUrl =
+    owner.owner_profile.picture.startsWith("http") ||
+    owner.owner_profile.picture.startsWith("/")
+      ? owner.owner_profile.picture
+      : `${API_BASE_URL}/${owner.owner_profile.picture}`;
+
+  return (
+    <Image
+      src={imageUrl}
+      alt={`${owner.name || "Owner"} profile`}
+      width={32}
+      height={32}
+      className="rounded-full object-cover border border-gray-200"
+      onError={() => setImgError(true)}
+      unoptimized={!imageUrl.startsWith("/")}
+    />
+  );
+};
+
+const PropertyImage = ({ imageUrl, title, API_BASE_URL }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (imgError || !imageUrl) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
+        <Home className="w-16 h-16 text-gray-400" />
+      </div>
+    );
+  }
+
+  const fullImageUrl =
+    imageUrl.startsWith("http") || imageUrl.startsWith("/")
+      ? imageUrl
+      : `${API_BASE_URL}/storage/${imageUrl}`;
+
+  return (
+    <Image
+      src={fullImageUrl}
+      alt={title || "Property image"}
+      fill
+      className="object-cover hover:scale-105 transition-transform duration-300"
+      onError={() => setImgError(true)}
+      unoptimized={!fullImageUrl.startsWith("/")}
+      priority={false}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    />
+  );
+};
+
 const PropertyCard = ({ property, onClick, className }) => {
   const [isHovered, setIsHovered] = React.useState(false);
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
   const {
-    // id=null,
     primary_image = null,
+    media = null,
     type = null,
     title = null,
     description = null,
@@ -18,10 +82,20 @@ const PropertyCard = ({ property, onClick, className }) => {
     block = null,
     street = null,
     area = null,
-    number_of_bedrooms = null,
+    number_of_beds = null,
     number_of_bathrooms = null,
     owner = null,
   } = property || {};
+
+  const imageUrl = primary_image?.file_path || media?.[0]?.file_path;
+
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    api
+      .post(`/wishlist/toggle/${property.id}`)
+      .then(() => console.log(`Toggled favorite for ${title || "property"}`))
+      .catch((err) => console.error("Error toggling favorite:", err));
+  };
 
   return (
     <div
@@ -31,17 +105,11 @@ const PropertyCard = ({ property, onClick, className }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative h-64 bg-gray-200 overflow-hidden">
-        {primary_image && primary_image.file_path ? (
-          <img
-            src={"http://localhost:8000/storage/" + primary_image.file_path}
-            alt={title || "Property image"}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
-            <Home className="w-16 h-16 text-gray-400" />
-          </div>
-        )}
+        <PropertyImage
+          imageUrl={imageUrl}
+          title={title}
+          API_BASE_URL={API_BASE_URL}
+        />
 
         {type && (
           <div className="absolute top-4 left-4">
@@ -53,24 +121,17 @@ const PropertyCard = ({ property, onClick, className }) => {
 
         {owner && (
           <div className="absolute bottom-4 left-4 flex items-center space-x-2">
-            {owner.owner_profile && owner.owner_profile.picture ? (
-              <img
-                src={
-                  "http://localhost:8000/storage/" + owner.owner_profile.picture
-                }
-                alt={owner.name + " profile"}
-                className="w-8 h-8 rounded-full object-cover border border-gray-200"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                <User className="w-5 h-5 text-gray-400" />
-              </div>
+            <ProfileImage owner={owner} API_BASE_URL={API_BASE_URL} />
+            {owner?.name && (
+              <Link
+                href={`/owner-profile/${owner.id}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="bg-white text-gray-800 px-3 py-1 text-sm font-medium rounded shadow-sm">
+                  {owner.name}
+                </span>
+              </Link>
             )}
-            <Link href={`/owner-profile/${owner.id}`}>
-              <span className="bg-white text-gray-800 px-3 py-1 text-sm font-medium rounded shadow-sm">
-                {owner.name}
-              </span>
-            </Link>
           </div>
         )}
 
@@ -83,16 +144,10 @@ const PropertyCard = ({ property, onClick, className }) => {
                 : "opacity-0 scale-75 pointer-events-none"
             }
           `}
-          aria-label="toggled to favorite"
-          onClick={(e) => {
-            e.stopPropagation();
-            api.post(`/wishlist/toggle/${property.id}`);
-            console.log(`Added ${title || "property"} to favorites`);
-          }}
+          aria-label="Toggle favorite"
+          onClick={handleFavoriteClick}
         >
-          <Star
-            className={`w-4 h-4 text-gray-800 transition-colors duration-300`}
-          />
+          <Star className="w-4 h-4 text-gray-800 transition-colors duration-300" />
         </button>
       </div>
 
@@ -112,22 +167,27 @@ const PropertyCard = ({ property, onClick, className }) => {
             className="text-[26px] text-black mb-3 truncate capitalize"
             style={{ fontWeight: 500 }}
           >
-            <Link href={`/property/${property.id}`}>{title}</Link>
+            <Link
+              href={`/property/${property.id}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {title}
+            </Link>
           </h3>
         )}
 
         {description && (
-          <p className="text-[#555] text-[15px] leading-relaxed mb-6 truncate capitalize">
+          <p className="text-[#555] text-[15px] leading-relaxed mb-6 line-clamp-2 capitalize">
             {description}
           </p>
         )}
 
-        {(title || description || location) &&
-          (price || area || number_of_bedrooms || number_of_bathrooms) && (
+        {(title || description) &&
+          (price || space || number_of_beds || number_of_bathrooms) && (
             <hr className="border-gray-200 mb-6" />
           )}
 
-        {(price || area || number_of_bedrooms || number_of_bathrooms) && (
+        {(price || space || number_of_beds || number_of_bathrooms) && (
           <div className="flex items-center justify-between">
             {price && (
               <div
@@ -139,14 +199,14 @@ const PropertyCard = ({ property, onClick, className }) => {
             )}
 
             <div className="flex items-center space-x-4 text-[#555]">
-              {area && (
+              {space && (
                 <div className="flex items-center space-x-1">
                   <Home className="w-4 h-4 text-[15px]" />
                   <span className="text-sm">{space}m²</span>
                 </div>
               )}
 
-              {number_of_bedrooms && (
+              {number_of_beds && (
                 <div className="flex items-center space-x-1">
                   <div className="w-4 h-4 flex items-center justify-center">
                     <svg
@@ -154,10 +214,10 @@ const PropertyCard = ({ property, onClick, className }) => {
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path d="M20 9.556V3h-2v2H6V3H4v6.557C2.81 10.25 2 11.526 2 13v4a1 1 0 0 0 1 1h1v4h2v-4h12v4h2v-4h1a1 1 0 0 0 1-1v-4c0-1.474-.811-2.75-2-3.444zM11 9H4V7h7v2zm9 0h-7V7h7v2z" />
+                      <path d="M20 9.556V3h-2v2H6V3H4v6.557C2.81 10.25 2 11.526 2 13v4a1 1 0 0 0 1 1h1v4h2v-4h12v4h2v-4h1a1 1 0 0 0 1-1v-4c0-1.474-.811-2.75-2-3.444zM11 9H4V7h7v2zm9 9h-7V7h7v2z" />
                     </svg>
                   </div>
-                  <span className="text-sm">{number_of_bedrooms}</span>
+                  <span className="text-sm">{number_of_beds}</span>
                 </div>
               )}
 

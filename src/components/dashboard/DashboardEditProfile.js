@@ -10,6 +10,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser, updateUser } from "@/features/user/userSlice";
 import { userProfileSchema } from "@/validation/userProfile";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
 // import LoadingSpinner from "@/components/LoadingSpinner";
 
 const ProfileImageUpload = ({
@@ -96,6 +98,18 @@ const UserProfileForm = () => {
     updateLoading,
     updateError,
   } = useSelector((state) => state.user);
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
 
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -172,8 +186,10 @@ const UserProfileForm = () => {
 
       await dispatch(fetchUser(user.id));
 
-      setSuccessMessage("Profile updated successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000);
+      showToast("Profile updated successfully!", "success");
+
+      // setSuccessMessage("Profile updated successfully!");
+      // setTimeout(() => setSuccessMessage(null), 3000);
       resetForm({ values: { ...values, password: "" } });
       setProfileImage(null);
     } catch (error) {
@@ -210,12 +226,12 @@ const UserProfileForm = () => {
 
   return (
     <div className="max-w-full mx-auto py-6 bg-white rounded-lg shadow p-6">
-      {successMessage && (
+      {/* {successMessage && (
         <Alert variant="success" className="mb-6">
           <AlertTitle>Success</AlertTitle>
           <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
-      )}
+      )} */}
 
       {updateError && (
         <Alert variant="destructive" className="mb-6">
@@ -346,6 +362,13 @@ const UserProfileForm = () => {
           </Form>
         )}
       </Formik>
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleCloseToast}
+        />
+      )}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import axios from 'axios'
 
@@ -9,125 +9,95 @@ export default function PaymentSuccessPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
-  const searchParams = useSearchParams()
-  const [formData , setFormData] = useState({
-    plan_id: '',
-    session_id: '',
-  })
 
+  const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
   const planId = searchParams.get('plan_id')
 
-
-  useEffect(() => {
-    if (sessionId && planId) {
-      setFormData({
-        plan_id: planId,
-        session_id: sessionId,
-      });
-    }
-  }, [sessionId, planId]);
-  
-
-console.log(formData)
-
-  const removeFromCart = async (planId) => {
-    try {
-      const response = await axios.post(
-        'http://localhost:8000/api/plans/remove-from-cart',
-        { plan_id: planId },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-        }
-      );
-      console.log('Plan removed from cart:', response.data);
-      return response.data;
-     
-    } catch (err) {
-      console.error('Error removing from cart:', err);
-      throw err.response?.data?.message || err.message || 'Failed to remove from cart';
-    }
-  };
+  const alreadyProcessedRef = useRef(false) // in-memory check
 
   useEffect(() => {
     document.title = 'Payment Successful'
-  
+
     const processPaymentSuccess = async () => {
       try {
         if (!sessionId || !planId) {
           throw new Error('Missing session ID or plan ID')
         }
-  
-        const token = localStorage.getItem('token');
+
+        const storageKey = `payment_processed_${sessionId}`
+
+        if (alreadyProcessedRef.current || sessionStorage.getItem(storageKey)) {
+          console.log('Already processed, skipping...')
+          setSuccess(true)
+          setLoading(false)
+          return
+        }
+
+        alreadyProcessedRef.current = true // mark as processed in memory
+        const token = localStorage.getItem('token')
+        if (!token) throw new Error('User not authenticated')
+
         const headers = {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        };
-  
-        // Step 1: Verify payment
+          Authorization: `Bearer ${token}`,
+        }
+
+        // Step 1: Add to payment
         await axios.post(
-          `http://localhost:8000/api/add-to-payment`,
+          'http://localhost:8000/api/add-to-payment',
           { plan_id: planId, session_id: sessionId },
           { headers }
-        );
-  
+        )
+
         // Step 2: Remove from cart
-        await removeFromCart(planId);
-  
-        // Step 3: Check if user has an active plan
-        let hasActivePlan = false;
+        await axios.post(
+          'http://localhost:8000/api/plans/remove-from-cart',
+          { plan_id: planId },
+          { headers }
+        )
+
+        // Step 3: Check for active plan
+        let hasActivePlan = false
         try {
-          const planResponse = await axios.get('http://localhost:8000/api/plans/my-subscription', {
-            headers,
-          });
-  
-          if (planResponse.data && planResponse.data.active) {
-            hasActivePlan = true;
-          }
+          const planResponse = await axios.get(
+            'http://localhost:8000/api/plans/my-subscription',
+            { headers }
+          )
+          if (planResponse.data?.active) hasActivePlan = true
         } catch (err) {
-          console.warn('No active plan detected');
-          hasActivePlan = false;
+          console.warn('No active plan')
         }
-  
-        // Step 4: Subscribe or Upgrade
+
+        // Step 4: Subscribe or upgrade
         const endpoint = hasActivePlan
           ? `http://localhost:8000/api/plans/${planId}/upgrade-subscribe`
-          : 'http://localhost:8000/api/plans/subscribe';
-  
-        const subscribeResponse = await axios.post(
+          : 'http://localhost:8000/api/plans/subscribe'
+
+        await axios.post(
           endpoint,
           { plan_id: planId },
           { headers }
-        );
-  
-        if (subscribeResponse.status !== 200) {
-          throw new Error('Subscription failed');
-        }
-  
-        setSuccess(true);
+        )
+
+        // Save in sessionStorage to prevent future duplication
+        sessionStorage.setItem(storageKey, 'true')
+        setSuccess(true)
       } catch (err) {
-        console.error('Payment success processing error:', err);
-        setError(
-          err.response?.data?.message ||
-          err.message ||
-          'Payment processing failed'
-        );
+        console.error('Payment error:', err)
+        setError(err?.response?.data?.message || err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-  
-    if (sessionId && planId) {
-      processPaymentSuccess();
-    } else {
-      setError('Missing payment verification details');
-      setLoading(false);
     }
-  }, []);
-  
+
+    if (sessionId && planId) {
+      processPaymentSuccess()
+    } else {
+      setError('Missing payment verification details')
+      setLoading(false)
+    }
+  }, [sessionId, planId])
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-green-50 text-center px-4">

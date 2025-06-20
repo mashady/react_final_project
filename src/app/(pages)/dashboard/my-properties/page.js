@@ -5,6 +5,7 @@ import PropertyCard from "@/components/shared/PropertyCard";
 import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
 import React, { useEffect, useState } from "react";
 import api from "../../../../api/axiosConfig";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
 
 const MyPropertiesPage = () => {
   const [properties, setProperties] = useState([]);
@@ -37,11 +38,7 @@ const MyPropertiesPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        Loading your properties...
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -83,7 +80,11 @@ const MyPropertiesPage = () => {
           )}
         </>
       ) : (
-        <DashboardEmptyMsg />
+        <DashboardEmptyMsg
+          msg="You haven't added any property yet."
+          btn="Add Property"
+          link="/dashboard/add-property"
+        />
       )}
     </div>
   );

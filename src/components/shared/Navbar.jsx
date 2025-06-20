@@ -15,6 +15,7 @@ import { logout } from "@/features/user/userSlice";
 const NAV_LINKS = [
   { label: "HOME", href: "/" },
   { label: "PROPERTIES", href: "/properties" },
+  { label: "PLANS", href: "/plans" },
 ];
 
 const defaultUser =
@@ -39,6 +40,7 @@ const Navbar = () => {
   const baseDropdownItems = [
     { href: "/dashboard", label: "My Profile" },
     { href: "/dashboard/edit-profile", label: "Edit Profile" },
+    { href: "/dashboard/messages", label: "Messages" },
   ];
 
   const studentDropdownItems = [

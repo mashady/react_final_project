@@ -4,6 +4,7 @@ import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import { ReduxProvider } from "../providers";
 import Providers from "./providers";
+import ChatBotButton from "@/components/chatBot/ChatBotButton";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({ children }) {
           <ReduxProvider>
             <Navbar />
             {children}
+            <ChatBotButton />
             <Footer />
           </ReduxProvider>
         </Providers>
