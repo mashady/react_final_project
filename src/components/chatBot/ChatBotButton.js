@@ -27,7 +27,7 @@ export default function ChatBotButton() {
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-80 bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200">
+        <div className="absolute bottom-20 right-0 w-80 bg-white rounded-lg shadow-xl overflow-hidden">
           <div className="bg-green-500 text-white p-4 flex justify-between items-center">
             <h3 className="font-semibold">Messages</h3>
             <button
@@ -62,6 +62,9 @@ export default function ChatBotButton() {
           <div className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
+                style={{
+                  width: "80%",
+                }}
                 type="text"
                 placeholder="Type a message..."
                 className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
