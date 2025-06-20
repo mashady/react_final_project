@@ -41,9 +41,9 @@ const RegisterPage = () => {
       const resultAction = await dispatch(registerUser(values));
 
       if (registerUser.fulfilled.match(resultAction)) {
-        showToast("Registration successful!", "success");
+        showToast("Registration successful!, Please check your email to verify your account.", "success");
         setTimeout(() => {
-          router.push("/");
+          router.push("/login");
         }, 2000);
       } else {
         throw resultAction.payload;
