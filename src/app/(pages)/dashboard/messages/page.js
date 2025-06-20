@@ -33,7 +33,7 @@ const Page = () => {
     setLoading(true);
     setError(null);
     axios
-      .get("http://localhost:8000/api/chat/inbox", {
+      .get("/api/messages/inbox", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -56,22 +56,44 @@ const Page = () => {
         // If the message is already in the inbox, don't add it again
         const exists = prev.some(
           (m) =>
-            m.sender_id === msg.from &&
-            m.receiver_id === msg.to &&
+            m.sender_id === Number(msg.from) &&
+            m.receiver_id === Number(msg.to) &&
             m.message === msg.message &&
-            m.timestamp === msg.timestamp
+            m.created_at === msg.timestamp
         );
         if (exists) return prev;
-        // Add the new message to the top of the inbox
-        return [
-          {
-            ...msg,
-            sender_id: Number(msg.from),
-            receiver_id: Number(msg.to),
-            created_at: msg.timestamp,
-          },
-          ...prev,
-        ];
+        // If the message is from the current chat, update the message list for that chat
+        // Otherwise, update the preview for the sender in the inbox
+        let updated = false;
+        const updatedInbox = prev.map((m) => {
+          if (
+            (m.sender_id === Number(msg.from) &&
+              m.receiver_id === Number(msg.to)) ||
+            (m.sender_id === Number(msg.to) &&
+              m.receiver_id === Number(msg.from))
+          ) {
+            updated = true;
+            return {
+              ...m,
+              message: msg.message,
+              created_at: msg.timestamp,
+            };
+          }
+          return m;
+        });
+        if (!updated) {
+          // New conversation
+          return [
+            {
+              ...msg,
+              sender_id: Number(msg.from),
+              receiver_id: Number(msg.to),
+              created_at: msg.timestamp,
+            },
+            ...prev,
+          ];
+        }
+        return updatedInbox;
       });
     });
 
