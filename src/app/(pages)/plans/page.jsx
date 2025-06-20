@@ -46,12 +46,14 @@ export default function PricingPage() {
 
     const fetchPlanStatus = async () => {
       try {
-        
-        const subRes = await axios.get("http://localhost:8000/api/plans/my-subscription", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const subRes = await axios.get(
+          "http://localhost:8000/api/plans/my-subscription",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (subRes.data && subRes.data.active) {
           setCurrentPlanId(subRes.data.plan_id);
@@ -63,18 +65,19 @@ export default function PricingPage() {
       }
 
       try {
-        
-        const freeRes = await axios.get("http://localhost:8000/api/plans/allow-free-plan", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const freeRes = await axios.get(
+          "http://localhost:8000/api/plans/allow-free-plan",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (freeRes.data.allowed === false) {
-          setHasUsedFreePlan(true); 
+          setHasUsedFreePlan(true);
         }
       } catch (error) {
-        
         setHasUsedFreePlan(true);
       }
     };
@@ -85,7 +88,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-white">
       <PricingHeader />
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="max-w-[1500px] mx-auto px-6 py-16">
         <HowItWorks />
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -93,12 +96,10 @@ export default function PricingPage() {
             let isDisabled = false;
             let isUpgrade = false;
 
-           
             if (plan.id === 1 && hasUsedFreePlan) {
               isDisabled = true;
             }
 
-            
             if (hasPlan) {
               if (plan.id === currentPlanId) {
                 isDisabled = true;
@@ -120,10 +121,6 @@ export default function PricingPage() {
               />
             );
           })}
-        </div>
-
-        <div className="text-center mt-8">
-          <p className="text-sm text-gray-500">*Billed as one payment</p>
         </div>
       </div>
     </div>
