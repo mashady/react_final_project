@@ -20,6 +20,7 @@ import ReviewList from "./components/ReviewList";
 import ReviewForm from "./components/ReviewForm";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import ChatWindow from "@/components/chat/ChatWindow";
 
 const PropertyListing = () => {
   const params = useParams();
@@ -43,6 +44,7 @@ const PropertyListing = () => {
   const [ownerDetails, setOwnerDetails] = useState(null);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
 
   // Fetch property data
   useEffect(() => {
@@ -264,6 +266,14 @@ const PropertyListing = () => {
     };
     checkWishlistStatus();
   }, [currentUser, propertyId]);
+
+  // Determine the current user (sender) and the property owner (receiver)
+  const senderId = currentUser?.id;
+  // Try to get the owner user id from property.owner or ownerDetails
+  const ownerUserId = property?.owner?.id || ownerDetails?.user_id;
+
+  // Only show chat if both users are available and not the same
+  const showChat = senderId && ownerUserId && senderId !== ownerUserId;
 
   if (loading) {
     return (
@@ -508,6 +518,43 @@ const PropertyListing = () => {
                     >
                       View my properties
                     </a>
+                  )}
+                  {/* Chat with Owner Button */}
+                  {showChat && (
+                    <>
+                      <button
+                        className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200"
+                        onClick={() => setShowChatModal(true)}
+                      >
+                        Chat with Owner
+                      </button>
+                      {/* Chat Modal */}
+                      {showChatModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-0 relative flex flex-col">
+                            <div className="flex items-center justify-between px-6 py-4 border-b">
+                              <h3 className="font-bold text-lg text-gray-900">
+                                Chat with Owner
+                              </h3>
+                              <button
+                                className="text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+                                onClick={() => setShowChatModal(false)}
+                                aria-label="Close chat modal"
+                              >
+                                &times;
+                              </button>
+                            </div>
+                            <div className="flex-1 min-h-0 flex flex-col">
+                              <ChatWindow
+                                userId={senderId}
+                                targetUserId={ownerUserId}
+                                forceOpen
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               ) : (
