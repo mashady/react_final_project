@@ -5,6 +5,8 @@ import CartTable from "./components/CartTable";
 import CouponSection from "./components/CouponSection";
 import CartTotals from "./components/CartTotals";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "../properties/components/LoadingSpinner";
+import Header from "@/components/shared/Header";
 
 export default function CartPage() {
   const router = useRouter();
@@ -17,7 +19,7 @@ export default function CartPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
   const [couponStatus, setCouponStatus] = useState("");
-  const [session , $session] = useState("");
+  const [session, $session] = useState("");
 
   const API_BASE = "http://127.0.0.1:8000/api/plans";
 
@@ -103,22 +105,24 @@ export default function CartPage() {
     try {
       const axios = (await import("axios")).default;
       const token = getToken();
-      const response = await axios.post(
-        `${API_BASE}/remove-from-cart`,
-        { plan_id: id },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      ).then((response) => {
-        console.log(response.data);
-        loadCart();
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+      const response = await axios
+        .post(
+          `${API_BASE}/remove-from-cart`,
+          { plan_id: id },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((response) => {
+          console.log(response.data);
+          loadCart();
+        })
+        .catch((error) => {
+          console.error(error);
+        });
 
       const data = response.data;
       if (data.success) {
@@ -189,9 +193,8 @@ export default function CartPage() {
       return;
     }
 
-
-    if(planId === 1) {
-      const  $session= "freeplan"+id;
+    if (planId === 1) {
+      const $session = "freeplan" + id;
       router.push(`/payment-success?session_id=${$session}&plan_id=${planId}`);
       return;
     }
@@ -199,30 +202,14 @@ export default function CartPage() {
   };
 
   if (isLoading && cartItems.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your cart...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-yellow-400 py-16 px-6">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-3xl font-[600] text-black">Cart</h1>
-          <div className="text-black">
-            <span>Home</span>
-            <span className="mx-2">/</span>
-            <span>Cart</span>
-          </div>
-        </div>
-      </div>
+      <Header title="Cart" />
 
-      <div className="max-w-6xl mx-auto p-6 bg-white min-h-screen">
+      <div className="max-w-6xl mx-auto p-6 bg-white mt-6">
         {cartItems.length === 0 ? (
           <div className="text-center py-16">
             <ShoppingCart size={64} className="mx-auto text-gray-400 mb-4" />
@@ -232,7 +219,7 @@ export default function CartPage() {
             <p className="text-gray-600 mb-8">Add some plans to get started!</p>
             <button
               onClick={() => router.push("/plans")}
-              className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black font-medium transition-colors"
+              className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-medium transition-colors"
             >
               Browse Plans
             </button>
@@ -260,7 +247,9 @@ export default function CartPage() {
               subtotal={cartItems}
               discount={discount}
               total={total}
-              proceedToCheckout={() => proceedToCheckout(cartItems[0]?.plan_id, cartItems[0]?.id)}
+              proceedToCheckout={() =>
+                proceedToCheckout(cartItems[0]?.plan_id, cartItems[0]?.id)
+              }
               isLoading={isLoading}
               appliedCoupon={appliedCoupon}
             />
