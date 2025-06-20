@@ -13,14 +13,15 @@ const Users = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'student',
-    verification_status: 'unverified'
+    verification_status: 'unverified',
+    verification_document: null
   });
 
   // Configure axios base URL (adjust to your Laravel app URL)
   const API_BASE_URL = 'http://localhost:8000/api';
   
-  // Simulate API calls (replace with actual API endpoints)
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -55,31 +56,67 @@ const Users = () => {
 
   const handleCreateUser = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/users`, formData);
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('role', formData.role);
+      formDataToSend.append('verification_status', formData.verification_status);
+      
+      if (formData.verification_document) {
+        formDataToSend.append('verification_document', formData.verification_document);
+      }
+
+      const response = await axios.post(`${API_BASE_URL}/users`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
       if (response.data.success) {
         await fetchUsers(); // Refresh the list
         setShowModal(false);
         resetForm();
       } else {
         console.error('Failed to create user:', response.data.message);
+        alert(`Failed to create user: ${response.data.message}`);
       }
     } catch (error) {
       console.error('Error creating user:', error);
+      alert(`Error creating user: ${error.response?.data?.message || error.message}`);
     }
   };
 
   const handleUpdateUser = async () => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/users/${selectedUser.id}`, formData);
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('role', formData.role);
+      formDataToSend.append('verification_status', formData.verification_status);
+      formDataToSend.append('_method', 'PUT'); // For Laravel to recognize as PUT request
+      
+      if (formData.verification_document) {
+        formDataToSend.append('verification_document', formData.verification_document);
+      }
+
+      const response = await axios.post(`${API_BASE_URL}/users/${selectedUser.id}`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
       if (response.data.success) {
         await fetchUsers(); // Refresh the list
         setShowModal(false);
         resetForm();
       } else {
         console.error('Failed to update user:', response.data.message);
+        alert(`Failed to update user: ${response.data.message}`);
       }
     } catch (error) {
       console.error('Error updating user:', error);
+      alert(`Error updating user: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -91,9 +128,11 @@ const Users = () => {
           await fetchUsers(); // Refresh the list
         } else {
           console.error('Failed to delete user:', response.data.message);
+          alert(`Failed to delete user: ${response.data.message}`);
         }
       } catch (error) {
         console.error('Error deleting user:', error);
+        alert(`Error deleting user: ${error.response?.data?.message || error.message}`);
       }
     }
   };
@@ -105,8 +144,10 @@ const Users = () => {
       setFormData({
         name: user.name,
         email: user.email,
+        password: '',
         role: user.role,
-        verification_status: user.verification_status
+        verification_status: user.verification_status,
+        verification_document: null
       });
     }
     setShowModal(true);
@@ -116,8 +157,10 @@ const Users = () => {
     setFormData({
       name: '',
       email: '',
+      password: '',
       role: 'student',
-      verification_status: 'unverified'
+      verification_status: 'unverified',
+      verification_document: null
     });
     setSelectedUser(null);
   };
@@ -135,7 +178,6 @@ const Users = () => {
     switch (role) {
       case 'owner': return 'bg-purple-100 text-purple-800';
       case 'admin': return 'bg-red-100 text-red-800';
-      case 'moderator': return 'bg-blue-100 text-blue-800';
       case 'student': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -462,6 +504,19 @@ const Users = () => {
                     />
                   </div>
                   
+                  {modalMode === 'create' && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+                      <input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all duration-300"
+                        required
+                      />
+                    </div>
+                  )}
+                  
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Role</label>
                     <select
@@ -472,7 +527,6 @@ const Users = () => {
                       <option value="student">Student</option>
                       <option value="owner">Owner</option>
                       <option value="admin">Admin</option>
-                      <option value="moderator">Moderator</option>
                     </select>
                   </div>
                   
@@ -487,6 +541,17 @@ const Users = () => {
                       <option value="pending">Pending</option>
                       <option value="verified">Verified</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Verification Document</label>
+                    <input
+                      type="file"
+                      onChange={(e) => setFormData({...formData, verification_document: e.target.files[0]})}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all duration-300"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Upload PDF, JPG, or PNG files</p>
                   </div>
                 </div>
                 
