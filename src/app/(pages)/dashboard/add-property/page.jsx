@@ -5,6 +5,7 @@ import axios from "axios";
 import PropertyForm from "@/components/add-property/PropertyForm";
 import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
 
 const Page = () => {
   const [loading, setLoading] = useState(true);
@@ -61,20 +62,11 @@ const Page = () => {
 
   if (!hasSubscription) {
     return (
-      <div className="text-center py-10">
-        <h2 className="text-xl font-semibold text-red-600 mb-4">
-          You don’t have an active subscription
-        </h2>
-        <p className="text-gray-600 mb-4">
-          Please choose a plan to be able to add a property.
-        </p>
-        <Link
-          href="/plans"
-          className="inline-block px-6 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition"
-        >
-          View Plans
-        </Link>
-      </div>
+      <DashboardEmptyMsg
+        msg="You don’t have an active subscription"
+        btn="Explore Plans"
+        link="/plans"
+      />
     );
   }
 

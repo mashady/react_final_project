@@ -5,6 +5,66 @@ import api from "../../api/axiosConfig";
 import Link from "next/link";
 import Image from "next/image";
 
+const ProfileImage = ({ owner, API_BASE_URL }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (imgError || !owner?.owner_profile?.picture) {
+    return (
+      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+        <User className="w-5 h-5 text-gray-400" />
+      </div>
+    );
+  }
+
+  const imageUrl =
+    owner.owner_profile.picture.startsWith("http") ||
+    owner.owner_profile.picture.startsWith("/")
+      ? owner.owner_profile.picture
+      : `${API_BASE_URL}/${owner.owner_profile.picture}`;
+
+  return (
+    <Image
+      src={imageUrl}
+      alt={`${owner.name || "Owner"} profile`}
+      width={32}
+      height={32}
+      className="rounded-full object-cover border border-gray-200"
+      onError={() => setImgError(true)}
+      unoptimized={!imageUrl.startsWith("/")}
+    />
+  );
+};
+
+const PropertyImage = ({ imageUrl, title, API_BASE_URL }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (imgError || !imageUrl) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
+        <Home className="w-16 h-16 text-gray-400" />
+      </div>
+    );
+  }
+
+  const fullImageUrl =
+    imageUrl.startsWith("http") || imageUrl.startsWith("/")
+      ? imageUrl
+      : `${API_BASE_URL}/storage/${imageUrl}`;
+
+  return (
+    <Image
+      src={fullImageUrl}
+      alt={title || "Property image"}
+      fill
+      className="object-cover hover:scale-105 transition-transform duration-300"
+      onError={() => setImgError(true)}
+      unoptimized={!fullImageUrl.startsWith("/")}
+      priority={false}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    />
+  );
+};
+
 const PropertyCard = ({ property, onClick, className }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const API_BASE_URL =
@@ -28,31 +88,13 @@ const PropertyCard = ({ property, onClick, className }) => {
   } = property || {};
 
   const imageUrl = primary_image?.file_path || media?.[0]?.file_path;
-  const fullImageUrl = imageUrl ? `${API_BASE_URL}/storage/${imageUrl}` : null;
 
-  const handleImageError = (e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "";
-    e.currentTarget.parentElement.classList.add(
-      "bg-gradient-to-br",
-      "from-blue-100",
-      "to-green-100"
-    );
-    e.currentTarget.parentElement.innerHTML = `
-      <div class="w-full h-full flex items-center justify-center">
-        <Home class="w-16 h-16 text-gray-400" />
-      </div>
-    `;
-  };
-
-  const handleProfileImageError = (e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "";
-    e.currentTarget.parentElement.innerHTML = `
-      <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-        <User class="w-5 h-5 text-gray-400" />
-      </div>
-    `;
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    api
+      .post(`/wishlist/toggle/${property.id}`)
+      .then(() => console.log(`Toggled favorite for ${title || "property"}`))
+      .catch((err) => console.error("Error toggling favorite:", err));
   };
 
   return (
@@ -63,20 +105,11 @@ const PropertyCard = ({ property, onClick, className }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative h-64 bg-gray-200 overflow-hidden">
-        {fullImageUrl ? (
-          <Image
-            src={fullImageUrl}
-            alt={title || "Property image"}
-            fill
-            className="object-cover hover:scale-105 transition-transform duration-300"
-            onError={handleImageError}
-            unoptimized
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
-            <Home className="w-16 h-16 text-gray-400" />
-          </div>
-        )}
+        <PropertyImage
+          imageUrl={imageUrl}
+          title={title}
+          API_BASE_URL={API_BASE_URL}
+        />
 
         {type && (
           <div className="absolute top-4 left-4">
@@ -88,30 +121,17 @@ const PropertyCard = ({ property, onClick, className }) => {
 
         {owner && (
           <div className="absolute bottom-4 left-4 flex items-center space-x-2">
-            {owner.owner_profile?.picture ? (
-              <Image
-                src={
-                  owner.owner_profile.picture.startsWith("http") ||
-                  owner.owner_profile.picture.startsWith("/")
-                    ? owner.owner_profile.picture
-                    : `${API_BASE_URL}/${owner.owner_profile.picture}`
-                }
-                alt={`${owner.name} profile`}
-                width={32}
-                height={32}
-                className="rounded-full object-cover border border-gray-200"
-                onError={handleProfileImageError}
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                <User className="w-5 h-5 text-gray-400" />
-              </div>
+            <ProfileImage owner={owner} API_BASE_URL={API_BASE_URL} />
+            {owner?.name && (
+              <Link
+                href={`/owner-profile/${owner.id}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="bg-white text-gray-800 px-3 py-1 text-sm font-medium rounded shadow-sm">
+                  {owner.name}
+                </span>
+              </Link>
             )}
-            <Link href={`/owner-profile/${owner.id}`}>
-              <span className="bg-white text-gray-800 px-3 py-1 text-sm font-medium rounded shadow-sm">
-                {owner.name}
-              </span>
-            </Link>
           </div>
         )}
 
@@ -124,16 +144,10 @@ const PropertyCard = ({ property, onClick, className }) => {
                 : "opacity-0 scale-75 pointer-events-none"
             }
           `}
-          aria-label="toggled to favorite"
-          onClick={(e) => {
-            e.stopPropagation();
-            api.post(`/wishlist/toggle/${property.id}`);
-            console.log(`Added ${title || "property"} to favorites`);
-          }}
+          aria-label="Toggle favorite"
+          onClick={handleFavoriteClick}
         >
-          <Star
-            className={`w-4 h-4 text-gray-800 transition-colors duration-300`}
-          />
+          <Star className="w-4 h-4 text-gray-800 transition-colors duration-300" />
         </button>
       </div>
 
@@ -153,12 +167,17 @@ const PropertyCard = ({ property, onClick, className }) => {
             className="text-[26px] text-black mb-3 truncate capitalize"
             style={{ fontWeight: 500 }}
           >
-            <Link href={`/property/${property.id}`}>{title}</Link>
+            <Link
+              href={`/property/${property.id}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {title}
+            </Link>
           </h3>
         )}
 
         {description && (
-          <p className="text-[#555] text-[15px] leading-relaxed mb-6 truncate capitalize">
+          <p className="text-[#555] text-[15px] leading-relaxed mb-6 line-clamp-2 capitalize">
             {description}
           </p>
         )}
