@@ -23,6 +23,7 @@ import ReviewForm from "./components/ReviewForm";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import ChatWindow from "@/components/chat/ChatWindow";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
 
 const PropertyListing = ({ toggleChat, showChat }) => {
   const params = useParams();
@@ -281,7 +282,9 @@ const PropertyListing = ({ toggleChat, showChat }) => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex items-center space-x-2">
           <Loader2 className="w-6 h-6 animate-spin" />
-          <span>Loading property...</span>
+          <span>
+            <LoadingSpinner />
+          </span>
         </div>
       </div>
     );
@@ -537,7 +540,9 @@ const PropertyListing = ({ toggleChat, showChat }) => {
                   )}
                 </>
               ) : (
-                <div className="text-gray-500">Loading owner info...</div>
+                <div className="text-gray-500">
+                  <LoadingSpinner />
+                </div>
               )}
             </div>
           </div>

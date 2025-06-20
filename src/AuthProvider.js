@@ -3,6 +3,7 @@
 import { createContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
+import LoadingSpinner from "./app/(pages)/properties/components/LoadingSpinner";
 
 export const AuthContext = createContext();
 
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     router.push("/login");
   };
 
-  if (loading && !user) return <div>Loading...</div>;
+  if (loading && !user) return <LoadingSpinner />;
 
   return (
     <AuthContext.Provider

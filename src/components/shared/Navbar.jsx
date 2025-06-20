@@ -40,6 +40,7 @@ const Navbar = () => {
   const baseDropdownItems = [
     { href: "/dashboard", label: "My Profile" },
     { href: "/dashboard/edit-profile", label: "Edit Profile" },
+    { href: "/dashboard/messages", label: "Messages" },
   ];
 
   const studentDropdownItems = [
