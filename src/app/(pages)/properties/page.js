@@ -12,16 +12,17 @@ import ErrorMessage from "./components/ErrorMessage";
 
 const propertyService = {
   async fetchProperties({ pageParam = 1, filters = {}, pageSize = 5 }) {
-    const params = new URLSearchParams({ 
+    const params = new URLSearchParams({
       page: pageParam.toString(),
-      per_page: pageSize.toString()
+      per_page: pageSize.toString(),
     });
-    
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== "" && value !== null && value !== undefined) {
         if (key === "priceRange" && Array.isArray(value)) {
           if (value[0] > 100) params.append("min_price", value[0].toString());
-          if (value[1] < 1000000) params.append("max_price", value[1].toString());
+          if (value[1] < 1000000)
+            params.append("max_price", value[1].toString());
         } else {
           params.append(key, value.toString());
         }
@@ -39,21 +40,21 @@ const propertyService = {
 const useProperties = (filters) => {
   const debouncedFilters = useDebounce(filters, 300);
   const queryClient = useQueryClient();
-  
+
   const query = useInfiniteQuery({
     queryKey: ["properties", debouncedFilters],
-    queryFn: ({ pageParam }) => 
-      propertyService.fetchProperties({ 
-        pageParam, 
+    queryFn: ({ pageParam }) =>
+      propertyService.fetchProperties({
+        pageParam,
         filters: debouncedFilters,
-        pageSize: pageParam === 1 ? 5 : 10 // First page: 5 items, subsequent pages: 10 items
+        pageSize: pageParam === 1 ? 5 : 10, // First page: 5 items, subsequent pages: 10 items
       }),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.data || lastPage.data.length === 0) return undefined;
-      
+
       const expectedPageSize = allPages.length === 1 ? 5 : 10;
       if (lastPage.data.length < expectedPageSize) return undefined;
-      
+
       return allPages.length + 1;
     },
     initialPageParam: 1,
@@ -65,32 +66,45 @@ const useProperties = (filters) => {
 
   useEffect(() => {
     if (query.hasNextPage && !query.isFetchingNextPage) {
-      const nextPage = query.data?.pages?.length ? query.data.pages.length + 1 : 1;
+      const nextPage = query.data?.pages?.length
+        ? query.data.pages.length + 1
+        : 1;
       queryClient.prefetchInfiniteQuery({
         queryKey: ["properties", debouncedFilters],
-        queryFn: () => propertyService.fetchProperties({
-          pageParam: nextPage,
-          filters: debouncedFilters,
-          pageSize: nextPage === 1 ? 5 : 10
-        }),
+        queryFn: () =>
+          propertyService.fetchProperties({
+            pageParam: nextPage,
+            filters: debouncedFilters,
+            pageSize: nextPage === 1 ? 5 : 10,
+          }),
         pages: 1,
       });
     }
-  }, [query.data?.pages?.length, query.hasNextPage, query.isFetchingNextPage, debouncedFilters, queryClient]);
+  }, [
+    query.data?.pages?.length,
+    query.hasNextPage,
+    query.isFetchingNextPage,
+    debouncedFilters,
+    queryClient,
+  ]);
 
   return query;
 };
 
-const useVirtualScrolling = (items, itemHeight = 300, containerHeight = 800) => {
+const useVirtualScrolling = (
+  items,
+  itemHeight = 300,
+  containerHeight = 800
+) => {
   const [scrollTop, setScrollTop] = useState(0);
-  
+
   const visibleItems = useMemo(() => {
     const startIndex = Math.floor(scrollTop / itemHeight);
     const endIndex = Math.min(
       startIndex + Math.ceil(containerHeight / itemHeight) + 2,
       items.length
     );
-    
+
     return {
       startIndex: Math.max(0, startIndex - 1),
       endIndex,
@@ -99,7 +113,7 @@ const useVirtualScrolling = (items, itemHeight = 300, containerHeight = 800) => 
       offsetY: startIndex * itemHeight,
     };
   }, [items, itemHeight, containerHeight, scrollTop]);
-  
+
   return { visibleItems, setScrollTop };
 };
 
@@ -116,7 +130,7 @@ const PropertyList = () => {
   });
 
   const queryClient = useQueryClient();
-  
+
   const {
     data,
     fetchNextPage,
@@ -130,7 +144,7 @@ const PropertyList = () => {
 
   // Flatten all pages into a single array
   const properties = useMemo(() => {
-    return data?.pages?.flatMap(page => page.data) || [];
+    return data?.pages?.flatMap((page) => page.data) || [];
   }, [data]);
 
   // Get total count from the first page
@@ -151,11 +165,11 @@ const PropertyList = () => {
 
   // Optimized handlers
   const handleFilterChange = useCallback((key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const handlePriceRangeChange = useCallback((newRange) => {
-    setFilters(prev => ({ ...prev, priceRange: newRange }));
+    setFilters((prev) => ({ ...prev, priceRange: newRange }));
   }, []);
 
   const handleReset = useCallback(() => {
@@ -206,14 +220,14 @@ const PropertyList = () => {
   const { uniqueTypes, uniqueLocations } = useMemo(() => {
     const types = new Set();
     const locations = new Set();
-    
-    properties.forEach(property => {
+
+    properties.forEach((property) => {
       if (property.type) types.add(property.type);
       if (property.location) {
         locations.add(property.location.split(",")[0]);
       }
     });
-    
+
     return {
       uniqueTypes: Array.from(types),
       uniqueLocations: Array.from(locations),
@@ -222,11 +236,16 @@ const PropertyList = () => {
 
   // Debug log to see how many properties are loaded
   useEffect(() => {
-    console.log(`Properties loaded: ${properties.length}, Has next page: ${hasNextPage}`);
+    console.log(
+      `Properties loaded: ${properties.length}, Has next page: ${hasNextPage}`
+    );
   }, [properties.length, hasNextPage]);
 
-  if (isLoading) return <LoadingSpinner />;
-  if (isError) return <ErrorMessage error={error?.message || "Failed to load properties"} />;
+  // if (isLoading) return <LoadingSpinner />;
+  if (isError)
+    return (
+      <ErrorMessage error={error?.message || "Failed to load properties"} />
+    );
 
   return (
     <div className="min-h-screen p-4 md:p-6">
@@ -244,7 +263,11 @@ const PropertyList = () => {
           formatPriceShort={formatPriceShort}
         />
 
-        {properties.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-16">
+            <LoadingSpinner />
+          </div>
+        ) : properties.length > 0 ? (
           <>
             <PropertyGrid
               properties={properties} // Use visibleItems.visibleItems for virtual scrolling
@@ -260,13 +283,14 @@ const PropertyList = () => {
               >
                 {isFetchingNextPage ? (
                   <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span className="text-gray-600">Loading more properties...</span>
+                    <LoadingSpinner />
                   </div>
                 ) : (
                   <div className="text-center">
                     <div className="animate-pulse h-2 w-32 bg-gray-200 rounded mb-2"></div>
-                    <span className="text-gray-400 text-sm">Scroll for more</span>
+                    <span className="text-gray-400 text-sm">
+                      Scroll for more
+                    </span>
                   </div>
                 )}
               </div>
@@ -275,7 +299,9 @@ const PropertyList = () => {
             {/* End message when all properties are loaded */}
             {!hasNextPage && properties.length > 5 && (
               <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8">
-                <p className="text-lg font-medium">You've seen all {totalCount} properties</p>
+                <p className="text-lg font-medium">
+                  You've seen all {totalCount} properties
+                </p>
                 <p className="text-sm text-gray-400 mt-1">
                   Started with 5, loaded {properties.length} total
                 </p>
@@ -289,7 +315,5 @@ const PropertyList = () => {
     </div>
   );
 };
-
-
 
 export default PropertyList;

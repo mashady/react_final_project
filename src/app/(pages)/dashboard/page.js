@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "../properties/components/LoadingSpinner";
 // import LoadingSpinner from "@/components/LoadingSpinner";
 
 const UserProfileCard = () => {
@@ -18,7 +19,7 @@ const UserProfileCard = () => {
     }
   }, [dispatch, user?.id, router]);
 
-  if (loading) return <div>loading...</div>;
+  if (loading) return <LoadingSpinner />;
 
   if (error) {
     return (

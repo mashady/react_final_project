@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import PropertyForm from "@/components/add-property/PropertyForm";
 import Link from "next/link";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
 
 const Page = () => {
   const [loading, setLoading] = useState(true);
@@ -51,11 +52,7 @@ const Page = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="text-center py-10 text-gray-500">
-        Checking subscription status...
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {

@@ -30,6 +30,31 @@ const PropertyCard = ({ property, onClick, className }) => {
   const imageUrl = primary_image?.file_path || media?.[0]?.file_path;
   const fullImageUrl = imageUrl ? `${API_BASE_URL}/storage/${imageUrl}` : null;
 
+  const handleImageError = (e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = "";
+    e.currentTarget.parentElement.classList.add(
+      "bg-gradient-to-br",
+      "from-blue-100",
+      "to-green-100"
+    );
+    e.currentTarget.parentElement.innerHTML = `
+      <div class="w-full h-full flex items-center justify-center">
+        <Home class="w-16 h-16 text-gray-400" />
+      </div>
+    `;
+  };
+
+  const handleProfileImageError = (e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = "";
+    e.currentTarget.parentElement.innerHTML = `
+      <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+        <User class="w-5 h-5 text-gray-400" />
+      </div>
+    `;
+  };
+
   return (
     <div
       className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden cursor-pointer relative ${className}`}
@@ -44,15 +69,7 @@ const PropertyCard = ({ property, onClick, className }) => {
             alt={title || "Property image"}
             fill
             className="object-cover hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = "";
-              e.currentTarget.parentElement.classList.add(
-                "bg-gradient-to-br",
-                "from-blue-100",
-                "to-green-100"
-              );
-            }}
+            onError={handleImageError}
             unoptimized
           />
         ) : (
@@ -73,11 +90,17 @@ const PropertyCard = ({ property, onClick, className }) => {
           <div className="absolute bottom-4 left-4 flex items-center space-x-2">
             {owner.owner_profile?.picture ? (
               <Image
-                src={owner.owner_profile.picture}
+                src={
+                  owner.owner_profile.picture.startsWith("http") ||
+                  owner.owner_profile.picture.startsWith("/")
+                    ? owner.owner_profile.picture
+                    : `${API_BASE_URL}/${owner.owner_profile.picture}`
+                }
                 alt={`${owner.name} profile`}
                 width={32}
                 height={32}
                 className="rounded-full object-cover border border-gray-200"
+                onError={handleProfileImageError}
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
