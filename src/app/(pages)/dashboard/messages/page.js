@@ -33,8 +33,9 @@ const Page = () => {
     setLoading(true);
     setError(null);
     axios
-      .get("/api/messages/inbox", {
+      .get(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/messages/inbox`, {
         headers: { Authorization: `Bearer ${token}` },
+        params: { userId },
       })
       .then((res) => {
         setInbox(res.data || []);
@@ -51,9 +52,9 @@ const Page = () => {
     setSocket(socketInstance);
     socketInstance.emit("join", userId.toString());
 
-    socketInstance.on("private_message", (msg) => {
+    // Helper to update inbox for both sent and received messages
+    const updateInbox = (msg) => {
       setInbox((prev) => {
-        // If the message is already in the inbox, don't add it again
         const exists = prev.some(
           (m) =>
             m.sender_id === Number(msg.from) &&
@@ -62,8 +63,6 @@ const Page = () => {
             m.created_at === msg.timestamp
         );
         if (exists) return prev;
-        // If the message is from the current chat, update the message list for that chat
-        // Otherwise, update the preview for the sender in the inbox
         let updated = false;
         const updatedInbox = prev.map((m) => {
           if (
@@ -82,7 +81,6 @@ const Page = () => {
           return m;
         });
         if (!updated) {
-          // New conversation
           return [
             {
               ...msg,
@@ -95,7 +93,10 @@ const Page = () => {
         }
         return updatedInbox;
       });
-    });
+    };
+
+    socketInstance.on("private_message", updateInbox);
+    socketInstance.on("message_sent_confirmation", updateInbox);
 
     return () => {
       socketInstance.emit("leave_room");
