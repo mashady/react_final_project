@@ -80,7 +80,11 @@ const MyPropertiesPage = () => {
           )}
         </>
       ) : (
-        <DashboardEmptyMsg />
+        <DashboardEmptyMsg
+          msg="You haven't added any property yet."
+          btn="Add Property"
+          link="/dashboard/add-property"
+        />
       )}
     </div>
   );
