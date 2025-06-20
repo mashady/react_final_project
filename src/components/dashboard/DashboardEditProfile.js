@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser, updateUser } from "@/features/user/userSlice";
 import { userProfileSchema } from "@/validation/userProfile";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 // import LoadingSpinner from "@/components/LoadingSpinner";
 
 const ProfileImageUpload = ({

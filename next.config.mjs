@@ -8,6 +8,9 @@ const nextConfig = {
       },
     ];
   },
+  images: {
+    domains: ["localhost", "127.0.0.1", "your-production-domain.com"],
+  },
 };
 
 export default nextConfig;
