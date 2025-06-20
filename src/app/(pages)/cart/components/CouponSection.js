@@ -25,7 +25,7 @@ export default function CouponSection({
           <button
             onClick={applyCoupon}
             disabled={!couponCode.trim() || isLoading}
-            className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-black font-medium transition-colors"
+            className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-black font-medium transition-colors"
           >
             {isLoading ? "Applying..." : "Apply coupon"}
           </button>
