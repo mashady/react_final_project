@@ -12,6 +12,9 @@ import {
   Clock,
   ArrowLeft,
 } from "lucide-react";
+import { io } from "socket.io-client";
+
+const SOCKET_URL = typeof window !== "undefined" ? window.location.origin : "";
 
 const Page = () => {
   const user = useSelector((state) => state.user.data);
@@ -23,6 +26,7 @@ const Page = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [targetUser, setTargetUser] = useState(null);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -38,6 +42,44 @@ const Page = () => {
       .catch(() => setError("Failed to load inbox"))
       .finally(() => setLoading(false));
   }, [userId, token]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const socketInstance = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+    });
+    setSocket(socketInstance);
+    socketInstance.emit("join", userId.toString());
+
+    socketInstance.on("private_message", (msg) => {
+      setInbox((prev) => {
+        // If the message is already in the inbox, don't add it again
+        const exists = prev.some(
+          (m) =>
+            m.sender_id === msg.from &&
+            m.receiver_id === msg.to &&
+            m.message === msg.message &&
+            m.timestamp === msg.timestamp
+        );
+        if (exists) return prev;
+        // Add the new message to the top of the inbox
+        return [
+          {
+            ...msg,
+            sender_id: Number(msg.from),
+            receiver_id: Number(msg.to),
+            created_at: msg.timestamp,
+          },
+          ...prev,
+        ];
+      });
+    });
+
+    return () => {
+      socketInstance.emit("leave_room");
+      socketInstance.disconnect();
+    };
+  }, [userId]);
 
   const senders = Array.from(
     new Map(inbox.map((msg) => [msg.sender_id, msg])).values()
@@ -96,7 +138,6 @@ const Page = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
             <MessageSquare className="w-8 h-8 text-white" />
           </div>
-
         </div>
         {/* Main Content */}
         <div className="max-w-4xl mx-auto">
