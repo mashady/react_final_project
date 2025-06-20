@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import api from "../../../../api/axiosConfig";
 import Link from "next/link";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
 const MyPackages = () => {
   const [packages, setPackages] = useState([
     {
@@ -85,17 +86,7 @@ const MyPackages = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <DashboardPageHeader
-          title="My Packages"
-          description="This is a list of all your packages."
-        />
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {

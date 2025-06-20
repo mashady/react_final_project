@@ -1,7 +1,0 @@
-export default function Loading() {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center text-black bg-opacity-50 z-50">
-      Loading data...
-    </div>
-  );
-}
