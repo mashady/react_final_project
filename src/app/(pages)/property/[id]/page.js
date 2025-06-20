@@ -15,6 +15,8 @@ import {
   Building,
   Maximize,
   Loader2,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import ReviewList from "./components/ReviewList";
 import ReviewForm from "./components/ReviewForm";
@@ -22,7 +24,7 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import ChatWindow from "@/components/chat/ChatWindow";
 
-const PropertyListing = () => {
+const PropertyListing = ({ toggleChat, showChat }) => {
   const params = useParams();
   const propertyId = params.id;
 
@@ -44,7 +46,6 @@ const PropertyListing = () => {
   const [ownerDetails, setOwnerDetails] = useState(null);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [showChatModal, setShowChatModal] = useState(false);
 
   // Fetch property data
   useEffect(() => {
@@ -273,7 +274,7 @@ const PropertyListing = () => {
   const ownerUserId = property?.owner?.id || ownerDetails?.user_id;
 
   // Only show chat if both users are available and not the same
-  const showChat = senderId && ownerUserId && senderId !== ownerUserId;
+  const canShowChat = senderId && ownerUserId && senderId !== ownerUserId;
 
   if (loading) {
     return (
@@ -520,92 +521,25 @@ const PropertyListing = () => {
                     </a>
                   )}
                   {/* Chat with Owner Button */}
-                  {showChat && (
-                    <>
-                      <button
-                        className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200"
-                        onClick={() => setShowChatModal(true)}
-                      >
-                        Chat with Owner
-                      </button>
-                      {/* Chat Modal */}
-                      {showChatModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-0 relative flex flex-col">
-                            <div className="flex items-center justify-between px-6 py-4 border-b">
-                              <h3 className="font-bold text-lg text-gray-900">
-                                Chat with Owner
-                              </h3>
-                              <button
-                                className="text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
-                                onClick={() => setShowChatModal(false)}
-                                aria-label="Close chat modal"
-                              >
-                                &times;
-                              </button>
-                            </div>
-                            <div className="flex-1 min-h-0 flex flex-col">
-                              <ChatWindow
-                                userId={senderId}
-                                targetUserId={ownerUserId}
-                                forceOpen
-                              />
-                            </div>
-                          </div>
-                        </div>
+                  {canShowChat && (
+                    <button
+                      className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2"
+                      onClick={toggleChat}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
+                      {showChat ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
                       )}
-                    </>
+                    </button>
                   )}
                 </>
               ) : (
                 <div className="text-gray-500">Loading owner info...</div>
               )}
             </div>
-
-            {/* Schedule Tour */}
-            {/* <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="font-bold text-gray-900 mb-2">Contact Owner</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Get in touch with the property owner for more information or to
-                schedule a viewing.
-              </p>
-
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Your name*"
-                  value={contactForm.name}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, name: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-                <input
-                  type="email"
-                  placeholder="Your email*"
-                  value={contactForm.email}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, email: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-                <textarea
-                  placeholder="Message"
-                  value={contactForm.message}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, message: e.target.value })
-                  }
-                  rows={4}
-                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none"
-                />
-                <button
-                  onClick={handleContactSubmit}
-                  className="w-full bg-yellow-400 text-black font-semibold py-3 px-4 rounded hover:bg-yellow-500 transition-colors"
-                >
-                  Send Message
-                </button>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>
@@ -613,4 +547,96 @@ const PropertyListing = () => {
   );
 };
 
-export default PropertyListing;
+// Render ChatWindow globally, fixed to bottom, only if canShowChat and showChat
+import dynamic from "next/dynamic";
+const DynamicChatWindow = dynamic(
+  () => import("@/components/chat/ChatWindow"),
+  { ssr: false }
+);
+
+export default function PropertyListingWrapper(props) {
+  const [showChat, setShowChat] = React.useState(false);
+  const params = useParams();
+  const propertyId = params.id;
+
+  const [currentUser, setCurrentUser] = React.useState(null);
+  const [ownerDetails, setOwnerDetails] = React.useState(null);
+  const [property, setProperty] = React.useState(null);
+
+  // Fetch property data
+  React.useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/ads/${propertyId}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        setProperty(result.data);
+      } catch (err) {
+        console.error("Error fetching property:", err);
+      }
+    };
+
+    fetchProperty();
+  }, [propertyId]);
+
+  // Fetch user
+  React.useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        setCurrentUser(JSON.parse(userData));
+      } catch {}
+    }
+  }, []);
+
+  // Fetch owner details
+  React.useEffect(() => {
+    const fetchOwnerDetails = async () => {
+      if (!property?.user_id && !property?.owner?.id) return;
+      try {
+        const ownerId = property.owner?.id || property.user_id;
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(
+          `http://127.0.0.1:8000/api/oneowner/${ownerId}`,
+          { headers }
+        );
+        setOwnerDetails(res.data.data);
+      } catch (err) {
+        setOwnerDetails(null);
+      }
+    };
+    if (property) fetchOwnerDetails();
+  }, [property]);
+
+  // Determine the current user (sender) and the property owner (receiver)
+  const senderId = currentUser?.id;
+  // Try to get the owner user id from property.owner or ownerDetails
+  const ownerUserId = property?.owner?.id || ownerDetails?.user_id;
+
+  // Only show chat if both users are available and not the same
+  const canShowChat = senderId && ownerUserId && senderId !== ownerUserId;
+
+  const toggleChat = () => setShowChat((v) => !v);
+
+  return (
+    <>
+      <PropertyListing {...props} toggleChat={toggleChat} showChat={showChat} />
+      {canShowChat && showChat && (
+        <div style={{ position: "fixed", bottom: 0, right: 0, zIndex: 2000 }}>
+          <DynamicChatWindow
+            userId={senderId}
+            targetUserId={ownerUserId}
+            forceOpen={true}
+          />
+        </div>
+      )}
+    </>
+  );
+}
