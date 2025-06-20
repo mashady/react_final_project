@@ -8,6 +8,7 @@ import MediaUpload from "./MediaUpload";
 import SubmitStatus from "./SubmitStatus";
 import axios from "axios";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import { useRouter } from "next/navigation";
 const PropertyForm = () => {
   const [submitStatus, setSubmitStatus] = useState(null);
   const [toast, setToast] = useState({
@@ -15,7 +16,7 @@ const PropertyForm = () => {
     type: "",
     visible: false,
   });
-
+  let router = useRouter();
   const showToast = (message, type) => {
     setToast({ message, type, visible: true });
   };
@@ -66,9 +67,8 @@ const PropertyForm = () => {
           //   details: `Property ID: ${response.data.data.id}`
           // });
           showToast("Property listing created successfully!", "success");
-          setTimeout(() => {
-            window.location.href = "/dashboard";
-          }, 3000);
+          router.push("/dashboard/my-properties");
+
           console.log("Property created successfully:", response.data);
         })
         .catch((error) => {
