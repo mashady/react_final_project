@@ -4,6 +4,8 @@ import { MapPin, Home, Bath, Star, User } from "lucide-react";
 import api from "../../api/axiosConfig";
 import Link from "next/link";
 import Image from "next/image";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleWishlistItem } from "@/features/wishlist/wishlistThunks";
 
 const ProfileImage = ({ owner, API_BASE_URL }) => {
   const [imgError, setImgError] = React.useState(false);
@@ -89,6 +91,19 @@ const PropertyCard = ({ property, onClick, className , isDashboard = false  , on
 
 
   const imageUrl = primary_image?.file_path || media?.[0]?.file_path;
+
+  const dispatch = useDispatch();
+  const wishlist = useSelector((state) => state.wishlist.items);
+  const pendingToggle = useSelector(
+    (state) => state.wishlist.pendingToggles[property.id] || false
+  );
+  const isInWishlist = pendingToggle
+    ? !wishlist.some((item) => item.id === property.id)
+    : wishlist.some((item) => item.id === property.id);
+
+  const currentUser = useSelector((state) => state.user.data);
+  const isOwner = currentUser?.role === "owner";
+  const isLoggedIn = !!currentUser;
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
