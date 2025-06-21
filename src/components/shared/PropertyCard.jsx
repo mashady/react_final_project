@@ -122,7 +122,6 @@ const PropertyCard = ({
   const handleEdit = (e) => {
     e.stopPropagation();
     console.log("Edit property:", property.id);
-    // Replace with navigation logic
     window.location.href = `/dashboard/edit-property/${property.id}`;
   };
 
