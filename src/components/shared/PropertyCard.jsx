@@ -67,7 +67,13 @@ const PropertyImage = ({ imageUrl, title, API_BASE_URL }) => {
   );
 };
 
-const PropertyCard = ({ property, onClick, className , isDashboard = false  , onDelete}) => {  
+const PropertyCard = ({
+  property,
+  onClick,
+  className,
+  isDashboard = false,
+  onDelete,
+}) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -89,7 +95,6 @@ const PropertyCard = ({ property, onClick, className , isDashboard = false  , on
     owner = null,
   } = property || {};
 
-
   const imageUrl = primary_image?.file_path || media?.[0]?.file_path;
 
   const dispatch = useDispatch();
@@ -107,11 +112,11 @@ const PropertyCard = ({ property, onClick, className , isDashboard = false  , on
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
-    api
-      .post(`/wishlist/toggle/${property.id}`)
-      .then(() => console.log(`Toggled favorite for ${title || "property"}`))
-      .catch((err) => console.error("Error toggling favorite:", err));
+    if (!pendingToggle) {
+      dispatch(toggleWishlistItem(property.id));
+    }
   };
+
   const [showOptions, setShowOptions] = React.useState(false);
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
   const handleEdit = (e) => {
@@ -120,12 +125,12 @@ const PropertyCard = ({ property, onClick, className , isDashboard = false  , on
     // Replace with navigation logic
     window.location.href = `/dashboard/edit-property/${property.id}`;
   };
-  
+
   const handleDelete = (e) => {
     e.stopPropagation();
     setShowConfirmModal(true);
   };
-  
+
   const confirmDelete = () => {
     api
       .delete(`/ads/${property.id}`)
@@ -141,8 +146,6 @@ const PropertyCard = ({ property, onClick, className , isDashboard = false  , on
         setShowConfirmModal(false);
       });
   };
-  
-  
 
   return (
     <div
@@ -182,65 +185,74 @@ const PropertyCard = ({ property, onClick, className , isDashboard = false  , on
           </div>
         )}
 
-        <button
-          type="button"
-          className={`absolute top-4 right-4 z-10 bg-white rounded p-2 shadow transition-all duration-300 cursor-pointer
-            ${
-              isHovered
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-75 pointer-events-none"
-            }
-          `}
-          aria-label="Toggle favorite"
-          onClick={handleFavoriteClick}
-        >
-          <Star className="w-4 h-4 text-gray-800 transition-colors duration-300" />
-        </button>
-        {isDashboard && (
-        <div className="absolute bottom-4 right-4 z-10 text-right">
+        {!isOwner && isLoggedIn && (
           <button
-            className="bg-white rounded-full shadow p-2 hover:bg-gray-100 transition"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowOptions((prev) => !prev);
-            }}
+            type="button"
+            className={`absolute top-4 right-4 z-10 rounded p-2 shadow transition-all duration-300 cursor-pointer
+              ${
+                isHovered || isInWishlist
+                  ? "opacity-100 scale-100 bg-white"
+                  : "opacity-0 scale-75 pointer-events-none bg-white"
+              }
+              ${pendingToggle ? "opacity-50 cursor-wait" : ""}
+            `}
+            onClick={handleFavoriteClick}
+            disabled={pendingToggle}
+            aria-label={
+              isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+            }
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-700"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <circle cx="5" cy="12" r="2" />
-              <circle cx="12" cy="12" r="2" />
-              <circle cx="19" cy="12" r="2" />
-            </svg>
+            <Star
+              className={`w-4 h-4 transition-colors duration-300 ${
+                isInWishlist ? "text-yellow-400" : "text-gray-800"
+              }`}
+              fill={isInWishlist ? "currentColor" : "none"}
+            />
           </button>
-
-          {showOptions && (
-            <div
-              className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded shadow-md w-32"
-              onClick={(e) => e.stopPropagation()}
+        )}
+        {isDashboard && (
+          <div className="absolute bottom-4 right-4 z-10 text-right">
+            <button
+              className="bg-white rounded-full shadow p-2 hover:bg-gray-100 transition"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowOptions((prev) => !prev);
+              }}
             >
-              <button
-                onClick={handleEdit}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                Edit
-              </button>
-              <button
-                onClick={handleDelete}
-                className="w-full text-left px-4 py-2 hover:bg-red-100 text-sm text-red-600"
+                <circle cx="5" cy="12" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="19" cy="12" r="2" />
+              </svg>
+            </button>
+
+            {showOptions && (
+              <div
+                className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded shadow-md w-32"
+                onClick={(e) => e.stopPropagation()}
               >
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-
+                <button
+                  onClick={handleEdit}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="w-full text-left px-4 py-2 hover:bg-red-100 text-sm text-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="p-6">
@@ -327,7 +339,9 @@ const PropertyCard = ({ property, onClick, className , isDashboard = false  , on
         <div className="fixed inset-0 z-50 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg">
             <h2 className="text-lg font-semibold mb-4">Delete Property</h2>
-            <p className="text-gray-700 mb-6">Are you sure you want to delete this property?</p>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this property?
+            </p>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setShowConfirmModal(false)}
