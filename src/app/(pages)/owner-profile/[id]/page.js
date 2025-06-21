@@ -9,14 +9,19 @@ import Image from "next/image";
 import axios from "axios";
 import PropertyCard from "@/components/shared/PropertyCard";
 import { User } from "lucide-react";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
+
 const page = () => {
   const [userProfile, setUserProfile] = useState({});
+  const [loading, setLoading] = useState(true);
   const [id, setId] = useState(useParams().id);
+
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
   const fetchUserProfile = () => {
+    setLoading(true);
     axios
       .get(`http://localhost:8000/api/users/${id}`)
       .then((res) => {
@@ -25,7 +30,6 @@ const page = () => {
           ads: res.data.data.ads || [],
           name: res.data.data.name || "No Name",
           bio: res.data.data.owner_profile.bio || "No Bio",
-          // image: `https://secure.gravatar.com/avatar/2e4f394b7744b481c1a87797f8a5cf2021d287bd1fe66bcfe0115a21fd1f709b?s=341&d=mm&r=g`,
           image: res.data.data.owner_profile.picture,
           email: res.data.data.email || "No Email",
           phone: res.data.data.owner_profile.phone_number || "No Phone Number",
@@ -36,12 +40,19 @@ const page = () => {
       })
       .catch((err) => {
         console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <>
-      <section className="container w-[98%] mx-auto my-10">
+      <section className="container w-[98%] mx-auto mt-2 mb-10">
         <Image src={banner} alt="Page Banner" className="hidden lg:block" />
       </section>
       <section
