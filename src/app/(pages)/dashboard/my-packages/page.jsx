@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
@@ -6,8 +7,9 @@ import api from "../../../../api/axiosConfig";
 import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
+import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import
 
-const MyPackages = () => {
+const MyPackagesContent = () => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,7 +65,6 @@ const MyPackages = () => {
         console.error("Error fetching plan:", err);
         setError(err.message || "Failed to load package information");
 
-        // Only show default package if it's not a "no plan" scenario
         if (!err.response || err.response.status !== 404) {
           setPackages([
             {
@@ -89,9 +90,7 @@ const MyPackages = () => {
     fetchPlan();
   }, []);
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (error) {
     return (
@@ -129,13 +128,11 @@ const MyPackages = () => {
   return (
     <div className="max-w-7xl mx-auto">
       {hasNoPlan ? (
-        <>
-          <DashboardEmptyMsg
-            msg="You haven't added any plan yet."
-            btn="Explore plans"
-            link="/plans"
-          />
-        </>
+        <DashboardEmptyMsg
+          msg="You haven't added any plan yet."
+          btn="Explore plans"
+          link="/plans"
+        />
       ) : (
         <>
           <DashboardPageHeader
@@ -215,5 +212,11 @@ const MyPackages = () => {
     </div>
   );
 };
+
+const MyPackages = () => (
+  <RequireAuth allowedRoles={["owner"]}>
+    <MyPackagesContent />
+  </RequireAuth>
+);
 
 export default MyPackages;

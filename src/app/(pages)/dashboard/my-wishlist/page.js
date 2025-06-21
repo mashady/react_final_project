@@ -1,11 +1,12 @@
 "use client";
+
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import LoadMoreBtn from "@/components/shared/LoadMoreBtn";
 import PropertyCard from "@/components/shared/PropertyCard";
 import React, { useEffect, useState } from "react";
 import api from "../../../../api/axiosConfig";
 
-const WishlistPage = () => {
+const WishlistContent = () => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,14 +16,11 @@ const WishlistPage = () => {
       try {
         setLoading(true);
         const response = await api.get("/wishlist");
-        console.log(response.data.data.data);
         const data = response.data.data.data;
         const wishlistArray = Array.isArray(data) ? data : [data];
-
         setWishlist(wishlistArray);
       } catch (err) {
         setError(err.message || "Failed to fetch wishlist");
-        console.error("Error fetching wishlist:", err);
       } finally {
         setLoading(false);
       }
@@ -87,5 +85,13 @@ const WishlistPage = () => {
     </div>
   );
 };
+
+import RequireAuth from "@/components/shared/RequireAuth";
+
+const WishlistPage = () => (
+  <RequireAuth allowedRoles={["student"]}>
+    <WishlistContent />
+  </RequireAuth>
+);
 
 export default WishlistPage;
