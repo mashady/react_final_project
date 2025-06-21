@@ -70,6 +70,10 @@ const MyPropertiesContent = () => {
                 property={property}
                 onClick={() => handleCardClick(property)}
                 className="hover:transform"
+                isDashboard ={true}
+                onDelete={(id) => {
+                  setProperties((prev) => prev.filter((p) => p.id !== id));
+                }}
               />
             ))}
           </div>

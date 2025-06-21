@@ -4,6 +4,8 @@ import { MapPin, Home, Bath, Star, User } from "lucide-react";
 import api from "../../api/axiosConfig";
 import Link from "next/link";
 import Image from "next/image";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleWishlistItem } from "@/features/wishlist/wishlistThunks";
 
 const ProfileImage = ({ owner, API_BASE_URL }) => {
   const [imgError, setImgError] = React.useState(false);
@@ -65,7 +67,7 @@ const PropertyImage = ({ imageUrl, title, API_BASE_URL }) => {
   );
 };
 
-const PropertyCard = ({ property, onClick, className }) => {
+const PropertyCard = ({ property, onClick, className , isDashboard = false  , onDelete}) => {  
   const [isHovered, setIsHovered] = React.useState(false);
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -87,7 +89,21 @@ const PropertyCard = ({ property, onClick, className }) => {
     owner = null,
   } = property || {};
 
+
   const imageUrl = primary_image?.file_path || media?.[0]?.file_path;
+
+  const dispatch = useDispatch();
+  const wishlist = useSelector((state) => state.wishlist.items);
+  const pendingToggle = useSelector(
+    (state) => state.wishlist.pendingToggles[property.id] || false
+  );
+  const isInWishlist = pendingToggle
+    ? !wishlist.some((item) => item.id === property.id)
+    : wishlist.some((item) => item.id === property.id);
+
+  const currentUser = useSelector((state) => state.user.data);
+  const isOwner = currentUser?.role === "owner";
+  const isLoggedIn = !!currentUser;
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
@@ -96,6 +112,37 @@ const PropertyCard = ({ property, onClick, className }) => {
       .then(() => console.log(`Toggled favorite for ${title || "property"}`))
       .catch((err) => console.error("Error toggling favorite:", err));
   };
+  const [showOptions, setShowOptions] = React.useState(false);
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    console.log("Edit property:", property.id);
+    // Replace with navigation logic
+    window.location.href = `/dashboard/edit-property/${property.id}`;
+  };
+  
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    setShowConfirmModal(true);
+  };
+  
+  const confirmDelete = () => {
+    api
+      .delete(`/ads/${property.id}`)
+      .then(() => {
+        console.log("Property deleted:", property.id);
+        setShowConfirmModal(false);
+        if (onDelete) {
+          onDelete(property.id);
+        }
+      })
+      .catch((err) => {
+        console.error("Error deleting property:", err);
+        setShowConfirmModal(false);
+      });
+  };
+  
+  
 
   return (
     <div
@@ -149,6 +196,51 @@ const PropertyCard = ({ property, onClick, className }) => {
         >
           <Star className="w-4 h-4 text-gray-800 transition-colors duration-300" />
         </button>
+        {isDashboard && (
+        <div className="absolute bottom-4 right-4 z-10 text-right">
+          <button
+            className="bg-white rounded-full shadow p-2 hover:bg-gray-100 transition"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowOptions((prev) => !prev);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-gray-700"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <circle cx="5" cy="12" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="19" cy="12" r="2" />
+            </svg>
+          </button>
+
+          {showOptions && (
+            <div
+              className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded shadow-md w-32"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={handleEdit}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleDelete}
+                className="w-full text-left px-4 py-2 hover:bg-red-100 text-sm text-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+
       </div>
 
       <div className="p-6">
@@ -231,6 +323,28 @@ const PropertyCard = ({ property, onClick, className }) => {
           </div>
         )}
       </div>
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Delete Property</h2>
+            <p className="text-gray-700 mb-6">Are you sure you want to delete this property?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

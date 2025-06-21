@@ -1,42 +1,30 @@
 "use client";
-
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import LoadMoreBtn from "@/components/shared/LoadMoreBtn";
 import PropertyCard from "@/components/shared/PropertyCard";
-import React, { useEffect, useState } from "react";
-import api from "../../../../api/axiosConfig";
+import { fetchWishlist } from "@/features/wishlist/wishlistThunks";
+import Link from "next/link";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
 
 const WishlistContent = () => {
-  const [wishlist, setWishlist] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const wishlistState = useSelector((state) => state.wishlist || {});
+  const { items: wishlist = [], loading = false, error = null } = wishlistState;
 
   useEffect(() => {
-    const fetchWishlist = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get("/wishlist");
-        const data = response.data.data.data;
-        const wishlistArray = Array.isArray(data) ? data : [data];
-        setWishlist(wishlistArray);
-      } catch (err) {
-        setError(err.message || "Failed to fetch wishlist");
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchWishlist());
+  }, [dispatch]);
 
-    fetchWishlist();
-  }, []);
-
-  const handleCardClick = (property) => {
-    console.log("Property clicked:", property);
+  const handleRetry = () => {
+    dispatch(fetchWishlist());
   };
 
-  if (loading) {
+  if (loading && !wishlist.length) {
     return (
       <div className="flex justify-center items-center h-64">
-        Loading wishlist...
+        <LoadingSpinner />
       </div>
     );
   }
@@ -44,10 +32,10 @@ const WishlistContent = () => {
   if (error) {
     return (
       <div className="text-center py-10">
-        <p className="text-red-500">{error}</p>
+        <p className="text-black">{error}</p>
         <button
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+          onClick={handleRetry}
+          className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
         >
           Retry
         </button>
@@ -61,23 +49,30 @@ const WishlistContent = () => {
         title="My Wishlist"
         description='This page contains all the items you have added to your personal wishlist. Add items to your wishlist by clicking the "heart" icon while logged in to your account.'
       />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {wishlist.length > 0 ? (
-          wishlist.map((property, index) => (
+          wishlist.map((property) => (
             <PropertyCard
-              key={index}
+              key={property.id}
               property={property}
-              onClick={() => handleCardClick(property)}
-              className="hover:transform"
+              className="hover:transform transition-transform duration-300"
             />
           ))
         ) : (
-          <div className="col-span-full text-center py-20">
-            <p className="text-gray-500 text-lg">Your wishlist is empty</p>
+          <div className="col-span-full text-center">
+            <p className="text-[#555] text-lg mb-4">Your wishlist is empty</p>
+            <Link
+              href="/properties"
+              className="inline-block px-6 py-2 bg-yellow-500 text-black rounded-none hover:bg-primary-dark transition-colors"
+            >
+              Browse Properties
+            </Link>
           </div>
         )}
       </div>
-      {wishlist.length > 0 && (
+
+      {wishlist.length > 6 && (
         <div className="flex justify-center mt-10">
           <LoadMoreBtn />
         </div>
@@ -86,12 +81,4 @@ const WishlistContent = () => {
   );
 };
 
-import RequireAuth from "@/components/shared/RequireAuth";
-
-const WishlistPage = () => (
-  <RequireAuth allowedRoles={["student"]}>
-    <WishlistContent />
-  </RequireAuth>
-);
-
-export default WishlistPage;
+export default WishlistContent;
