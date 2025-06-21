@@ -3,8 +3,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 import { X, Send, User } from "lucide-react";
 
-// Always use the page's protocol and host for Socket.IO
-const SOCKET_URL = typeof window !== "undefined" ? window.location.origin : "";
+// Always use backend port for Socket.IO
+const SOCKET_URL = "http://localhost:4000";
 
 function getUserDisplay(user) {
   if (!user) return { name: "User", avatar: "/owner.jpg" };
@@ -88,7 +88,9 @@ export default function ChatWindow({
     setMessages([]);
     setIsHistoryLoaded(false);
 
-    fetch(`/api/messages?user1=${userId}&user2=${targetUserId}`)
+    fetch(
+      `http://localhost:4000/api/messages?user1=${userId}&user2=${targetUserId}`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data && data.messages) {

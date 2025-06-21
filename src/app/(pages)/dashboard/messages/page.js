@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = typeof window !== "undefined" ? window.location.origin : "";
+const SOCKET_URL = "http://localhost:4000";
 
 // Helper to get user display info from inbox message
 function getUserDisplayFromMsg(msg, fallback) {
@@ -52,7 +52,7 @@ const Page = () => {
     setLoading(true);
     setError(null);
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/messages/inbox`, {
+      .get(`http://localhost:4000/api/messages/inbox`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { userId },
       })
