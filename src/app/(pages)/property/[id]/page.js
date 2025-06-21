@@ -274,7 +274,6 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
           <span>
             <LoadingSpinner />
           </span>
@@ -308,7 +307,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="relative h-96 bg-gray-200 overflow-hidden">
+      <div className="relative h-[600px] bg-gray-200 overflow-hidden">
         {images.length > 0 ? (
           <>
             <img
@@ -345,7 +344,12 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h1
+                    className="text-[45px] text-black mb-2 capitalize"
+                    style={{
+                      fontWeight: 500,
+                    }}
+                  >
                     {property.title}
                   </h1>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -367,19 +371,29 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 
             {/* Description */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <h2
+                className="text-[26px] text-black mb-4"
+                style={{
+                  fontWeight: 500,
+                }}
+              >
                 Description
               </h2>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-[#555] text-[15px] leading-relaxed">
                 {property.description}
               </p>
             </div>
 
             {/* Property Features */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <h2
+                className="text-[26px] text-black mb-4"
+                style={{
+                  fontWeight: 500,
+                }}
+              >
                 Property details
-              </h3>
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-center space-x-3">
@@ -393,7 +407,12 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
               </div>
               {property.price_per_sqm && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="text-lg font-semibold text-gray-900">
+                  <div
+                    className="text-[26px] text-black"
+                    style={{
+                      fontWeight: 500,
+                    }}
+                  >
                     {property.price_per_sqm}
                   </div>
                 </div>
@@ -401,7 +420,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
             </div>
 
             {/* Reviews Section */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            {/* <div className="bg-white p-6 rounded-lg shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Reviews</h2>
               {reviewsLoading ? (
                 <div className="text-gray-500 mb-6">Loading reviews...</div>
@@ -417,7 +436,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   onSubmit={handleReviewSubmit}
                 />
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Sidebar */}
@@ -428,12 +447,15 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Price:</div>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-bold text-gray-900">
+                    <span
+                      className="text-[26px] text-black"
+                      style={{ fontWeight: 500 }}
+                    >
                       {property.formatted_price}
                     </span>
                   </div>
                 </div>
-                <div className="flex space-x-2">
+                {/* <div className="flex space-x-2">
                   <button
                     className={`flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors ${
                       isInWishlist ? "text-red-500" : ""
@@ -450,7 +472,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   </button>
                   <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors"></button>
                   <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors"></button>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -464,7 +486,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                     <img
                       src={
                         ownerDetails.picture
-                          ? `http://localhost:8000/storage/${ownerDetails.picture}`
+                          ? `${ownerDetails.picture}`
                           : "/owner.jpg"
                       }
                       alt={ownerDetails.user?.name || "Owner"}
@@ -511,9 +533,12 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   {ownerDetails.user_id && (
                     <a
                       href={`/owner-profile/${ownerDetails.user_id}`}
-                      className="block w-full bg-yellow-400 text-black font-semibold py-2 px-4 rounded mt-4 hover:bg-yellow-500 transition-colors text-center"
+                      className="block w-full bg-yellow-500 text-black py-2 px-4 mt-4 hover:bg-yellow-600 transition-colors text-center"
+                      style={{
+                        fontWeight: 500,
+                      }}
                     >
-                      View my properties
+                      View my profile
                     </a>
                   )}
                   {/* Chat with Owner Button */}
