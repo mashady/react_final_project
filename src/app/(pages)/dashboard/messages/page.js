@@ -5,16 +5,32 @@ import axios from "axios";
 import ChatWindow from "@/components/chat/ChatWindow";
 import {
   Loader2,
-  ChevronRight,
   MessageSquare,
   X,
   Users,
   Clock,
-  ArrowLeft,
+  User,
+  Mail,
+  Search,
+  Filter,
+  MoreVertical,
 } from "lucide-react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = typeof window !== "undefined" ? window.location.origin : "";
+
+// Helper to get user display info from inbox message
+function getUserDisplayFromMsg(msg, fallback) {
+  return {
+    name: msg?.sender_name || msg?.receiver_name || fallback?.name || "User",
+    avatar:
+      msg?.sender_avatar ||
+      msg?.receiver_avatar ||
+      fallback?.avatar ||
+      "/owner.jpg",
+    id: msg?.sender_id || fallback?.id,
+  };
+}
 
 const Page = () => {
   const user = useSelector((state) => state.user.data);
@@ -27,6 +43,9 @@ const Page = () => {
   const [error, setError] = useState(null);
   const [targetUser, setTargetUser] = useState(null);
   const [socket, setSocket] = useState(null);
+  const [targetUserInfo, setTargetUserInfo] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [chatMinimized, setChatMinimized] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -52,7 +71,7 @@ const Page = () => {
     setSocket(socketInstance);
     socketInstance.emit("join", userId.toString());
 
-    // Helper to update inbox for both sent and received messages
+    // Only handle 'private_message' to avoid double message
     const updateInbox = (msg) => {
       setInbox((prev) => {
         const exists = prev.some(
@@ -63,50 +82,89 @@ const Page = () => {
             m.created_at === msg.timestamp
         );
         if (exists) return prev;
-        let updated = false;
-        const updatedInbox = prev.map((m) => {
-          if (
-            (m.sender_id === Number(msg.from) &&
-              m.receiver_id === Number(msg.to)) ||
-            (m.sender_id === Number(msg.to) &&
-              m.receiver_id === Number(msg.from))
-          ) {
-            updated = true;
-            return {
-              ...m,
-              message: msg.message,
-              created_at: msg.timestamp,
-            };
-          }
-          return m;
-        });
-        if (!updated) {
-          return [
-            {
-              ...msg,
-              sender_id: Number(msg.from),
-              receiver_id: Number(msg.to),
-              created_at: msg.timestamp,
-            },
-            ...prev,
-          ];
-        }
-        return updatedInbox;
+        return [
+          {
+            ...msg,
+            sender_id: Number(msg.from),
+            receiver_id: Number(msg.to),
+            created_at: msg.timestamp,
+          },
+          ...prev,
+        ];
       });
     };
-
     socketInstance.on("private_message", updateInbox);
-    socketInstance.on("message_sent_confirmation", updateInbox);
-
     return () => {
       socketInstance.emit("leave_room");
       socketInstance.disconnect();
     };
   }, [userId]);
 
+  // Use a unique key and correct user for each conversation
   const senders = Array.from(
-    new Map(inbox.map((msg) => [msg.sender_id, msg])).values()
+    new Map(
+      inbox.map((msg) => {
+        const otherUserId =
+          msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
+        const otherUserName =
+          msg.sender_id === userId ? msg.receiver_name : msg.sender_name;
+        const otherUserAvatar =
+          msg.sender_id === userId ? msg.receiver_avatar : msg.sender_avatar;
+        return [
+          otherUserId,
+          {
+            ...msg,
+            otherUserId,
+            otherUserName,
+            otherUserAvatar,
+          },
+        ];
+      })
+    ).values()
   );
+
+  // Filter senders based on search term
+  const filteredSenders = senders.filter((msg) => {
+    const otherUserName =
+      msg.sender_id === userId ? msg.receiver_name : msg.sender_name;
+    return (
+      otherUserName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      msg.message?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  // Get user info for chat header
+  useEffect(() => {
+    if (!targetUser) return setTargetUserInfo(null);
+    const msg = inbox.find(
+      (m) => m.sender_id === targetUser || m.receiver_id === targetUser
+    );
+    if (msg) {
+      const otherUserName =
+        msg.sender_id === userId ? msg.receiver_name : msg.sender_name;
+      const otherUserAvatar =
+        msg.sender_id === userId ? msg.receiver_avatar : msg.sender_avatar;
+      setTargetUserInfo({
+        id: targetUser,
+        name:
+          otherUserName ||
+          msg.sender_name ||
+          msg.receiver_name ||
+          `User ${targetUser}`,
+        avatar:
+          otherUserAvatar ||
+          msg.sender_avatar ||
+          msg.receiver_avatar ||
+          "/owner.jpg",
+      });
+    } else {
+      setTargetUserInfo({
+        id: targetUser,
+        name: `User ${targetUser}`,
+        avatar: "/owner.jpg",
+      });
+    }
+  }, [targetUser, inbox, userId]);
 
   // Close chat window when clicking outside or pressing escape
   useEffect(() => {
@@ -121,12 +179,8 @@ const Page = () => {
   }, [targetUser]);
 
   const handleUserSelect = (senderId) => {
-    // If same user is clicked, close the chat
-    if (targetUser === senderId) {
-      setTargetUser(null);
-    } else {
-      setTargetUser(senderId);
-    }
+    setTargetUser(senderId);
+    setChatMinimized(false);
   };
 
   const formatTime = (timestamp) => {
@@ -146,215 +200,175 @@ const Page = () => {
     }
   };
 
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+      return "Today";
+    } else if (diffInDays === 1) {
+      return "Yesterday";
+    } else if (diffInDays < 7) {
+      return `${diffInDays} days ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-500"></div>
-      </div>
+   
 
       <div className="relative z-10 p-4 md:p-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <MessageSquare className="w-8 h-8 text-white" />
-          </div>
-        </div>
+     
+
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {userId ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Inbox Panel */}
-              <div
-                className={`lg:col-span-1 transition-all duration-300 ${
-                  targetUser ? "lg:block hidden" : "block"
-                }`}
-              >
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-                  <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <div className="flex items-center gap-3">
-                      <Users className="w-5 h-5 text-blue-600" />
-                      <h2 className="text-xl font-semibold text-gray-800">
-                        Conversations
-                      </h2>
-                      {senders.length > 0 && (
-                        <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">
-                          {senders.length}
-                        </span>
-                      )}
-                    </div>
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden">
+              {/* Table Header */}
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      Conversations
+                    </h2>
+                    {filteredSenders.length > 0 && (
+                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">
+                        {filteredSenders.length}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="p-4">
-                    {loading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <div className="text-center">
-                          <Loader2 className="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" />
-                          <p className="text-gray-500">
-                            Loading conversations...
-                          </p>
-                        </div>
-                      </div>
-                    ) : error ? (
-                      <div className="text-center py-12">
-                        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                          <p className="text-red-600 font-medium">{error}</p>
-                        </div>
-                      </div>
-                    ) : senders.length === 0 ? (
-                      <div className="text-center py-12">
-                        <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500">No messages yet</p>
-                        <p className="text-gray-400 text-sm mt-1">
-                          Start a conversation to see it here
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {senders.map((msg) => (
-                          <button
-                            key={msg.sender_id}
-                            className={`w-full text-left p-4 rounded-xl transition-all duration-200 group border-2 ${
-                              targetUser === msg.sender_id
-                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-md"
-                                : "bg-white border-transparent hover:bg-gray-50 hover:shadow-md hover:border-gray-100"
-                            }`}
-                            onClick={() => handleUserSelect(msg.sender_id)}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-200 ${
-                                  targetUser === msg.sender_id
-                                    ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
-                                    : "bg-gradient-to-r from-gray-400 to-gray-500 text-white group-hover:from-blue-400 group-hover:to-indigo-400"
-                                }`}
-                              >
-                                {msg.sender_name
-                                  ? msg.sender_name[0].toUpperCase()
-                                  : "U"}
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <h3
-                                    className={`font-semibold truncate ${
-                                      targetUser === msg.sender_id
-                                        ? "text-blue-900"
-                                        : "text-gray-900"
-                                    }`}
-                                  >
-                                    {msg.sender_name || `User ${msg.sender_id}`}
-                                  </h3>
-                                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                                    <Clock className="w-3 h-3" />
-                                    {formatTime(msg.created_at)}
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-600 truncate">
-                                  {msg.message}
-                                </p>
-                              </div>
-
-                              <ChevronRight
-                                className={`w-5 h-5 transition-all duration-200 ${
-                                  targetUser === msg.sender_id
-                                    ? "text-blue-500 transform rotate-90"
-                                    : "text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1"
-                                }`}
-                              />
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search conversations..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 w-full sm:w-64"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Chat Panel */}
-              <div
-                className={`lg:col-span-2 ${
-                  targetUser
-                    ? "block"
-                    : "hidden lg:flex lg:items-center lg:justify-center"
-                }`}
-              >
-                {targetUser ? (
-                  <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden h-[600px] flex flex-col">
-                    {/* Chat Header */}
-                    <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <button
-                            className="lg:hidden p-2 hover:bg-white/50 rounded-lg transition-colors"
-                            onClick={() => setTargetUser(null)}
-                          >
-                            <ArrowLeft className="w-5 h-5 text-gray-600" />
-                          </button>
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold">
-                            {senders
-                              .find((s) => s.sender_id === targetUser)
-                              ?.sender_name?.[0]?.toUpperCase() || "U"}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">
-                              {senders.find((s) => s.sender_id === targetUser)
-                                ?.sender_name || `User ${targetUser}`}
-                            </h3>
-                            <p className="text-sm text-gray-500">Active now</p>
-                          </div>
-                        </div>
-                        <button
-                          className="hidden lg:block p-2 hover:bg-white/50 rounded-lg transition-colors"
-                          onClick={() => setTargetUser(null)}
-                        >
-                          <X className="w-5 h-5 text-gray-600" />
-                        </button>
-                      </div>
+              {/* Table Content */}
+              <div className="overflow-x-auto">
+                {loading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <div className="text-center">
+                      <Loader2 className="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" />
+                      <p className="text-gray-500">Loading conversations...</p>
                     </div>
-
-                    {/* Chat Window */}
-                    <div className="flex-1 min-h-0">
-                      <ChatWindow
-                        userId={userId}
-                        targetUserId={targetUser}
-                        forceOpen={true}
-                        customStyles={{
-                          popupStyle: {
-                            position: "static",
-                            boxShadow: "none",
-                            borderRadius: 0,
-                            width: "100%",
-                            height: "100%",
-                            minHeight: 0,
-                            maxHeight: "100%",
-                            background: "transparent",
-                          },
-                          bubbleButtonStyle: { display: "none" },
-                        }}
-                      />
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-16">
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
+                      <p className="text-red-600 font-medium">{error}</p>
                     </div>
+                  </div>
+                ) : filteredSenders.length === 0 ? (
+                  <div className="text-center py-16">
+                    <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-lg font-medium">
+                      {searchTerm
+                        ? "No matching conversations"
+                        : "No messages yet"}
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {searchTerm
+                        ? "Try a different search term"
+                        : "Start a conversation to see it here"}
+                    </p>
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-12">
-                      <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                        Select a conversation
-                      </h3>
-                      <p className="text-gray-500">
-                        Choose a contact from the sidebar to start chatting
-                      </p>
-                    </div>
-                  </div>
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          Contact
+                        </th>
+                     
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          Time
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredSenders.map((msg) => {
+                        const otherUserId =
+                          msg.sender_id === userId
+                            ? msg.receiver_id
+                            : msg.sender_id;
+                        const otherUserName =
+                          msg.sender_id === userId
+                            ? msg.receiver_name
+                            : msg.sender_name;
+
+                        return (
+                          <tr
+                            key={otherUserId}
+                            className="hover:bg-blue-50 transition-colors duration-200 cursor-pointer group"
+                            onClick={() => handleUserSelect(otherUserId)}
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center font-bold text-white text-sm group-hover:scale-105 transition-transform duration-200">
+                                  {otherUserName
+                                    ? otherUserName[0].toUpperCase()
+                                    : "U"}
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                                    {otherUserName || `User ${otherUserId}`}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    ID: {otherUserId}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1 text-sm text-gray-500">
+                                <Clock className="w-3 h-3" />
+                                <span>{formatDate(msg.created_at)}</span>
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                {formatTime(msg.created_at)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUserSelect(otherUserId);
+                                }}
+                                className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200 text-sm font-medium group-hover:bg-blue-600 group-hover:text-white"
+                              >
+                                <MessageSquare className="w-4 h-4" />
+                                Chat
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 )}
               </div>
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-12 max-w-md mx-auto">
+              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 p-12 max-w-md mx-auto">
                 <div className="w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <MessageSquare className="w-8 h-8 text-white" />
                 </div>
@@ -370,12 +384,82 @@ const Page = () => {
         </div>
       </div>
 
-      {/* Mobile overlay when chat is open */}
-      {targetUser && (
+      {/* Facebook Messenger Style Chat Popup */}
+      {targetUser && targetUserInfo && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          onClick={() => setTargetUser(null)}
-        />
+          className={`fixed bottom-4 right-4 z-50 transition-all duration-300 ease-in-out ${
+            chatMinimized
+              ? "transform translate-y-full"
+              : "transform translate-y-0"
+          }`}
+          style={{
+            width: "350px",
+            height: chatMinimized ? "60px" : "500px",
+          }}
+        >
+          <div className="bg-white rounded-t-2xl shadow-2xl border border-gray-200 overflow-hidden h-full flex flex-col">
+            {/* Chat Header */}
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-white text-sm">
+                  {targetUserInfo.name
+                    ? targetUserInfo.name[0].toUpperCase()
+                    : "U"}
+                </div>
+                <div>
+                  <div className="font-semibold text-white text-sm">
+                    {targetUserInfo.name}
+                  </div>
+                  <div className="text-blue-100 text-xs">Online</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setChatMinimized(!chatMinimized)}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200"
+                >
+                  <span className="text-white text-lg font-bold">
+                    {chatMinimized ? "↑" : "−"}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setTargetUser(null)}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Chat Content */}
+            {!chatMinimized && (
+              <div className="flex-1 min-h-0">
+                <ChatWindow
+                  userId={userId}
+                  targetUserId={targetUser}
+                  forceOpen={true}
+                  currentUser={user}
+                  targetUser={targetUserInfo}
+                  customStyles={{
+                    popupStyle: {
+                      position: "static",
+                      boxShadow: "none",
+                      borderRadius: 0,
+                      width: "100%",
+                      height: "100%",
+                      minHeight: 0,
+                      maxHeight: "100%",
+                      background: "transparent",
+                      border: "none",
+                    },
+                    bubbleButtonStyle: { display: "none" },
+                  }}
+                  onClose={() => setTargetUser(null)}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

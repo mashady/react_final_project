@@ -24,8 +24,9 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import ChatWindow from "@/components/chat/ChatWindow";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import { useSelector } from "react-redux";
 
-const PropertyListing = ({ toggleChat, showChat }) => {
+const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const params = useParams();
   const propertyId = params.id;
 
@@ -268,14 +269,6 @@ const PropertyListing = ({ toggleChat, showChat }) => {
     };
     checkWishlistStatus();
   }, [currentUser, propertyId]);
-
-  // Determine the current user (sender) and the property owner (receiver)
-  const senderId = currentUser?.id;
-  // Try to get the owner user id from property.owner or ownerDetails
-  const ownerUserId = property?.owner?.id || ownerDetails?.user_id;
-
-  // Only show chat if both users are available and not the same
-  const canShowChat = senderId && ownerUserId && senderId !== ownerUserId;
 
   if (loading) {
     return (
@@ -524,19 +517,28 @@ const PropertyListing = ({ toggleChat, showChat }) => {
                     </a>
                   )}
                   {/* Chat with Owner Button */}
-                  {canShowChat && (
-                    <button
-                      className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2"
-                      onClick={toggleChat}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
-                      {showChat ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </button>
+                  <button
+                    className={`mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                      !senderId ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    onClick={senderId ? toggleChat : undefined}
+                    disabled={!senderId}
+                    title={
+                      !senderId ? "Please log in to chat with the owner." : ""
+                    }
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
+                    {showChat ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+                  {!senderId && (
+                    <div className="text-xs text-red-500 mt-2 text-center">
+                      Please log in to chat with the owner.
+                    </div>
                   )}
                 </>
               ) : (
@@ -552,7 +554,7 @@ const PropertyListing = ({ toggleChat, showChat }) => {
   );
 };
 
-// Render ChatWindow globally, fixed to bottom, only if canShowChat and showChat
+// Render ChatWindow globally, fixed to bottom, only if showChat
 import dynamic from "next/dynamic";
 const DynamicChatWindow = dynamic(
   () => import("@/components/chat/ChatWindow"),
@@ -564,7 +566,9 @@ export default function PropertyListingWrapper(props) {
   const params = useParams();
   const propertyId = params.id;
 
-  const [currentUser, setCurrentUser] = React.useState(null);
+  // Get user from Redux global state
+  const user = useSelector((state) => state.user.data);
+
   const [ownerDetails, setOwnerDetails] = React.useState(null);
   const [property, setProperty] = React.useState(null);
 
@@ -590,16 +594,6 @@ export default function PropertyListingWrapper(props) {
     fetchProperty();
   }, [propertyId]);
 
-  // Fetch user
-  React.useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        setCurrentUser(JSON.parse(userData));
-      } catch {}
-    }
-  }, []);
-
   // Fetch owner details
   React.useEffect(() => {
     const fetchOwnerDetails = async () => {
@@ -621,19 +615,20 @@ export default function PropertyListingWrapper(props) {
   }, [property]);
 
   // Determine the current user (sender) and the property owner (receiver)
-  const senderId = currentUser?.id;
-  // Try to get the owner user id from property.owner or ownerDetails
+  const senderId = user?.id;
   const ownerUserId = property?.owner?.id || ownerDetails?.user_id;
-
-  // Only show chat if both users are available and not the same
-  const canShowChat = senderId && ownerUserId && senderId !== ownerUserId;
-
   const toggleChat = () => setShowChat((v) => !v);
 
   return (
     <>
-      <PropertyListing {...props} toggleChat={toggleChat} showChat={showChat} />
-      {canShowChat && showChat && (
+      <PropertyListing
+        {...props}
+        toggleChat={toggleChat}
+        showChat={showChat}
+        senderId={senderId}
+        ownerUserId={ownerUserId}
+      />
+      {showChat && (
         <div style={{ position: "fixed", bottom: 0, right: 0, zIndex: 2000 }}>
           <DynamicChatWindow
             userId={senderId}
