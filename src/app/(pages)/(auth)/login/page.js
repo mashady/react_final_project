@@ -12,9 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Toast from "../../property/[id]/components/Toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "@/features/user/userSlice";
+import { loginUser, fetchUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 
 const LoginSchema = Yup.object().shape({
@@ -29,7 +29,7 @@ const LoginSchema = Yup.object().shape({
 const LoginPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { loading, error } = useSelector((state) => state.user);
+  const { loading, error, data } = useSelector((state) => state.user);
 
   const [toast, setToast] = useState({
     message: "",
@@ -51,9 +51,6 @@ const LoginPage = () => {
 
       if (loginUser.fulfilled.match(resultAction)) {
         showToast("Login successful!", "success");
-        setTimeout(() => {
-          router.push("/");
-        }, 2000);
       } else {
         throw resultAction.payload;
       }
@@ -61,6 +58,15 @@ const LoginPage = () => {
       showToast(error || "Login failed", "error");
     }
   };
+
+  // Redirect when user data is available
+  useEffect(() => {
+    if (data) {
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    }
+  }, [data, router]);
 
   return (
     <>

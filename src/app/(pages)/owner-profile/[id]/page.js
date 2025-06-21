@@ -41,21 +41,26 @@ const page = () => {
 
   return (
     <>
-      <section className="conatiner w-[98%] mx-auto my-10">
-        <Image src={banner} alt="Page Banner" className="" />
+      <section className="container w-[98%] mx-auto my-10">
+        <Image src={banner} alt="Page Banner" className="hidden lg:block" />
       </section>
-      <section id="profileContainer" className="w-[72%] mx-auto flex space-x-5">
+      <section
+        id="profileContainer"
+        className="w-[72%] mx-auto lg:flex lg:space-x-5"
+      >
         <section id="leftSide" className="">
           <article
             id="infoCard"
-            className="bg-[#edf9f9] relative top-[-80px] rounded-sm flex flex-col justify-center items-center px-5 py-5 space-y-3"
+            className="bg-[#edf9f9] rounded-sm flex flex-col justify-center items-center px-5 py-5 space-y-3 lg:relative lg:top-[-80px]"
           >
-            <section id="profileImage" className=" ">
+            <section id="profileImage" className="">
               {userProfile.image ? (
-                <img
+                <Image
                   src={userProfile.image}
                   alt="owner image"
                   className="rounded-sm"
+                  width={256}
+                  height={256}
                 />
               ) : (
                 <div className="flex items-center justify-center bg-gray-200 rounded-sm w-64 h-64">
@@ -96,7 +101,7 @@ const page = () => {
             className="w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm mt-5"
           >
             <h3 className="text-3xl font-medium mb-8"> Our Listing </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {userProfile?.ads?.map((property, i) => (
                 <PropertyCard key={i} property={property} />
               ))}

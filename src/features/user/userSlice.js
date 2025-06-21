@@ -20,10 +20,16 @@ export const fetchUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   "user/login",
-  async (credentials, { rejectWithValue }) => {
+  async (credentials, { rejectWithValue, dispatch }) => {
     try {
       const response = await api.post("/login", credentials);
       localStorage.setItem("token", response.data.token);
+
+      // After successful login, fetch full user data
+      if (response.data.data?.id) {
+        await dispatch(fetchUser(response.data.data.id));
+      }
+
       return response.data;
     } catch (err) {
       return rejectWithValue(
@@ -119,8 +125,8 @@ const userSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload.data;
         state.token = action.payload.token;
+        // Data will be updated by fetchUser.fulfilled
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
