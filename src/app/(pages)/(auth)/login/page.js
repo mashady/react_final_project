@@ -12,9 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Toast from "../../property/[id]/components/Toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "@/features/user/userSlice";
+import { loginUser, fetchUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 
 const LoginSchema = Yup.object().shape({
@@ -29,7 +29,8 @@ const LoginSchema = Yup.object().shape({
 const LoginPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { loading, error } = useSelector((state) => state.user);
+  const { loading, error, data } = useSelector((state) => state.user);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
 
   const [toast, setToast] = useState({
     message: "",
@@ -50,10 +51,12 @@ const LoginPage = () => {
       const resultAction = await dispatch(loginUser(values));
 
       if (loginUser.fulfilled.match(resultAction)) {
+        
         showToast("Login successful!", "success");
+
         setTimeout(() => {
           router.push("/");
-        }, 2000);
+        }, 3000);
       } else {
         throw resultAction.payload;
       }
@@ -62,10 +65,27 @@ const LoginPage = () => {
     }
   };
 
+  // Redirect when user data is available
+  useEffect(() => {
+    if (data) {
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    }
+  }, [data, router]);
+
   return (
-    <>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-[450px] min-h-[450px] border-1 rounded-1xl shadow-lg py-16">
+    <> 
+      <div className="min-h-screen py-32 bg-gray-50">
+        <div className="my-4 p-4 w-[300px] m-auto bg-yellow-100 border border-yellow-400 text-yellow-700 rounded md:w-[450px]">
+          <span>Your email is not verified? Please check your inbox and verify your email to proceed.</span>
+          <p>
+            <Link href="/verify/resend_verify_mail" className="ml-2 text-blue-600 hover:underline">
+              Resend Verification Email
+            </Link>
+          </p>
+        </div>
+        <Card className="w-[300px] m-auto min-h-[450px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
           <CardHeader>
             <CardTitle className="text-center text-3xl">Login</CardTitle>
           </CardHeader>
@@ -86,7 +106,7 @@ const LoginPage = () => {
                       type="text"
                       as={Input}
                       placeholder="Email*"
-                      className="border rounded-none p-6 text-5xl"
+                      className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
                       name="email"
@@ -101,7 +121,7 @@ const LoginPage = () => {
                       type="password"
                       as={Input}
                       placeholder="Password*"
-                      className="border rounded-none p-6 text-5xl"
+                      className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
                       name="password"
