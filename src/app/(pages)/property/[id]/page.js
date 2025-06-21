@@ -303,7 +303,7 @@ const PropertyListing = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="relative h-[500px] bg-gray-200 overflow-hidden">
+      <div className="relative h-[600px] bg-gray-200 overflow-hidden">
         {images.length > 0 ? (
           <>
             <img
@@ -443,7 +443,10 @@ const PropertyListing = () => {
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Price:</div>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-bold text-gray-900">
+                    <span
+                      className="text-[26px] text-black"
+                      style={{ fontWeight: 500 }}
+                    >
                       {property.formatted_price}
                     </span>
                   </div>
