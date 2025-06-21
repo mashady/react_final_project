@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleWishlistItem } from "@/features/wishlist/wishlistThunks";
+
 const ProfileImage = ({ owner, API_BASE_URL }) => {
   const [imgError, setImgError] = React.useState(false);
 
@@ -99,6 +100,10 @@ const PropertyCard = ({ property, onClick, className }) => {
     ? !wishlist.some((item) => item.id === property.id)
     : wishlist.some((item) => item.id === property.id);
 
+  const currentUser = useSelector((state) => state.user.data);
+  const isOwner = currentUser?.role === "owner";
+  const isLoggedIn = !!currentUser;
+
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
     if (!pendingToggle) {
@@ -144,27 +149,31 @@ const PropertyCard = ({ property, onClick, className }) => {
           </div>
         )}
 
-        <button
-          type="button"
-          className={`absolute top-4 right-4 z-10 rounded p-2 shadow transition-all duration-300 cursor-pointer
-          ${
-            isHovered || isInWishlist
-              ? "opacity-100 scale-100 bg-white"
-              : "opacity-0 scale-75 pointer-events-none bg-white"
-          }
-          ${pendingToggle ? "opacity-50 cursor-wait" : ""}
-        `}
-          onClick={handleFavoriteClick}
-          disabled={pendingToggle}
-          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <Star
-            className={`w-4 h-4 transition-colors duration-300 ${
-              isInWishlist ? "text-yellow-400" : "text-gray-800"
-            }`}
-            fill={isInWishlist ? "currentColor" : "none"}
-          />
-        </button>
+        {!isOwner && isLoggedIn && (
+          <button
+            type="button"
+            className={`absolute top-4 right-4 z-10 rounded p-2 shadow transition-all duration-300 cursor-pointer
+              ${
+                isHovered || isInWishlist
+                  ? "opacity-100 scale-100 bg-white"
+                  : "opacity-0 scale-75 pointer-events-none bg-white"
+              }
+              ${pendingToggle ? "opacity-50 cursor-wait" : ""}
+            `}
+            onClick={handleFavoriteClick}
+            disabled={pendingToggle}
+            aria-label={
+              isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+            }
+          >
+            <Star
+              className={`w-4 h-4 transition-colors duration-300 ${
+                isInWishlist ? "text-yellow-400" : "text-gray-800"
+              }`}
+              fill={isInWishlist ? "currentColor" : "none"}
+            />
+          </button>
+        )}
       </div>
 
       <div className="p-6">
