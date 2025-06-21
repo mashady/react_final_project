@@ -4,7 +4,8 @@ import PropertyCard from "@/components/shared/PropertyCard";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { useSelector, useDispatch } from "react-redux";
+import { fetchWishlist } from "@/features/wishlist/wishlistThunks";
 import {
   Bath,
   Bed,
@@ -62,13 +63,15 @@ import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 export const PropertiesGrid = () => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const dispatch = useDispatch();
+  const wishlist = useSelector((state) => state.wishlist.items);
   useEffect(() => {
     axios
       .get("http://127.0.0.1:8000/api/ads")
       .then((response) => {
         console.log(response.data.data);
         console.log(response);
+        dispatch(fetchWishlist());
         setAds(response.data.data.slice(0, 6));
       })
       .catch((error) => {
@@ -77,7 +80,7 @@ export const PropertiesGrid = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [dispatch]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -86,7 +89,11 @@ export const PropertiesGrid = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 container mx-auto">
       {ads.map((ad, index) => (
-        <PropertyCard key={index} property={ad} />
+        <PropertyCard
+          key={index}
+          property={ad}
+          isInWishlist={wishlist.some((item) => item.id === ad.id)}
+        />
       ))}
     </div>
   );

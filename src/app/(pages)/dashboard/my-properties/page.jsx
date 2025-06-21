@@ -1,4 +1,5 @@
 "use client";
+
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import LoadMoreBtn from "@/components/shared/LoadMoreBtn";
 import PropertyCard from "@/components/shared/PropertyCard";
@@ -6,8 +7,9 @@ import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
 import React, { useEffect, useState } from "react";
 import api from "../../../../api/axiosConfig";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import the guard
 
-const MyPropertiesPage = () => {
+const MyPropertiesContent = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,10 +19,8 @@ const MyPropertiesPage = () => {
       try {
         setLoading(true);
         const response = await api.get("/myProperties");
-        console.log(response);
         const data = response.data.data;
         const propertiesArray = Array.isArray(data) ? data : [data];
-        console.log(propertiesArray);
         setProperties(propertiesArray);
       } catch (err) {
         setError(err.message || "Failed to fetch your properties");
@@ -70,14 +70,16 @@ const MyPropertiesPage = () => {
                 property={property}
                 onClick={() => handleCardClick(property)}
                 className="hover:transform"
+                isDashboard ={true}
+                onDelete={(id) => {
+                  setProperties((prev) => prev.filter((p) => p.id !== id));
+                }}
               />
             ))}
           </div>
-          {properties.length > 0 && (
-            <div className="flex justify-center mt-10">
-              <LoadMoreBtn />
-            </div>
-          )}
+          <div className="flex justify-center mt-10">
+            <LoadMoreBtn />
+          </div>
         </>
       ) : (
         <DashboardEmptyMsg
@@ -89,5 +91,11 @@ const MyPropertiesPage = () => {
     </div>
   );
 };
+
+const MyPropertiesPage = () => (
+  <RequireAuth allowedRoles={["owner"]}>
+    <MyPropertiesContent />
+  </RequireAuth>
+);
 
 export default MyPropertiesPage;
