@@ -1,6 +1,9 @@
-import React from "react";
+"use client";
 
-const Page = () => {
+import React from "react";
+import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import auth wrapper
+
+const MessagesContent = () => {
   const messages = [
     {
       id: 1,
@@ -27,14 +30,7 @@ const Page = () => {
 
   return (
     <div className="p-4">
-      <h1
-        className="text-[26px] mb-4"
-        style={{
-          fontWeight: 500,
-        }}
-      >
-        Messages
-      </h1>
+      <h1 className="text-[26px] mb-4 font-medium">Messages</h1>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200">
           <thead>
@@ -86,4 +82,10 @@ const Page = () => {
   );
 };
 
-export default Page;
+const MessagesPage = () => (
+  <RequireAuth allowedRoles={["owner", "student", "admin"]}>
+    <MessagesContent />
+  </RequireAuth>
+);
+
+export default MessagesPage;

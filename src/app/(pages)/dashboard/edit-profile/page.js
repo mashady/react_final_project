@@ -1,5 +1,8 @@
+"use client";
+
 import UserProfileForm from "@/components/dashboard/DashboardEditProfile";
 import React from "react";
+import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import it
 
 const initialValues = {
   firstName: "first name init value",
@@ -9,7 +12,7 @@ const initialValues = {
   repeatPassword: "123456789",
 };
 
-const page = () => {
+const EditProfileContent = () => {
   return (
     <div>
       <UserProfileForm initialValues={initialValues} />
@@ -17,4 +20,10 @@ const page = () => {
   );
 };
 
-export default page;
+const EditProfilePage = () => (
+  <RequireAuth allowedRoles={["student", "owner", "admin"]}>
+    <EditProfileContent />
+  </RequireAuth>
+);
+
+export default EditProfilePage;
