@@ -20,10 +20,15 @@ export const fetchUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   "user/login",
-  async (credentials, { rejectWithValue }) => {
+  async (credentials, { rejectWithValue, dispatch }) => {
     try {
       const response = await api.post("/login", credentials);
       localStorage.setItem("token", response.data.token);
+
+      if (response.data.data?.id) {
+        await dispatch(fetchUser(response.data.data.id));
+      }
+
       return response.data;
     } catch (err) {
       return rejectWithValue(
@@ -50,6 +55,7 @@ export const registerUser = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
+
       localStorage.setItem("token", response.data.token);
       return response.data;
     } catch (err) {
@@ -119,7 +125,6 @@ const userSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload.data;
         state.token = action.payload.token;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -160,21 +165,15 @@ const userSlice = createSlice({
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.updateLoading = false;
-        const updatedUser = action.payload.data.user;
-        const updatedProfile =
-          action.payload.data.owner_profile ||
-          action.payload.data.student_profile ||
-          {};
+
+        const updatedUser = action.payload.data;
 
         state.data = {
           ...state.data,
           ...updatedUser,
-          owner_profile: state.data?.owner_profile
-            ? { ...state.data.owner_profile, ...updatedProfile }
-            : updatedProfile,
-          student_profile: state.data?.student_profile
-            ? { ...state.data.student_profile, ...updatedProfile }
-            : updatedProfile,
+          owner_profile: updatedUser.owner_profile || state.data?.owner_profile,
+          student_profile:
+            updatedUser.student_profile || state.data?.student_profile,
         };
       })
       .addCase(updateUser.rejected, (state, action) => {

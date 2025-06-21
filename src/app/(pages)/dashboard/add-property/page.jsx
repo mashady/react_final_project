@@ -6,8 +6,9 @@ import PropertyForm from "@/components/add-property/PropertyForm";
 import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
+import RequireAuth from "@/components/shared/RequireAuth";
 
-const Page = () => {
+const AddPropertyContent = () => {
   const [loading, setLoading] = useState(true);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [error, setError] = useState(null);
@@ -70,11 +71,13 @@ const Page = () => {
     );
   }
 
-  return (
-    <div>
-      <PropertyForm />
-    </div>
-  );
+  return <PropertyForm />;
 };
 
-export default Page;
+const AddPropertyPage = () => (
+  <RequireAuth allowedRoles={["owner", "admin"]}>
+    <AddPropertyContent />
+  </RequireAuth>
+);
+
+export default AddPropertyPage;

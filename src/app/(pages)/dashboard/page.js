@@ -1,25 +1,14 @@
 "use client";
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchUser } from "@/features/user/userSlice";
-import { useRouter } from "next/navigation";
-import LoadingSpinner from "../properties/components/LoadingSpinner";
-// import LoadingSpinner from "@/components/LoadingSpinner";
 
-const UserProfileCard = () => {
-  const dispatch = useDispatch();
-  const router = useRouter();
+import React from "react";
+import { useSelector } from "react-redux";
+import LoadingSpinner from "../properties/components/LoadingSpinner";
+import RequireAuth from "@/components/shared/RequireAuth";
+
+const UserProfileCardContent = () => {
   const { data: user, loading, error } = useSelector((state) => state.user);
 
-  useEffect(() => {
-    if (user?.id) {
-      dispatch(fetchUser(user.id));
-    } else {
-      router.push("/login");
-    }
-  }, [dispatch, user?.id, router]);
-
-  if (loading) return <LoadingSpinner />;
+  if (loading || !user) return <LoadingSpinner />;
 
   if (error) {
     return (
@@ -27,10 +16,6 @@ const UserProfileCard = () => {
         Error loading profile: {error}
       </div>
     );
-  }
-
-  if (!user) {
-    return <div className="p-8 text-center text-black">No user data found</div>;
   }
 
   const profile =
@@ -62,14 +47,9 @@ const UserProfileCard = () => {
 
         <div className="space-y-4">
           <ProfileField label="Email" value={user.email} />
-
           {user.role === "student" && (
-            <>
-              <ProfileField label="University" value={profile?.university} />
-              {/* <ProfileField label="Major" value={profile?.major} /> */}
-            </>
+            <ProfileField label="University" value={profile?.university} />
           )}
-
           <ProfileField label="Phone" value={profile?.phone_number} />
           <ProfileField label="WhatsApp" value={profile?.whatsapp_number} />
           <ProfileField label="Address" value={profile?.address} />
@@ -86,6 +66,13 @@ const ProfileField = ({ label, value }) => (
     </span>
     <span className="text-gray-900 sm:w-3/4">{value || "-"}</span>
   </div>
+);
+
+// ✅ Wrap in auth with role check
+const UserProfileCard = () => (
+  <RequireAuth allowedRoles={["student", "owner", "admin"]}>
+    <UserProfileCardContent />
+  </RequireAuth>
 );
 
 export default UserProfileCard;

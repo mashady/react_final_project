@@ -49,7 +49,6 @@ const Navbar = () => {
 
   const ownerDropdownItems = [
     { href: "/dashboard/my-packages", label: "My Packages" },
-
     { href: "/dashboard/my-properties", label: "My Properties" },
     { href: "/dashboard/add-property", label: "Add Property" },
   ];
@@ -80,7 +79,7 @@ const Navbar = () => {
     <nav className="bg-white">
       <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <div className="flex items-center">
+          <div className="flex-1 flex items-center">
             <Link href="/">
               <img
                 src="https://newhome.qodeinteractive.com/wp-content/uploads/2023/03/logo-main.png"
@@ -90,8 +89,8 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <div className="hidden md:block">
-            <div className="lg:ml-60 flex items-baseline space-x-4">
+          <div className="hidden md:block flex-1">
+            <div className="flex justify-center items-baseline space-x-4">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.label}
@@ -104,7 +103,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex flex-1 items-center justify-end space-x-4">
             {isLoggedIn ? (
               <div className="flex items-center space-x-2">
                 <img
