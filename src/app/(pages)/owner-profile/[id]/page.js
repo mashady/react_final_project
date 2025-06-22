@@ -10,11 +10,22 @@ import axios from "axios";
 import PropertyCard from "@/components/shared/PropertyCard";
 import { User } from "lucide-react";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import OwnerReviewList from "./OwnerReviewList";
+import OwnerReviewForm from "./OwnerReviewForm";
+import { useSelector } from "react-redux";
 
 const page = () => {
   const [userProfile, setUserProfile] = useState({});
   const [loading, setLoading] = useState(true);
   const [id, setId] = useState(useParams().id);
+  // Remove reviews and reviewsLoading state, handled by OwnerReviewList
+  const [reviewForm, setReviewForm] = useState({ comment: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
+  const user = useSelector((state) => state.user.data);
+  const token =
+    useSelector((state) => state.user.token) || localStorage.getItem("token");
 
   useEffect(() => {
     fetchUserProfile();
@@ -44,6 +55,38 @@ const page = () => {
       .finally(() => {
         setLoading(false);
       });
+  };
+
+  // Remove duplicate review fetching logic, handled by OwnerReviewList
+
+  const handleReviewSubmit = async () => {
+    setReviewError("");
+    if (!user) {
+      setReviewError("Please log in to submit a review");
+      return;
+    }
+    if (!reviewForm.comment.trim()) {
+      setReviewError("Please enter a comment");
+      return;
+    }
+    try {
+      setSubmittingReview(true);
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.post(
+        `http://127.0.0.1:8000/api/owner-reviews`,
+        {
+          owner_id: id,
+          content: reviewForm.comment.trim(),
+        },
+        { headers }
+      );
+      setReviewForm({ comment: "" });
+      setReviewRefreshKey((k) => k + 1); // trigger OwnerReviewList refresh
+    } catch (err) {
+      setReviewError("Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   if (loading) {
@@ -106,6 +149,20 @@ const page = () => {
           >
             <h3 className="text-5xl font-medium mb-8"> {userProfile.name} </h3>
             <p className="text-gray-500 my-2"> {userProfile.bio} </p>
+          </article>
+          {/* Owner Reviews Section */}
+          <article className="w-full bg-white px-5 py-6 rounded-sm mt-5 mb-5">
+            <h3 className="text-2xl font-semibold mb-4">Reviews</h3>
+            <OwnerReviewList ownerId={id} refreshKey={reviewRefreshKey} />
+            <div className="border-t border-gray-100 pt-6 mt-6">
+              <OwnerReviewForm
+                reviewForm={reviewForm}
+                setReviewForm={setReviewForm}
+                submittingReview={submittingReview}
+                reviewError={reviewError}
+                onSubmit={handleReviewSubmit}
+              />
+            </div>
           </article>
           <article
             id="ownerProperties"
