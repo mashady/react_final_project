@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { CheckCircle, Clock, Search } from "lucide-react";
 import axios from "axios";
-import PendingUsersTable from "./PendingUsersTable.jsx";
-import PendingUsersModal from "./PendingUsersModal.jsx";
-import PendingUsersStats from "./PendingUsersStats.jsx";
-import PendingUsersPagination from "./PendingUsersPagination.jsx";
+import PendingUsersTable from "./PendingUsersTable.js";
+import PendingUsersModal from "./PendingUsersModal.js";
+import PendingUsersStats from "./PendingUsersStats.js";
+import PendingUsersPagination from "./PendingUsersPagination.js";
 
 const PendingUsers = () => {
   const [users, setUsers] = useState([]);
@@ -27,10 +27,26 @@ const PendingUsers = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/users`);
-      if (response.data.success) {
-        const pendingUsers = response.data.data.filter(
-          (user) => user.verification_status === "pending"
+      // Debug: log all users and their verification_status
+      if (response.data && response.data.data) {
+        console.log(
+          "All users from API:",
+          response.data.data.map((u) => ({
+            id: u.id,
+            name: u.name,
+            verification_status: u.verification_status,
+          }))
         );
+      }
+      if (response.data.success) {
+        // More robust filter: case-insensitive, trims, handles null/undefined
+        const pendingUsers = response.data.data.filter((user) => {
+          const status = (user.verification_status || "")
+            .toString()
+            .trim()
+            .toLowerCase();
+          return status === "pending" || status === "unverified";
+        });
         setUsers(pendingUsers);
         setFilteredUsers(pendingUsers);
       } else {
@@ -205,9 +221,6 @@ const PendingUsers = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-light text-slate-800 tracking-tight flex items-center gap-3">
-                <div className="bg-amber-100 p-3 rounded-xl">
-                  <Clock size={32} className="text-amber-600" />
-                </div>
                 Pending Verifications
               </h1>
               <p className="text-slate-600 mt-2 font-light">

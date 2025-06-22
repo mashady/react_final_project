@@ -52,6 +52,10 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
 
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
   const API_BASE_URL = "http://localhost:8000/api";
 
   const fetchUsers = async () => {
@@ -212,27 +216,37 @@ const Users = () => {
   };
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        const response = await axios.delete(`${API_BASE_URL}/users/${userId}`);
-        if (response.data.success) {
-          setSuccessMessage("User deleted successfully!");
-          await fetchUsers();
-          setTimeout(() => setSuccessMessage(""), 3000);
-        } else {
-          console.error("Failed to delete user:", response.data.message);
-          setErrors({ general: [response.data.message] });
-        }
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        setErrors({
-          general: [
-            error.response?.data?.message ||
-              "An error occurred while deleting the user",
-          ],
-        });
+    setUserToDelete(userId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/users/${userToDelete}`);
+      if (response.data.success) {
+        setSuccessMessage("User deleted successfully!");
+        await fetchUsers();
+        setTimeout(() => setSuccessMessage(""), 3000);
+      } else {
+        setErrors({ general: [response.data.message] });
       }
+    } catch (error) {
+      setErrors({
+        general: [
+          error.response?.data?.message ||
+            "An error occurred while deleting the user",
+        ],
+      });
+    } finally {
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     }
+  };
+
+  const cancelDeleteUser = () => {
+    setShowDeleteModal(false);
+    setUserToDelete(null);
   };
 
   const openModal = (mode, user = null) => {
@@ -390,64 +404,103 @@ const Users = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      {/* Success message */}
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-          {successMessage}
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
+      {/* Custom Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              Confirm Delete
+            </h2>
+            <p className="mb-6 text-gray-600">
+              Are you sure you want to delete this user? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                onClick={cancelDeleteUser}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                onClick={confirmDeleteUser}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* Header */}
-      <UsersHeader onAddUser={() => openModal("create")} />
-
-      {/* Search and Stats */}
+      <div className="bg-white shadow-sm ">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-light text-slate-800 tracking-tight flex items-center gap-3">
+                User Management
+              </h1>
+              <p className="text-slate-600 mt-2 font-light">
+                Manage all users in the system
+              </p>
+            </div>
+            <div className="text-right">
+              <button
+                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 shadow-lg"
+                onClick={() => openModal("create")}
+              >
+                <Plus className="w-5 h-5" /> Add User
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="max-w-7xl mx-auto px-6 py-8">
         <UsersStats filteredUsers={filteredUsers} />
         <UsersSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <UsersTable
-          loading={loading}
-          currentUsers={currentUsers}
-          getRoleColor={getRoleColor}
-          getVerificationStatusColor={getVerificationStatusColor}
-          getVerificationIcon={getVerificationIcon}
-          formatDate={formatDate}
-          openModal={openModal}
-          handleDeleteUser={handleDeleteUser}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          paginate={paginate}
-          goToFirstPage={goToFirstPage}
-          goToPrevPage={goToPrevPage}
-          goToNextPage={goToNextPage}
-          goToLastPage={goToLastPage}
-          getPageNumbers={getPageNumbers}
-          indexOfFirstUser={indexOfFirstUser}
-          indexOfLastUser={indexOfLastUser}
-          filteredUsers={filteredUsers}
-          usersPerPage={usersPerPage}
-        />
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <UsersTable
+            loading={loading}
+            currentUsers={currentUsers}
+            getRoleColor={getRoleColor}
+            getVerificationStatusColor={getVerificationStatusColor}
+            getVerificationIcon={getVerificationIcon}
+            formatDate={formatDate}
+            openModal={openModal}
+            handleDeleteUser={handleDeleteUser}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            paginate={paginate}
+            goToFirstPage={goToFirstPage}
+            goToPrevPage={goToPrevPage}
+            goToNextPage={goToNextPage}
+            goToLastPage={goToLastPage}
+            getPageNumbers={getPageNumbers}
+            indexOfFirstUser={indexOfFirstUser}
+            indexOfLastUser={indexOfLastUser}
+            filteredUsers={filteredUsers}
+            usersPerPage={usersPerPage}
+          />
+        </div>
+        {showModal && (
+          <UsersModal
+            modalMode={modalMode}
+            setShowModal={setShowModal}
+            selectedUser={selectedUser}
+            formData={formData}
+            setFormData={setFormData}
+            errors={errors}
+            successMessage={successMessage}
+            handleCreateUser={handleCreateUser}
+            handleUpdateUser={handleUpdateUser}
+            handleFileChange={handleFileChange}
+            getRoleColor={getRoleColor}
+            getVerificationStatusColor={getVerificationStatusColor}
+            getVerificationIcon={getVerificationIcon}
+            formatDate={formatDate}
+          />
+        )}
       </div>
-
-      {/* Modal */}
-      {showModal && (
-        <UsersModal
-          modalMode={modalMode}
-          setShowModal={setShowModal}
-          selectedUser={selectedUser}
-          formData={formData}
-          setFormData={setFormData}
-          errors={errors}
-          successMessage={successMessage}
-          handleCreateUser={handleCreateUser}
-          handleUpdateUser={handleUpdateUser}
-          handleFileChange={handleFileChange}
-          getRoleColor={getRoleColor}
-          getVerificationStatusColor={getVerificationStatusColor}
-          getVerificationIcon={getVerificationIcon}
-          formatDate={formatDate}
-        />
-      )}
     </div>
   );
 };

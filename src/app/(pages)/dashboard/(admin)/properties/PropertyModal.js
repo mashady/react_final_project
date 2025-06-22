@@ -1,5 +1,7 @@
 import React from "react";
 import { X, Save } from "lucide-react";
+import MediaUpload from "@/components/add-property/MediaUpload";
+import AdminMediaUpload from "./AdminMediaUpload";
 
 const PropertyModal = ({
   isOpen,
@@ -12,7 +14,7 @@ const PropertyModal = ({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl transform transition-all duration-300 border border-amber-200">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">
             {editingProperty ? "Edit Property" : "Add New Property"}
@@ -179,6 +181,10 @@ const PropertyModal = ({
               required
             />
           </div>
+          <AdminMediaUpload
+            media={formData.media || []}
+            setMedia={(media) => setFormData({ ...formData, media })}
+          />
           <div className="flex gap-4">
             <button
               type="button"
