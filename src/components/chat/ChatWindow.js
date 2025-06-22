@@ -22,6 +22,7 @@ export default function ChatWindow({
   targetUser: propTargetUser,
   onClose,
   customStyles = {},
+  hideHeader = false,
 }) {
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
@@ -348,107 +349,50 @@ export default function ChatWindow({
 
       {/* Chat Popup */}
       <div style={popupStyle}>
-        {/* Header */}
-        <div
-          style={{
-            padding: "16px",
-            borderBottom: "1px solid #e5e7eb",
-            background: "#f9fafb",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {targetUserInfo ? (
-              <>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    background: "#000",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    fontWeight: "600",
-                    fontSize: "14px",
-                  }}
-                >
-                  {targetUserInfo.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontWeight: "600",
-                      color: "#111827",
-                      fontSize: "16px",
-                    }}
-                  >
-                    {targetUserInfo.name}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#6b7280",
-                    }}
-                  >
-                    {socketId ? "Online" : "Connecting..."}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    background: "#e5e7eb",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <User size={20} color="#6b7280" />
-                </div>
-                <div
-                  style={{
-                    fontWeight: "600",
-                    color: "#111827",
-                    fontSize: "16px",
-                  }}
-                >
-                  Chat
-                </div>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handleClose}
+        {/* Header (optional) */}
+        {!hideHeader && (
+          <div
             style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "8px",
+              padding: "20px 20px 18px 20px",
+              borderBottom: "none",
+              background: "#fff",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              transition: "background 0.2s ease",
+              justifyContent: "space-between",
+              boxShadow: "0 2px 12px 0 rgba(0,0,0,0.06)",
+              zIndex: 2,
             }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "#e5e7eb";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "none";
-            }}
-            aria-label="Close chat"
           >
-            <X size={20} color="#6b7280" />
-          </button>
-        </div>
+            <div className="font-semibold text-black text-base truncate">
+              {targetUserInfo?.name && !/^User \d+$/.test(targetUserInfo.name) ? targetUserInfo.name : (propTargetUser?.name || "Chat")}
+            </div>
+            <button
+              onClick={handleClose}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "8px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.2s, box-shadow 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "#f3f4f6";
+                e.target.style.boxShadow = "0 2px 8px 0 rgba(0,0,0,0.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "none";
+                e.target.style.boxShadow = "none";
+              }}
+              aria-label="Close chat"
+            >
+              <X size={20} color="#6b7280" />
+            </button>
+          </div>
+        )}
 
         {/* Error Messages */}
         {errors.length > 0 && (
@@ -497,10 +441,13 @@ export default function ChatWindow({
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: "16px",
+            padding: "24px 16px 16px 16px",
             background: "#fff",
             minHeight: 0,
             maxHeight: "calc(100% - 140px)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
           }}
         >
           {!isHistoryLoaded && (
@@ -532,41 +479,52 @@ export default function ChatWindow({
             <div
               key={msg.id || idx}
               style={{
-                marginBottom: "12px",
+                marginBottom: "10px",
                 display: "flex",
                 justifyContent:
                   msg.from === userId?.toString() ? "flex-end" : "flex-start",
+                transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
               }}
             >
               <div
                 style={{
-                  maxWidth: "70%",
-                  padding: "12px 16px",
-                  borderRadius: "18px",
-                  fontSize: "14px",
-                  lineHeight: "1.4",
+                  maxWidth: "75%",
+                  padding: "13px 18px 11px 18px",
+                  borderRadius: "22px",
+                  fontSize: "15px",
+                  lineHeight: "1.5",
                   wordBreak: "break-word",
+                  boxShadow:
+                    msg.from === userId?.toString()
+                      ? "0 2px 8px 0 rgba(0,0,0,0.10)"
+                      : "0 2px 8px 0 rgba(0,0,0,0.06)",
                   ...(msg.from === userId?.toString()
                     ? {
-                        background: "#000",
+                        background: "#111",
                         color: "#fff",
-                        borderBottomRightRadius: "4px",
+                        borderBottomRightRadius: "7px",
+                        borderTopRightRadius: "7px",
+                        border: "none",
                       }
                     : {
-                        background: "#f3f4f6",
-                        color: "#111827",
-                        borderBottomLeftRadius: "4px",
-                        border: "1px solid #e5e7eb",
+                        background: "#f6f6f6",
+                        color: "#222",
+                        borderBottomLeftRadius: "7px",
+                        borderTopLeftRadius: "7px",
+                        border: "1px solid #ececec",
                       }),
+                  opacity: 1,
+                  animation: "fadeIn 0.3s cubic-bezier(.4,0,.2,1)",
                 }}
               >
                 <div>{msg.message}</div>
                 <div
                   style={{
                     fontSize: "10px",
-                    opacity: 0.7,
-                    marginTop: "4px",
+                    opacity: 0.6,
+                    marginTop: "6px",
                     textAlign: "right",
+                    letterSpacing: 0.2,
                   }}
                 >
                   {msg.timestamp
@@ -586,12 +544,14 @@ export default function ChatWindow({
         <form
           onSubmit={sendMessage}
           style={{
-            padding: "16px",
-            borderTop: "1px solid #e5e7eb",
-            background: "#f9fafb",
+            padding: "18px 16px 18px 16px",
+            borderTop: "none",
+            background: "#fff",
             display: "flex",
-            gap: "12px",
+            gap: "10px",
             alignItems: "center",
+            boxShadow: "0 -2px 12px 0 rgba(0,0,0,0.04)",
+            zIndex: 2,
           }}
         >
           <input
@@ -601,19 +561,22 @@ export default function ChatWindow({
             disabled={!isHistoryLoaded || !socketId}
             style={{
               flex: 1,
-              padding: "12px 16px",
-              border: "1px solid #d1d5db",
-              borderRadius: "20px",
-              fontSize: "14px",
+              padding: "13px 18px",
+              border: "1.5px solid #ececec",
+              borderRadius: "22px",
+              fontSize: "15px",
               outline: "none",
-              background: "#fff",
-              transition: "border-color 0.2s ease",
+              background: "#fafafa",
+              transition: "border-color 0.2s, box-shadow 0.2s",
+              boxShadow: "0 1px 4px 0 rgba(0,0,0,0.03)",
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = "#000";
+              e.target.style.borderColor = "#111";
+              e.target.style.boxShadow = "0 2px 8px 0 rgba(0,0,0,0.08)";
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = "#d1d5db";
+              e.target.style.borderColor = "#ececec";
+              e.target.style.boxShadow = "0 1px 4px 0 rgba(0,0,0,0.03)";
             }}
             autoComplete="off"
           />
@@ -623,9 +586,10 @@ export default function ChatWindow({
             style={{
               background:
                 input.trim() && isHistoryLoaded && socketId
-                  ? "#000"
-                  : "#d1d5db",
-              color: "#fff",
+                  ? "#111"
+                  : "#ececec",
+              color:
+                input.trim() && isHistoryLoaded && socketId ? "#fff" : "#bbb",
               border: "none",
               borderRadius: "50%",
               width: "44px",
@@ -637,17 +601,21 @@ export default function ChatWindow({
                 input.trim() && isHistoryLoaded && socketId
                   ? "pointer"
                   : "not-allowed",
-              transition: "all 0.2s ease",
+              transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
+              boxShadow:
+                input.trim() && isHistoryLoaded && socketId
+                  ? "0 2px 8px 0 rgba(0,0,0,0.10)"
+                  : "none",
             }}
             onMouseEnter={(e) => {
               if (input.trim() && isHistoryLoaded && socketId) {
-                e.target.style.background = "#333";
-                e.target.style.transform = "scale(1.05)";
+                e.target.style.background = "#222";
+                e.target.style.transform = "scale(1.07)";
               }
             }}
             onMouseLeave={(e) => {
               if (input.trim() && isHistoryLoaded && socketId) {
-                e.target.style.background = "#000";
+                e.target.style.background = "#111";
                 e.target.style.transform = "scale(1)";
               }
             }}

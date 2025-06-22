@@ -177,15 +177,22 @@ app.get("/api/messages/inbox", async (req, res) => {
   }
   try {
     // Get all messages where user is sender or receiver, order by created_at desc
+    // Also join user table to get names for sender and receiver
     const { data, error } = await supabase
       .from("messages")
-      .select("*")
+      .select(`*, sender:sender_id (id, name), receiver:receiver_id (id, name)`) // relation aliasing
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order("created_at", { ascending: false });
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-    return res.status(200).json(data);
+    // Attach sender_name and receiver_name for easier frontend use
+    const withNames = (data || []).map((msg) => ({
+      ...msg,
+      sender_name: msg.sender?.name || `User ${msg.sender_id}`,
+      receiver_name: msg.receiver?.name || `User ${msg.receiver_id}`,
+    }));
+    return res.status(200).json(withNames);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

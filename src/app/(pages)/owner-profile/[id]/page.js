@@ -1,63 +1,29 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import banner from "../../../../../public/banner.jpg";
-import owner from "../../../../../public/owner.jpg";
 import Image from "next/image";
 import axios from "axios";
 import PropertyCard from "@/components/shared/PropertyCard";
 import { User } from "lucide-react";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import { useSelector } from "react-redux";
 import OwnerReviewList from "./OwnerReviewList";
 import OwnerReviewForm from "./OwnerReviewForm";
-import { useSelector } from "react-redux";
 
 const page = () => {
   const [userProfile, setUserProfile] = useState({});
   const [loading, setLoading] = useState(true);
-  const [id, setId] = useState(useParams().id);
-  // Remove reviews and reviewsLoading state, handled by OwnerReviewList
-  const [reviewForm, setReviewForm] = useState({ comment: "" });
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewError, setReviewError] = useState("");
-  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
+  const { id } = useParams();
   const user = useSelector((state) => state.user.data);
   const token =
     useSelector((state) => state.user.token) || localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = () => {
-    setLoading(true);
-    axios
-      .get(`http://localhost:8000/api/users/${id}`)
-      .then((res) => {
-        console.log(res.data.data.ads);
-        setUserProfile({
-          ads: res.data.data.ads || [],
-          name: res.data.data.name || "No Name",
-          bio: res.data.data.owner_profile.bio || "No Bio",
-          image: res.data.data.owner_profile.picture,
-          email: res.data.data.email || "No Email",
-          phone: res.data.data.owner_profile.phone_number || "No Phone Number",
-          whatsapp:
-            res.data.data.owner_profile.whatsapp_number || "No WhatsApp Number",
-          address: res.data.data.owner_profile.address || "No Address",
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-  // Remove duplicate review fetching logic, handled by OwnerReviewList
+  // Review state and logic
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
+  const [reviewForm, setReviewForm] = useState({ comment: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
 
   const handleReviewSubmit = async () => {
     setReviewError("");
@@ -87,6 +53,36 @@ const page = () => {
     } finally {
       setSubmittingReview(false);
     }
+  };
+
+  useEffect(() => {
+    fetchUserProfile();
+    // eslint-disable-next-line
+  }, []);
+
+  const fetchUserProfile = () => {
+    setLoading(true);
+    axios
+      .get(`http://localhost:8000/api/users/${id}`)
+      .then((res) => {
+        setUserProfile({
+          ads: res.data.data.ads || [],
+          name: res.data.data.name || "No Name",
+          bio: res.data.data.owner_profile.bio || "No Bio",
+          image: res.data.data.owner_profile.picture,
+          email: res.data.data.email || "No Email",
+          phone: res.data.data.owner_profile.phone_number || "No Phone Number",
+          whatsapp:
+            res.data.data.owner_profile.whatsapp_number || "No WhatsApp Number",
+          address: res.data.data.owner_profile.address || "No Address",
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   if (loading) {
@@ -150,20 +146,6 @@ const page = () => {
             <h3 className="text-5xl font-medium mb-8"> {userProfile.name} </h3>
             <p className="text-gray-500 my-2"> {userProfile.bio} </p>
           </article>
-          {/* Owner Reviews Section */}
-          <article className="w-full bg-white px-5 py-6 rounded-sm mt-5 mb-5">
-            <h3 className="text-2xl font-semibold mb-4">Reviews</h3>
-            <OwnerReviewList ownerId={id} refreshKey={reviewRefreshKey} />
-            <div className="border-t border-gray-100 pt-6 mt-6">
-              <OwnerReviewForm
-                reviewForm={reviewForm}
-                setReviewForm={setReviewForm}
-                submittingReview={submittingReview}
-                reviewError={reviewError}
-                onSubmit={handleReviewSubmit}
-              />
-            </div>
-          </article>
           <article
             id="ownerProperties"
             className="w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm mt-5"
@@ -174,6 +156,23 @@ const page = () => {
                 <PropertyCard key={i} property={property} />
               ))}
             </div>
+          </article>
+          {/* Owner Reviews Section under My Listing */}
+          <article className="w-full bg-white px-5 py-6 rounded-sm mt-5 mb-5">
+            <h3 className="text-2xl font-semibold mb-4">Owner Reviews</h3>
+            <OwnerReviewList ownerId={id} refreshKey={reviewRefreshKey} />
+            {/* Only show review form if logged-in user is NOT the owner */}
+            {user && String(user.id) !== String(id) && (
+              <div className="border-t border-gray-100 pt-6 mt-6">
+                <OwnerReviewForm
+                  reviewForm={reviewForm}
+                  setReviewForm={setReviewForm}
+                  submittingReview={submittingReview}
+                  reviewError={reviewError}
+                  onSubmit={handleReviewSubmit}
+                />
+              </div>
+            )}
           </article>
         </section>
       </section>

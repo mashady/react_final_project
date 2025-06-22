@@ -217,85 +217,63 @@ const Page = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-500"></div>
-      </div>
-
-      <div className="relative z-10 p-4 md:p-8">
+    <div className="min-h-screen bg-white text-black">
+      <div className="max-w-3xl mx-auto p-4">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <MessageSquare className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 tracking-tight">
-            Messages
-          </h1>
-          <p className="text-gray-500 text-lg max-w-xl mx-auto">
-            Manage your conversations with property owners, tenants, and admins
-          </p>
-        </div>
+        <div className="text-center mb-8"></div>
 
         {/* Main Content */}
-        <div className="max-w-6xl mx-auto">
+        <div>
           {userId ? (
-            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden">
+            <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
               {/* Table Header */}
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-5 h-5 text-blue-600" />
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      Conversations
-                    </h2>
-                    {filteredSenders.length > 0 && (
-                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">
-                        {filteredSenders.length}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Search Bar */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search conversations..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 w-full sm:w-64"
-                    />
-                  </div>
+              <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold text-black">
+                    Conversations
+                  </h2>
+                  {filteredSenders.length > 0 && (
+                    <span className="bg-black text-white text-xs px-2 py-1 rounded-full font-medium">
+                      {filteredSenders.length}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 bg-white border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all duration-200 w-full sm:w-64 text-black"
+                  />
                 </div>
               </div>
 
               {/* Table Content */}
-              <div className="overflow-x-auto">
+              <div>
                 {loading ? (
                   <div className="flex items-center justify-center py-16">
                     <div className="text-center">
-                      <Loader2 className="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" />
-                      <p className="text-gray-500">Loading conversations...</p>
+                      <Loader2 className="animate-spin w-8 h-8 text-black mx-auto mb-3" />
+                      <p className="text-gray-700">Loading conversations...</p>
                     </div>
                   </div>
                 ) : error ? (
                   <div className="text-center py-16">
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
-                      <p className="text-red-600 font-medium">{error}</p>
+                    <div className="bg-gray-100 border border-gray-300 rounded-xl p-6 max-w-md mx-auto">
+                      <p className="text-black font-medium">{error}</p>
                     </div>
                   </div>
                 ) : filteredSenders.length === 0 ? (
                   <div className="text-center py-16">
                     <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-lg font-medium">
+                    <p className="text-black text-lg font-medium">
                       {searchTerm
                         ? "No matching conversations"
                         : "No messages yet"}
                     </p>
-                    <p className="text-gray-400 text-sm mt-1">
+                    <p className="text-gray-500 text-sm mt-1">
                       {searchTerm
                         ? "Try a different search term"
                         : "Start a conversation to see it here"}
@@ -303,23 +281,23 @@ const Page = () => {
                   </div>
                 ) : (
                   <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-white border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
                           Contact
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider hidden md:table-cell">
                           Last Message
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
                           Time
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-200">
                       {filteredSenders.map((msg) => {
                         const otherUserId =
                           msg.sender_id === userId
@@ -333,18 +311,18 @@ const Page = () => {
                         return (
                           <tr
                             key={otherUserId}
-                            className="hover:bg-blue-50 transition-colors duration-200 cursor-pointer group"
+                            className="hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
                             onClick={() => handleUserSelect(otherUserId)}
                           >
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
-                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center font-bold text-white text-sm group-hover:scale-105 transition-transform duration-200">
+                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black flex items-center justify-center font-bold text-white text-sm group-hover:scale-105 transition-transform duration-200">
                                   {otherUserName
                                     ? otherUserName[0].toUpperCase()
                                     : "U"}
                                 </div>
                                 <div>
-                                  <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                                  <div className="font-semibold text-black group-hover:text-black transition-colors duration-200">
                                     {otherUserName || `User ${otherUserId}`}
                                   </div>
                                   <div className="text-sm text-gray-500">
@@ -353,13 +331,13 @@ const Page = () => {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 hidden md:table-cell">
-                              <div className="max-w-xs truncate text-gray-700 group-hover:text-blue-600 transition-colors duration-200">
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <div className="max-w-xs truncate text-black group-hover:text-black transition-colors duration-200">
                                 {msg.message}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1 text-sm text-gray-700">
                                 <Clock className="w-3 h-3" />
                                 <span>{formatDate(msg.created_at)}</span>
                               </div>
@@ -367,13 +345,13 @@ const Page = () => {
                                 {formatTime(msg.created_at)}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-3">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleUserSelect(otherUserId);
                                 }}
-                                className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200 text-sm font-medium group-hover:bg-blue-600 group-hover:text-white"
+                                className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors duration-200 text-sm font-medium"
                               >
                                 <MessageSquare className="w-4 h-4" />
                                 Chat
@@ -389,14 +367,14 @@ const Page = () => {
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 p-12 max-w-md mx-auto">
-                <div className="w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-8 h-8 text-white" />
+              <div className="bg-white rounded-xl shadow border border-gray-200 p-10 max-w-md mx-auto">
+                <div className="w-14 h-14 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                <h3 className="text-lg font-semibold text-black mb-2">
                   Sign in required
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-700">
                   Please log in to access your messages and start chatting
                 </p>
               </div>
@@ -405,39 +383,27 @@ const Page = () => {
         </div>
       </div>
 
-      {/* Facebook Messenger Style Chat Popup */}
+      {/* Simple Chat Popup */}
       {targetUser && targetUserInfo && (
         <div
-          className={`fixed bottom-4 right-4 z-50 transition-all duration-300 ease-in-out ${
-            chatMinimized
-              ? "transform translate-y-full"
-              : "transform translate-y-0"
+          className={`fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out ${
+            chatMinimized ? "translate-y-full" : "translate-y-0"
           }`}
           style={{
             width: "350px",
             height: chatMinimized ? "60px" : "500px",
           }}
         >
-          <div className="bg-white rounded-t-2xl shadow-2xl border border-gray-200 overflow-hidden h-full flex flex-col">
-            {/* Chat Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-white text-sm">
-                  {targetUserInfo.name
-                    ? targetUserInfo.name[0].toUpperCase()
-                    : "U"}
-                </div>
-                <div>
-                  <div className="font-semibold text-white text-sm">
-                    {targetUserInfo.name}
-                  </div>
-                  <div className="text-blue-100 text-xs">Online</div>
-                </div>
+          <div className="bg-white rounded-t-xl shadow border border-gray-300 overflow-hidden h-full flex flex-col">
+            {/* Single Chat Header (no avatar, no online, no user id) */}
+            <div className="bg-black px-4 py-3 flex items-center justify-between">
+              <div className="font-semibold text-white text-base truncate">
+                {targetUserInfo.name}
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setChatMinimized(!chatMinimized)}
-                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200"
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
                 >
                   <span className="text-white text-lg font-bold">
                     {chatMinimized ? "↑" : "−"}
@@ -445,7 +411,7 @@ const Page = () => {
                 </button>
                 <button
                   onClick={() => setTargetUser(null)}
-                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors duration-200"
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
                 >
                   <X className="w-4 h-4 text-white" />
                 </button>
@@ -476,6 +442,7 @@ const Page = () => {
                     bubbleButtonStyle: { display: "none" },
                   }}
                   onClose={() => setTargetUser(null)}
+                  hideHeader={true}
                 />
               </div>
             )}

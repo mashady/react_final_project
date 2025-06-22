@@ -17,6 +17,7 @@ import {
   Loader2,
   ChevronUp,
   ChevronDown,
+  X,
 } from "lucide-react";
 import ReviewList from "./components/ReviewList";
 import ReviewForm from "./components/ReviewForm";
@@ -543,7 +544,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   )}
                   {/* Chat with Owner Button */}
                   <button
-                    className={`mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                    className={`mt-4 w-full bg-yellow-500  text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2 ${
                       !senderId ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     onClick={senderId ? toggleChat : undefined}
@@ -654,12 +655,56 @@ export default function PropertyListingWrapper(props) {
         ownerUserId={ownerUserId}
       />
       {showChat && (
-        <div style={{ position: "fixed", bottom: 0, right: 0, zIndex: 2000 }}>
-          <DynamicChatWindow
-            userId={senderId}
-            targetUserId={ownerUserId}
-            forceOpen={true}
-          />
+        <div
+          className="fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out"
+          style={{ width: "350px", height: "500px" }}
+        >
+          <div className="bg-white rounded-t-xl shadow border border-gray-300 overflow-hidden h-full flex flex-col">
+            {/* Single Chat Header (no avatar, no online, no user id) */}
+            <div className="bg-black px-4 py-3 flex items-center justify-between">
+              <div className="font-semibold text-white text-base truncate">
+                {ownerDetails?.user?.name || property?.owner?.name || "Owner"}
+              </div>
+              <button
+                onClick={toggleChat}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+            {/* Chat Content */}
+            <div className="flex-1 min-h-0">
+              <DynamicChatWindow
+                userId={senderId}
+                targetUserId={ownerUserId}
+                forceOpen={true}
+                currentUser={user}
+                targetUser={{
+                  id: ownerUserId,
+                  name:
+                    ownerDetails?.user?.name ||
+                    property?.owner?.name ||
+                    "Owner",
+                }}
+                customStyles={{
+                  popupStyle: {
+                    position: "static",
+                    boxShadow: "none",
+                    borderRadius: 0,
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 0,
+                    maxHeight: "100%",
+                    background: "transparent",
+                    border: "none",
+                  },
+                  bubbleButtonStyle: { display: "none" },
+                }}
+                onClose={toggleChat}
+                hideHeader={true}
+              />
+            </div>
+          </div>
         </div>
       )}
     </>
