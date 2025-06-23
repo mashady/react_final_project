@@ -8,8 +8,13 @@ const SOCKET_URL = "http://localhost:4000";
 
 function getUserDisplay(user) {
   if (!user) return { name: "User", avatar: "/owner.jpg" };
+  // If user.name is like 'User 123' (fallback), but user.username/email exists, prefer those
+  let name = user.name;
+  if (!name || /^User\s*\d+$/i.test(name)) {
+    name = user.username || user.email || undefined;
+  }
   return {
-    name: user.name || user.username || user.email || "User",
+    name: name || "User",
     avatar: user.avatar || user.picture || "/owner.jpg",
   };
 }
@@ -24,6 +29,37 @@ export default function ChatWindow({
   customStyles = {},
   hideHeader = false,
 }) {
+  // Prevent user from chatting with themselves
+  const isSelfChat =
+    userId && targetUserId && String(userId) === String(targetUserId);
+  if (isSelfChat) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          height: "200px",
+          background: "#fff",
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "1px solid #e5e7eb",
+          ...customStyles.popupStyle,
+        }}
+      >
+        <div className="text-center w-full">
+          <div className="font-semibold text-black text-lg mb-2">
+            You cannot chat with yourself.
+          </div>
+          <div className="text-gray-500 text-sm">
+            Please select another user to start a conversation.
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(undefined);
@@ -364,7 +400,18 @@ export default function ChatWindow({
             }}
           >
             <div className="font-semibold text-black text-base truncate">
-              {targetUserInfo?.name && !/^User \d+$/.test(targetUserInfo.name) ? targetUserInfo.name : (propTargetUser?.name || "Chat")}
+              {/* Always prefer a real name, fallback to username/email, never show 'User 123' */}
+              {(() => {
+                if (
+                  targetUserInfo?.name &&
+                  !/^User \d+$/i.test(targetUserInfo.name)
+                ) {
+                  return targetUserInfo.name;
+                }
+                if (propTargetUser?.username) return propTargetUser.username;
+                if (propTargetUser?.email) return propTargetUser.email;
+                return "Chat";
+              })()}
             </div>
             <button
               onClick={handleClose}

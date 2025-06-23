@@ -180,17 +180,45 @@ app.get("/api/messages/inbox", async (req, res) => {
     // Also join user table to get names for sender and receiver
     const { data, error } = await supabase
       .from("messages")
-      .select(`*, sender:sender_id (id, name), receiver:receiver_id (id, name)`) // relation aliasing
+      .select(`*, sender:sender_id (id, name), receiver:receiver_id (id, name)`)
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order("created_at", { ascending: false });
     if (error) {
       return res.status(500).json({ error: error.message });
     }
+
+    // Find all unique user IDs that are missing names
+    const missingUserIds = new Set();
+    (data || []).forEach((msg) => {
+      if (!msg.sender?.name) missingUserIds.add(msg.sender_id);
+      if (!msg.receiver?.name) missingUserIds.add(msg.receiver_id);
+    });
+
+    let userIdToName = {};
+    if (missingUserIds.size > 0) {
+      // Fetch missing user names in one query
+      const { data: usersData, error: usersError } = await supabase
+        .from("user")
+        .select("id, name")
+        .in("id", Array.from(missingUserIds));
+      if (!usersError && usersData) {
+        usersData.forEach((u) => {
+          userIdToName[u.id] = u.name;
+        });
+      }
+    }
+
     // Attach sender_name and receiver_name for easier frontend use
     const withNames = (data || []).map((msg) => ({
       ...msg,
-      sender_name: msg.sender?.name || `User ${msg.sender_id}`,
-      receiver_name: msg.receiver?.name || `User ${msg.receiver_id}`,
+      sender_name:
+        msg.sender?.name ||
+        userIdToName[msg.sender_id] ||
+        `User ${msg.sender_id}`,
+      receiver_name:
+        msg.receiver?.name ||
+        userIdToName[msg.receiver_id] ||
+        `User ${msg.receiver_id}`,
     }));
     return res.status(200).json(withNames);
   } catch (err) {

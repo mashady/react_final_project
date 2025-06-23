@@ -544,7 +544,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   )}
                   {/* Chat with Owner Button */}
                   <button
-                    className={`mt-4 w-full bg-yellow-500  text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                    className={`mt-4 w-full bg-black  text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2 ${
                       !senderId ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     onClick={senderId ? toggleChat : undefined}
@@ -553,7 +553,6 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                       !senderId ? "Please log in to chat with the owner." : ""
                     }
                   >
-                    <MessageSquare className="w-4 h-4" />
                     <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
                     {showChat ? (
                       <ChevronUp className="w-4 h-4" />
