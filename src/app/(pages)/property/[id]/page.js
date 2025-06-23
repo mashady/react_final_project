@@ -15,14 +15,19 @@ import {
   Building,
   Maximize,
   Loader2,
+  ChevronUp,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import ReviewList from "./components/ReviewList";
 import ReviewForm from "./components/ReviewForm";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import ChatWindow from "@/components/chat/ChatWindow";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import { useSelector } from "react-redux";
 
-const PropertyListing = () => {
+const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const params = useParams();
   const propertyId = params.id;
 
@@ -537,6 +542,29 @@ const PropertyListing = () => {
                       View my profile
                     </a>
                   )}
+                  {/* Chat with Owner Button */}
+                  <button
+                    className={`mt-4 w-full bg-black  text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                      !senderId ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    onClick={senderId ? toggleChat : undefined}
+                    disabled={!senderId}
+                    title={
+                      !senderId ? "Please log in to chat with the owner." : ""
+                    }
+                  >
+                    <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
+                    {showChat ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+                  {!senderId && (
+                    <div className="text-xs text-red-500 mt-2 text-center">
+                      Please log in to chat with the owner.
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="text-gray-500">
@@ -544,51 +572,6 @@ const PropertyListing = () => {
                 </div>
               )}
             </div>
-
-            {/* Schedule Tour */}
-            {/* <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="font-bold text-gray-900 mb-2">Contact Owner</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Get in touch with the property owner for more information or to
-                schedule a viewing.
-              </p>
-
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Your name*"
-                  value={contactForm.name}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, name: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-                <input
-                  type="email"
-                  placeholder="Your email*"
-                  value={contactForm.email}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, email: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-                <textarea
-                  placeholder="Message"
-                  value={contactForm.message}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, message: e.target.value })
-                  }
-                  rows={4}
-                  className="w-full p-3 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none"
-                />
-                <button
-                  onClick={handleContactSubmit}
-                  className="w-full bg-yellow-400 text-black font-semibold py-3 px-4 rounded hover:bg-yellow-500 transition-colors"
-                >
-                  Send Message
-                </button>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>
@@ -596,4 +579,133 @@ const PropertyListing = () => {
   );
 };
 
-export default PropertyListing;
+// Render ChatWindow globally, fixed to bottom, only if showChat
+import dynamic from "next/dynamic";
+const DynamicChatWindow = dynamic(
+  () => import("@/components/chat/ChatWindow"),
+  { ssr: false }
+);
+
+export default function PropertyListingWrapper(props) {
+  const [showChat, setShowChat] = React.useState(false);
+  const params = useParams();
+  const propertyId = params.id;
+
+  // Get user from Redux global state
+  const user = useSelector((state) => state.user.data);
+
+  const [ownerDetails, setOwnerDetails] = React.useState(null);
+  const [property, setProperty] = React.useState(null);
+
+  // Fetch property data
+  React.useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/ads/${propertyId}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        setProperty(result.data);
+      } catch (err) {
+        console.error("Error fetching property:", err);
+      }
+    };
+
+    fetchProperty();
+  }, [propertyId]);
+
+  // Fetch owner details
+  React.useEffect(() => {
+    const fetchOwnerDetails = async () => {
+      if (!property?.user_id && !property?.owner?.id) return;
+      try {
+        const ownerId = property.owner?.id || property.user_id;
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(
+          `http://127.0.0.1:8000/api/oneowner/${ownerId}`,
+          { headers }
+        );
+        setOwnerDetails(res.data.data);
+      } catch (err) {
+        setOwnerDetails(null);
+      }
+    };
+    if (property) fetchOwnerDetails();
+  }, [property]);
+
+  // Determine the current user (sender) and the property owner (receiver)
+  const senderId = user?.id;
+  const ownerUserId = property?.owner?.id || ownerDetails?.user_id;
+  const toggleChat = () => setShowChat((v) => !v);
+
+  return (
+    <>
+      <PropertyListing
+        {...props}
+        toggleChat={toggleChat}
+        showChat={showChat}
+        senderId={senderId}
+        ownerUserId={ownerUserId}
+      />
+      {showChat && (
+        <div
+          className="fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out"
+          style={{ width: "350px", height: "500px" }}
+        >
+          <div className="bg-white rounded-t-xl shadow border border-gray-300 overflow-hidden h-full flex flex-col">
+            {/* Single Chat Header (no avatar, no online, no user id) */}
+            <div className="bg-black px-4 py-3 flex items-center justify-between">
+              <div className="font-semibold text-white text-base truncate">
+                {ownerDetails?.user?.name || property?.owner?.name || "Owner"}
+              </div>
+              <button
+                onClick={toggleChat}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+            {/* Chat Content */}
+            <div className="flex-1 min-h-0">
+              <DynamicChatWindow
+                userId={senderId}
+                targetUserId={ownerUserId}
+                forceOpen={true}
+                currentUser={user}
+                targetUser={{
+                  id: ownerUserId,
+                  name:
+                    ownerDetails?.user?.name ||
+                    property?.owner?.name ||
+                    "Owner",
+                }}
+                customStyles={{
+                  popupStyle: {
+                    position: "static",
+                    boxShadow: "none",
+                    borderRadius: 0,
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 0,
+                    maxHeight: "100%",
+                    background: "transparent",
+                    border: "none",
+                  },
+                  bubbleButtonStyle: { display: "none" },
+                }}
+                onClose={toggleChat}
+                hideHeader={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

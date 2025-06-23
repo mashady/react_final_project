@@ -1,23 +1,63 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import banner from "../../../../../public/banner.jpg";
-import owner from "../../../../../public/owner.jpg";
 import Image from "next/image";
 import axios from "axios";
 import PropertyCard from "@/components/shared/PropertyCard";
 import { User } from "lucide-react";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import { useSelector } from "react-redux";
+import OwnerReviewList from "./OwnerReviewList";
+import OwnerReviewForm from "./OwnerReviewForm";
 
 const page = () => {
   const [userProfile, setUserProfile] = useState({});
   const [loading, setLoading] = useState(true);
-  const [id, setId] = useState(useParams().id);
+  const { id } = useParams();
+  const user = useSelector((state) => state.user.data);
+  const token =
+    useSelector((state) => state.user.token) || localStorage.getItem("token");
+
+  // Review state and logic
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
+  const [reviewForm, setReviewForm] = useState({ comment: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+
+  const handleReviewSubmit = async () => {
+    setReviewError("");
+    if (!user) {
+      setReviewError("Please log in to submit a review");
+      return;
+    }
+    if (!reviewForm.comment.trim()) {
+      setReviewError("Please enter a comment");
+      return;
+    }
+    try {
+      setSubmittingReview(true);
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.post(
+        `http://127.0.0.1:8000/api/owner-reviews`,
+        {
+          owner_id: id,
+          content: reviewForm.comment.trim(),
+        },
+        { headers }
+      );
+      setReviewForm({ comment: "" });
+      setReviewRefreshKey((k) => k + 1); // trigger OwnerReviewList refresh
+    } catch (err) {
+      setReviewError("Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   useEffect(() => {
     fetchUserProfile();
+    // eslint-disable-next-line
   }, []);
 
   const fetchUserProfile = () => {
@@ -25,7 +65,6 @@ const page = () => {
     axios
       .get(`http://localhost:8000/api/users/${id}`)
       .then((res) => {
-        console.log(res.data.data.ads);
         setUserProfile({
           ads: res.data.data.ads || [],
           name: res.data.data.name || "No Name",
@@ -52,13 +91,10 @@ const page = () => {
 
   return (
     <>
-      <section className="container w-[98%] mx-auto mt-2 mb-10">
+      <section className="container w-[98%] mx-auto my-10">
         <Image src={banner} alt="Page Banner" className="hidden lg:block" />
       </section>
-      <section
-        id="profileContainer"
-        className="w-[72%] mx-auto lg:flex lg:space-x-5"
-      >
+      <section id="profileContainer" className="w-[72%] mx-auto lg:flex lg:space-x-5">
         <section id="leftSide" className="">
           <article
             id="infoCard"
@@ -112,11 +148,28 @@ const page = () => {
             className="w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm mt-5"
           >
             <h3 className="text-3xl font-medium mb-8"> Our Listing </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {userProfile?.ads?.map((property, i) => (
                 <PropertyCard key={i} property={property} />
               ))}
             </div>
+          </article>
+          {/* Owner Reviews Section under My Listing */}
+          <article className="w-full bg-white px-5 py-6 rounded-sm mt-5 mb-5">
+            <h3 className="text-2xl font-semibold mb-4">Owner Reviews</h3>
+            <OwnerReviewList ownerId={id} refreshKey={reviewRefreshKey} />
+            {/* Only show review form if logged-in user is NOT the owner */}
+            {user && String(user.id) !== String(id) && (
+              <div className="border-t border-gray-100 pt-6 mt-6">
+                <OwnerReviewForm
+                  reviewForm={reviewForm}
+                  setReviewForm={setReviewForm}
+                  submittingReview={submittingReview}
+                  reviewError={reviewError}
+                  onSubmit={handleReviewSubmit}
+                />
+              </div>
+            )}
           </article>
         </section>
       </section>
