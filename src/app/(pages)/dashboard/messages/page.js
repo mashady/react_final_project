@@ -21,8 +21,31 @@ const SOCKET_URL = "http://localhost:4000";
 
 // Helper to get user display info from inbox message
 function getUserDisplayFromMsg(msg, fallback) {
+  // Prefer sender_name/receiver_name, fallback to fallback.name, fallback to 'User'
+  let name = msg?.sender_name || msg?.receiver_name || fallback?.name || "User";
+  // If name is 'User 123' or 'User{id}', but fallback has a real name, prefer fallback
+  if (
+    (/^User\s*\d+$/i.test(name) || /^User\d+$/i.test(name)) &&
+    fallback?.name &&
+    !/^User\s*\d+$/i.test(fallback.name) &&
+    !/^User\d+$/i.test(fallback.name)
+  ) {
+    name = fallback.name;
+  }
+  // If fallback has username or email, prefer those over 'User {id}'
+  if ((/^User\s*\d+$/i.test(name) || /^User\d+$/i.test(name)) && fallback) {
+    if (fallback.username) name = fallback.username;
+    else if (fallback.email) name = fallback.email;
+  }
+  // If msg has username/email for sender/receiver, prefer those over fallback
+  if (/^User\s*\d+$/i.test(name) || /^User\d+$/i.test(name)) {
+    if (msg?.sender_username) name = msg.sender_username;
+    else if (msg?.sender_email) name = msg.sender_email;
+    else if (msg?.receiver_username) name = msg.receiver_username;
+    else if (msg?.receiver_email) name = msg.receiver_email;
+  }
   return {
-    name: msg?.sender_name || msg?.receiver_name || fallback?.name || "User",
+    name: name,
     avatar:
       msg?.sender_avatar ||
       msg?.receiver_avatar ||
@@ -46,6 +69,8 @@ const Page = () => {
   const [targetUserInfo, setTargetUserInfo] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chatMinimized, setChatMinimized] = useState(false);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [newMessageMap, setNewMessageMap] = useState({});
 
   useEffect(() => {
     if (!userId) return;
@@ -82,12 +107,25 @@ const Page = () => {
             m.created_at === msg.timestamp
         );
         if (exists) return prev;
+        const otherUserId =
+          Number(msg.from) === userId ? Number(msg.to) : Number(msg.from);
+        if (!targetUser || otherUserId !== targetUser) {
+          setNewMessageMap((prevMap) => ({ ...prevMap, [otherUserId]: true }));
+        }
         return [
           {
             ...msg,
             sender_id: Number(msg.from),
             receiver_id: Number(msg.to),
             created_at: msg.timestamp,
+            sender_name: msg.sender_name,
+            sender_username: msg.sender_username,
+            sender_email: msg.sender_email,
+            sender_avatar: msg.sender_avatar,
+            receiver_name: msg.receiver_name,
+            receiver_username: msg.receiver_username,
+            receiver_email: msg.receiver_email,
+            receiver_avatar: msg.receiver_avatar,
           },
           ...prev,
         ];
@@ -98,12 +136,17 @@ const Page = () => {
       socketInstance.emit("leave_room");
       socketInstance.disconnect();
     };
-  }, [userId]);
+  }, [userId, targetUser]);
 
   // Use a unique key and correct user for each conversation
+  const sortedInbox = [...inbox].sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  );
+
+  // Create senders array with the most recent message per conversation
   const senders = Array.from(
     new Map(
-      inbox.map((msg) => {
+      sortedInbox.map((msg) => {
         const otherUserId =
           msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
         const otherUserName =
@@ -140,31 +183,25 @@ const Page = () => {
       (m) => m.sender_id === targetUser || m.receiver_id === targetUser
     );
     if (msg) {
-      const otherUserName =
-        msg.sender_id === userId ? msg.receiver_name : msg.sender_name;
-      const otherUserAvatar =
-        msg.sender_id === userId ? msg.receiver_avatar : msg.sender_avatar;
-      setTargetUserInfo({
-        id: targetUser,
-        name:
-          otherUserName ||
-          msg.sender_name ||
-          msg.receiver_name ||
-          `User ${targetUser}`,
-        avatar:
-          otherUserAvatar ||
-          msg.sender_avatar ||
-          msg.receiver_avatar ||
-          "/owner.jpg",
-      });
+      // Use getUserDisplayFromMsg to get the best name, passing full user object as fallback
+      setTargetUserInfo(
+        getUserDisplayFromMsg(msg, {
+          id: targetUser,
+          name: user?.name,
+          username: user?.username,
+          email: user?.email,
+          avatar: user?.avatar,
+        })
+      );
     } else {
       setTargetUserInfo({
         id: targetUser,
-        name: `User ${targetUser}`,
+        name:
+          user?.name || user?.username || user?.email || `User ${targetUser}`,
         avatar: "/owner.jpg",
       });
     }
-  }, [targetUser, inbox, userId]);
+  }, [targetUser, inbox, userId, user]);
 
   // Close chat window when clicking outside or pressing escape
   useEffect(() => {
@@ -181,6 +218,7 @@ const Page = () => {
   const handleUserSelect = (senderId) => {
     setTargetUser(senderId);
     setChatMinimized(false);
+    setNewMessageMap((prevMap) => ({ ...prevMap, [senderId]: false }));
   };
 
   const formatTime = (timestamp) => {
@@ -284,7 +322,13 @@ const Page = () => {
                     <thead className="bg-white border-b border-gray-200">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
-                          Contact
+                          Contact{" "}
+                          {hasNewMessage && (
+                            <span
+                              className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"
+                              title="New message"
+                            ></span>
+                          )}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider hidden md:table-cell">
                           Last Message
@@ -316,10 +360,19 @@ const Page = () => {
                           >
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
-                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black flex items-center justify-center font-bold text-white text-sm group-hover:scale-105 transition-transform duration-200">
+                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black flex items-center justify-center font-bold text-white text-sm group-hover:scale-105 transition-transform duration-200 relative">
                                   {otherUserName
                                     ? otherUserName[0].toUpperCase()
                                     : "U"}
+                                  {newMessageMap[otherUserId] && (
+                                    <span
+                                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 border-2 border-white flex items-center justify-center animate-bounce shadow-lg"
+                                      title="New message"
+                                      style={{ zIndex: 2 }}
+                                    >
+                                      <span className="block w-2 h-2 bg-white rounded-full"></span>
+                                    </span>
+                                  )}
                                 </div>
                                 <div>
                                   <div className="font-semibold text-black group-hover:text-black transition-colors duration-200">

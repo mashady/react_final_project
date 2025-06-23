@@ -159,31 +159,45 @@ export default function ChatWindow({
       });
   }, [userId, targetUserId]);
 
-  const handlePrivateMessage = useCallback(({ from, message, timestamp }) => {
+  const handlePrivateMessage = useCallback((msg) => {
     const msgObj = {
       id: `temp-${Date.now()}`,
-      from: from.toString(),
-      message,
-      timestamp,
+      from: msg.from.toString(),
+      message: msg.message,
+      timestamp: msg.timestamp,
       type: "received",
       source: "realtime",
+      sender_name: msg.sender_name,
+      sender_username: msg.sender_username,
+      sender_email: msg.sender_email,
+      sender_avatar: msg.sender_avatar,
+      receiver_name: msg.receiver_name,
+      receiver_username: msg.receiver_username,
+      receiver_email: msg.receiver_email,
+      receiver_avatar: msg.receiver_avatar,
     };
     console.log("📩 Received real-time message:", msgObj);
-
     setMessages((prev) => [...prev, msgObj]);
   }, []);
 
-  const handleSentConfirmation = useCallback(({ from, message, timestamp }) => {
+  const handleSentConfirmation = useCallback((msg) => {
     const msgObj = {
       id: `temp-${Date.now()}`,
-      from: from.toString(),
-      message,
-      timestamp,
+      from: msg.from.toString(),
+      message: msg.message,
+      timestamp: msg.timestamp,
       type: "sent",
       source: "realtime",
+      sender_name: msg.sender_name,
+      sender_username: msg.sender_username,
+      sender_email: msg.sender_email,
+      sender_avatar: msg.sender_avatar,
+      receiver_name: msg.receiver_name,
+      receiver_username: msg.receiver_username,
+      receiver_email: msg.receiver_email,
+      receiver_avatar: msg.receiver_avatar,
     };
     console.log("✓ Message sent confirmation:", msgObj);
-
     setMessages((prev) => [...prev, msgObj]);
   }, []);
 
@@ -564,6 +578,18 @@ export default function ChatWindow({
                   animation: "fadeIn 0.3s cubic-bezier(.4,0,.2,1)",
                 }}
               >
+                {/* Display sender or receiver name above the message */}
+                <div
+                  style={{
+                    fontSize: "12px",
+                    opacity: 0.8,
+                    marginBottom: "4px",
+                  }}
+                >
+                  {msg.from === userId?.toString()
+                    ? msg.sender_name || `User ${msg.from}`
+                    : msg.receiver_name || `User ${msg.to}`}
+                </div>
                 <div>{msg.message}</div>
                 <div
                   style={{
