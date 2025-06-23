@@ -1,7 +1,9 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
+import { useTranslation } from "@/TranslationContext";
 export const SmallDescription = () => {
+  const { t } = useTranslation();
   return (
     <section className="flex flex-col sm:flex-row items-center bg-[#EDF9F9] mt-30 p-30">
       <div className="w-full sm:w-1/2 h-96 sm:h-auto">
@@ -20,36 +22,35 @@ export const SmallDescription = () => {
             lineHeight: 1.1,
           }}
         >
-          Modern spaces and premium design
+          {t("modernSection")}
         </h2>
         <p className="mb-6 text-[15px] leading-relaxed mt-2 text-[#555]">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-          facilisi. Nulla facilisi. Nulla facilisi.
+          {t("modernSectionDescription")}
         </p>
 
         <ul className="pl-5 space-y-2 text-[15px] text-[#555]">
           <li>
             <span className="mr-2 text-[#555]">-</span>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            {t("modernSectionListItemOne")}
           </li>
           <li>
             <span className="mr-2 text-[#555]">-</span>
-            Nulla facilisi. Nulla facilisi. Nulla facilisi.
+            {t("modernSectionListItemTwo")}
           </li>
           <li>
             <span className="mr-2 text-[#555]">-</span>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            {t("modernSectionListItemThree")}
           </li>
           <li>
             <span className="mr-2 text-[#555]">-</span>
-            Nulla facilisi. Nulla facilisi. Nulla facilisi.
+            {t("modernSectionListItemFour")}
           </li>
         </ul>
 
         <div className="mt-8">
           <Link href="/properties">
             <Button className="bg-yellow-500 hover:bg-yellow-600 rounded-none text-black whitespace-nowrap h-16 px-8 text-[15px] cursor-pointer">
-              Search Properties
+              {t("modernSectionButton")}
             </Button>
           </Link>
         </div>

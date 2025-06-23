@@ -13,6 +13,7 @@ import { updateUser } from "@/features/user/userSlice";
 import { userProfileSchema } from "@/validation/userProfile";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import { useTranslation } from "@/TranslationContext";
 
 const ProfileImageUpload = ({
   imagePreview,
@@ -22,7 +23,7 @@ const ProfileImageUpload = ({
 }) => {
   const fileInputRef = React.useRef(null);
   const [localPreview, setLocalPreview] = useState(null);
-
+  let { t } = useTranslation();
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -73,7 +74,9 @@ const ProfileImageUpload = ({
           htmlFor="profile-upload"
           className="block px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
         >
-          {displayPreview ? "Change" : "Upload"}
+          {displayPreview
+            ? t("dashboardProfileChangePicture")
+            : t("dashboardProfileUploadPicture")}
         </label>
 
         {(displayPreview || hasExistingImage) && (
@@ -82,7 +85,7 @@ const ProfileImageUpload = ({
             onClick={handleRemove}
             className="block px-4 py-2 text-sm font-medium text-red-600 hover:text-red-800"
           >
-            Remove
+            {t("dashboardProfileRemovePicture")}
           </button>
         )}
       </div>
@@ -91,6 +94,8 @@ const ProfileImageUpload = ({
 };
 
 const UserProfileForm = () => {
+  let { t } = useTranslation();
+
   const dispatch = useDispatch();
   const {
     data: user,
@@ -208,7 +213,6 @@ const UserProfileForm = () => {
   const hasExistingImage = !!(
     user?.owner_profile?.picture || user?.student_profile?.picture
   );
-
   return (
     <div className="max-w-full mx-auto py-6 bg-white rounded-lg shadow p-6">
       {updateError && (
@@ -222,10 +226,10 @@ const UserProfileForm = () => {
         </Alert>
       )}
 
-      <div className="mb-8 flex items-center gap-2">
+      {/* <div className="mb-8 flex items-center gap-2">
         <User className="w-5 h-5 text-yellow-500" />
         <h2 className="text-lg font-medium text-gray-900">General info</h2>
-      </div>
+      </div> */}
 
       <Formik
         initialValues={initialValues}
@@ -237,7 +241,7 @@ const UserProfileForm = () => {
           <Form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
-                label="Name"
+                label={t("dashboardProfileEmail")}
                 name="name"
                 type="text"
                 errors={errors}
@@ -246,7 +250,7 @@ const UserProfileForm = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="bio" className="text-sm font-medium">
-                  Bio:
+                  {t("dashboardProfileBio")}
                 </Label>
                 <Field
                   as={Textarea}
@@ -269,7 +273,7 @@ const UserProfileForm = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
-                label="Phone Number"
+                label={t("dashboardProfileEditPhone")}
                 name="phone_number"
                 type="tel"
                 errors={errors}
@@ -277,7 +281,7 @@ const UserProfileForm = () => {
               />
 
               <FormField
-                label="WhatsApp Number"
+                label={t("dashboardProfileEditWhatsapp")}
                 name="whatsapp_number"
                 type="tel"
                 errors={errors}
@@ -285,9 +289,9 @@ const UserProfileForm = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-2 gap-6">
               <FormField
-                label="Address"
+                label={t("dashboardProfileEditAddress")}
                 name="address"
                 type="text"
                 errors={errors}
@@ -296,9 +300,9 @@ const UserProfileForm = () => {
             </div>
 
             {user?.role === "student" && (
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-2 gap-6">
                 <FormField
-                  label="University"
+                  label={t("dashboardProfileUniversity")}
                   name="university"
                   type="text"
                   errors={errors}
@@ -309,7 +313,9 @@ const UserProfileForm = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Profile image:</Label>
+                <Label className="text-sm font-medium">
+                  {t("dashboardProfileEditProfilePicture")}:
+                </Label>
                 <ProfileImageUpload
                   imagePreview={imagePreview}
                   onRemove={removeImage}
@@ -318,14 +324,14 @@ const UserProfileForm = () => {
                 />
               </div>
 
-              <FormField
+              {/* <FormField
                 label="New Password"
                 name="password"
                 type="password"
                 errors={errors}
                 touched={touched}
                 placeholder="Leave blank to keep current password"
-              />
+              /> */}
             </div>
 
             <div className="flex justify-end pt-6">
@@ -334,7 +340,9 @@ const UserProfileForm = () => {
                 disabled={isSubmitting || updateLoading}
                 className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-2"
               >
-                {isSubmitting || updateLoading ? "Saving..." : "Save Changes"}
+                {isSubmitting || updateLoading
+                  ? t("dashboardProfileSaving")
+                  : t("dashboardProfileSaveChanges")}
               </Button>
             </div>
           </Form>
