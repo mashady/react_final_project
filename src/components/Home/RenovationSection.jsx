@@ -1,25 +1,25 @@
-import React from "react";
+"use client";
+import React, { useTransition } from "react";
 import { Home, PenTool, Wrench } from "lucide-react";
+import { useTranslation } from "@/TranslationContext";
 
 export default function RenovationServices() {
+  let { t } = useTranslation();
   const services = [
     {
       icon: Home,
-      title: "Find inspiration",
-      description:
-        "Sumo petentium ut per, at his wisim utinam adipis cing. Est e graeco quod suavitate vix ad praesent.",
+      title: t("expertSectionListItemOneHeading"),
+      description: t("expertSectionListItemOneDescription"),
     },
     {
       icon: PenTool,
-      title: "Find architect/designer",
-      description:
-        "Sumo petentium ut per, at his wisim utinam adipis cing. Est e graeco quod suavitate vix ad praesent.",
+      title: t("expertSectionListItemTwoHeading"),
+      description: t("expertSectionListItemTwoDescription"),
     },
     {
       icon: Wrench,
-      title: "Begin renovation",
-      description:
-        "Sumo petentium ut per, at his wisim utinam adipis cing. Est e graeco quod suavitate vix ad praesent.",
+      title: t("expertSectionListItemThreeHeading"),
+      description: t("expertSectionListItemThreeDescription"),
     },
   ];
 
@@ -34,7 +34,7 @@ export default function RenovationServices() {
                 fontWeight: 500,
               }}
             >
-              Our expert will help you make the renovation
+              {t("expertSection")}
             </h2>
           </div>
 

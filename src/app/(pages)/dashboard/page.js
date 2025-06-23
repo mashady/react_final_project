@@ -4,10 +4,10 @@ import React from "react";
 import { useSelector } from "react-redux";
 import LoadingSpinner from "../properties/components/LoadingSpinner";
 import RequireAuth from "@/components/shared/RequireAuth";
-
+import { useTranslation } from "@/TranslationContext";
 const UserProfileCardContent = () => {
   const { data: user, loading, error } = useSelector((state) => state.user);
-
+  const { t } = useTranslation();
   if (loading || !user) return <LoadingSpinner />;
 
   if (error) {
@@ -22,8 +22,8 @@ const UserProfileCardContent = () => {
     user.role === "student" ? user.student_profile : user.owner_profile;
 
   return (
-    <div className="flex flex-col lg:flex-row bg-white mt-15 p-6 rounded-lg shadow">
-      <div className="flex-shrink-0 mb-6 lg:mb-0 lg:mr-8">
+    <div className="flex flex-col lg:flex-row bg-white mt-15 p-6 rounded-lg">
+      <div className="flex-shrink-0 mb-6 lg:mb-0 lg:mx-8">
         <div className="w-64 h-64 lg:w-80 lg:h-80 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
           <img
             src={
@@ -46,13 +46,25 @@ const UserProfileCardContent = () => {
         </h2>
 
         <div className="space-y-4">
-          <ProfileField label="Email" value={user.email} />
+          <ProfileField label={t("dashboardProfileEmail")} value={user.email} />
           {user.role === "student" && (
-            <ProfileField label="University" value={profile?.university} />
+            <ProfileField
+              label={t("dashboardProfileUniversity")}
+              value={profile?.university}
+            />
           )}
-          <ProfileField label="Phone" value={profile?.phone_number} />
-          <ProfileField label="WhatsApp" value={profile?.whatsapp_number} />
-          <ProfileField label="Address" value={profile?.address} />
+          <ProfileField
+            label={t("dashboardProfilePhone")}
+            value={profile?.phone_number}
+          />
+          <ProfileField
+            label={t("dashboardProfileWhatsapp")}
+            value={profile?.whatsapp_number}
+          />
+          <ProfileField
+            label={t("dashboardProfileAddress")}
+            value={profile?.address}
+          />
         </div>
       </div>
     </div>
@@ -68,7 +80,6 @@ const ProfileField = ({ label, value }) => (
   </div>
 );
 
-// ✅ Wrap in auth with role check
 const UserProfileCard = () => (
   <RequireAuth allowedRoles={["student", "owner", "admin"]}>
     <UserProfileCardContent />

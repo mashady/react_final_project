@@ -94,7 +94,10 @@ const page = () => {
       <section className="container w-[98%] mx-auto my-10">
         <Image src={banner} alt="Page Banner" className="hidden lg:block" />
       </section>
-      <section id="profileContainer" className="w-[72%] mx-auto lg:flex lg:space-x-5">
+      <section
+        id="profileContainer"
+        className="w-[72%] mx-auto lg:flex lg:space-x-5"
+      >
         <section id="leftSide" className="">
           <article
             id="infoCard"
@@ -148,7 +151,7 @@ const page = () => {
             className="w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm mt-5"
           >
             <h3 className="text-3xl font-medium mb-8"> Our Listing </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {userProfile?.ads?.map((property, i) => (
                 <PropertyCard key={i} property={property} />
               ))}

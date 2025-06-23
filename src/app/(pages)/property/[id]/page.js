@@ -543,23 +543,22 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                     </a>
                   )}
                   {/* Chat with Owner Button */}
-                  <button
-                    className={`mt-4 w-full bg-black  text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2 ${
-                      !senderId ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    onClick={senderId ? toggleChat : undefined}
-                    disabled={!senderId}
-                    title={
-                      !senderId ? "Please log in to chat with the owner." : ""
-                    }
-                  >
-                    <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
-                    {showChat ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
+                  {senderId && senderId !== ownerDetails.user_id && (
+                    <button
+                      className={`mt-4 w-full bg-black  text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2`}
+                      onClick={toggleChat}
+                      title={
+                        !senderId ? "Please log in to chat with the owner." : ""
+                      }
+                    >
+                      <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
+                      {showChat ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
                   {!senderId && (
                     <div className="text-xs text-red-500 mt-2 text-center">
                       Please log in to chat with the owner.

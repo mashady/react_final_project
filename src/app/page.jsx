@@ -5,11 +5,14 @@ import { PropertiesGrid } from "@/components/Home/PropertyCard";
 import { SmallDescription } from "@/components/Home/SmallDescription";
 import { HowItWorks } from "@/components/Home/HowItWorks";
 import RenovationServices from "@/components/Home/RenovationSection";
+import { useTranslation } from "@/TranslationContext";
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function HomePage() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen ">
       <HeroSection />
@@ -23,14 +26,14 @@ export default function HomePage() {
               lineHeight: 1.1,
             }}
           >
-            Our choice of popular real estate
+            {t("propertySection")}
           </h2>
           <PropertiesGrid />
 
           <div className="flex justify-center mt-20">
             <Link href="/properties">
               <Button className="bg-yellow-500 hover:bg-yellow-600 rounded-none text-black whitespace-nowrap h-16 px-8 text-[15px] cursor-pointer">
-                Browse More Properties
+                {t("browseMore")}
               </Button>
             </Link>
           </div>
