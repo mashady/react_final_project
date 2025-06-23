@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // UsersModal.js
 import React from "react";
 import {
@@ -292,3 +293,5 @@ export default function UsersModal({
     </div>
   );
 }
+=======
+>>>>>>> dd0da46772323ea4c4d3e56b4c74349150cb025c

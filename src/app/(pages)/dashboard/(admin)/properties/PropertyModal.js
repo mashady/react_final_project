@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from "react";
 import { X, Save } from "lucide-react";
 import MediaUpload from "@/components/add-property/MediaUpload";
@@ -208,3 +209,5 @@ const PropertyModal = ({
 };
 
 export default PropertyModal;
+=======
+>>>>>>> dd0da46772323ea4c4d3e56b4c74349150cb025c

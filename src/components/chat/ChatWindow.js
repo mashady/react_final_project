@@ -1,13 +1,65 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
+import { X, Send, User } from "lucide-react";
 
-// Always use the page's protocol and host for Socket.IO
-const SOCKET_URL = typeof window !== 'undefined'
-  ? window.location.origin
-  : '';
+// Always use backend port for Socket.IO
+const SOCKET_URL = "http://localhost:4000";
 
-export default function ChatWindow({ userId, targetUserId }) {
+function getUserDisplay(user) {
+  if (!user) return { name: "User", avatar: "/owner.jpg" };
+  // If user.name is like 'User 123' (fallback), but user.username/email exists, prefer those
+  let name = user.name;
+  if (!name || /^User\s*\d+$/i.test(name)) {
+    name = user.username || user.email || undefined;
+  }
+  return {
+    name: name || "User",
+    avatar: user.avatar || user.picture || "/owner.jpg",
+  };
+}
+
+export default function ChatWindow({
+  userId,
+  targetUserId,
+  forceOpen = false,
+  currentUser: propCurrentUser,
+  targetUser: propTargetUser,
+  onClose,
+  customStyles = {},
+  hideHeader = false,
+}) {
+  // Prevent user from chatting with themselves
+  const isSelfChat =
+    userId && targetUserId && String(userId) === String(targetUserId);
+  if (isSelfChat) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          height: "200px",
+          background: "#fff",
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "1px solid #e5e7eb",
+          ...customStyles.popupStyle,
+        }}
+      >
+        <div className="text-center w-full">
+          <div className="font-semibold text-black text-lg mb-2">
+            You cannot chat with yourself.
+          </div>
+          <div className="text-gray-500 text-sm">
+            Please select another user to start a conversation.
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(undefined);
@@ -15,164 +67,215 @@ export default function ChatWindow({ userId, targetUserId }) {
   const [input, setInput] = useState("");
   const [errors, setErrors] = useState([]);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+  const [isOpen, setIsOpen] = useState(!!forceOpen);
 
-  // Initialize socket connection
   useEffect(() => {
-    console.log('🔌 Initializing socket connection');
+    if (forceOpen) setIsOpen(true);
+  }, [forceOpen]);
+
+  useEffect(() => {
+    console.log("🔌 Initializing socket connection");
     const newSocket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
       timeout: 10000,
     });
 
-    newSocket.on('connect', () => {
-      console.log('✅ Socket connected:', newSocket.id, 'to', SOCKET_URL);
+    newSocket.on("connect", () => {
+      console.log("✅ Socket connected:", newSocket.id, "to", SOCKET_URL);
       setSocketId(newSocket.id);
     });
 
-    newSocket.on('connect_error', (err) => {
-      console.error('❌ Socket connection error:', err);
+    newSocket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err);
     });
 
-    // Handle server errors (non-blocking database errors)
-    newSocket.on('database_error', (errorData) => {
-      console.warn('⚠️ Database error (non-blocking):', errorData);
-      setErrors(prev => [...prev, {
-        timestamp: new Date(),
-        type: 'database',
-        ...errorData
-      }]);
+    newSocket.on("database_error", (errorData) => {
+      console.warn("⚠️ Database error (non-blocking):", errorData);
+      setErrors((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "database",
+          ...errorData,
+        },
+      ]);
     });
 
     setSocket(newSocket);
     socketRef.current = newSocket;
 
     return () => {
-      console.log('🔌 Cleaning up socket connection');
+      console.log("🔌 Cleaning up socket connection");
       newSocket.close();
     };
   }, []);
 
-  // Load chat history when users change
   useEffect(() => {
-    if (!userId || !targetUserId) return;
-    
-    console.log('\n📥 Loading chat history...');
+    if (!userId || !targetUserId) {
+      setIsHistoryLoaded(true);
+      setMessages([]);
+      return;
+    }
+
+    console.log("\n📥 Loading chat history...");
     setMessages([]);
     setIsHistoryLoaded(false);
-    
-    fetch(`/api/messages?user1=${userId}&user2=${targetUserId}`)
-      .then(res => res.json())
-      .then(data => {
+
+    fetch(
+      `http://localhost:4000/api/messages?user1=${userId}&user2=${targetUserId}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
         if (data && data.messages) {
-          const history = data.messages.map(msg => ({
+          const history = data.messages.map((msg) => ({
             id: msg.id,
             from: msg.sender_id.toString(),
             message: msg.message,
             timestamp: msg.created_at,
-            type: msg.sender_id === userId ? 'sent' : 'received',
-            source: 'history'
+            type: msg.sender_id === userId ? "sent" : "received",
+            source: "history",
           }));
           console.log(`✅ Loaded ${history.length} historical messages`);
           setMessages(history);
         }
         setIsHistoryLoaded(true);
       })
-      .catch(err => {
-        console.error('❌ Error loading history:', err);
-        setErrors(prev => [...prev, { 
-          timestamp: new Date(), 
-          type: 'history',
-          message: 'Failed to load chat history',
-          error: err.message 
-        }]);
+      .catch((err) => {
+        console.error("❌ Error loading history:", err);
+        setErrors((prev) => [
+          ...prev,
+          {
+            timestamp: new Date(),
+            type: "history",
+            message: "Failed to load chat history",
+            error: err.message,
+          },
+        ]);
         setIsHistoryLoaded(true);
       });
   }, [userId, targetUserId]);
 
-  // Handle incoming messages
   const handlePrivateMessage = useCallback(({ from, message, timestamp }) => {
     const msgObj = {
-      id: `temp-${Date.now()}`, // Temporary ID for real-time messages
+      id: `temp-${Date.now()}`,
       from: from.toString(),
       message,
       timestamp,
-      type: 'received',
-      source: 'realtime'
+      type: "received",
+      source: "realtime",
     };
-    console.log('📩 Received real-time message:', msgObj);
-    
-    setMessages(prev => [...prev, msgObj]);
+    console.log("📩 Received real-time message:", msgObj);
+
+    setMessages((prev) => [...prev, msgObj]);
   }, []);
 
-  // Handle message sent confirmations
   const handleSentConfirmation = useCallback(({ from, message, timestamp }) => {
     const msgObj = {
       id: `temp-${Date.now()}`,
       from: from.toString(),
       message,
       timestamp,
-      type: 'sent',
-      source: 'realtime'
+      type: "sent",
+      source: "realtime",
     };
-    console.log('✓ Message sent confirmation:', msgObj);
-    
-    setMessages(prev => [...prev, msgObj]);
+    console.log("✓ Message sent confirmation:", msgObj);
+
+    setMessages((prev) => [...prev, msgObj]);
   }, []);
 
-  // Set up socket event listeners
   useEffect(() => {
     if (!socket || !socketId || !userId || !isHistoryLoaded) {
       return;
     }
 
-    console.log('\n🔄 Setting up real-time chat:');
-    console.log('- User ID:', userId);
-    console.log('- Target User:', targetUserId);
-    console.log('- Socket ID:', socketId);
-    
-    // Join user's room
+    console.log("\n🔄 Setting up real-time chat:");
+    console.log("- User ID:", userId);
+    console.log("- Target User:", targetUserId);
+    console.log("- Socket ID:", socketId);
+
     socket.emit("join", userId.toString());
-    
-    // Set up event listeners
+
     socket.on("private_message", handlePrivateMessage);
     socket.on("message_sent_confirmation", handleSentConfirmation);
 
     return () => {
-      console.log('\n🧹 Cleaning up chat listeners');
+      console.log("\n🧹 Cleaning up chat listeners");
       socket.off("private_message", handlePrivateMessage);
       socket.off("message_sent_confirmation", handleSentConfirmation);
       socket.emit("leave_room");
     };
-  }, [socket, socketId, userId, targetUserId, isHistoryLoaded, handlePrivateMessage, handleSentConfirmation]);
+  }, [
+    socket,
+    socketId,
+    userId,
+    targetUserId,
+    isHistoryLoaded,
+    handlePrivateMessage,
+    handleSentConfirmation,
+  ]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current && messagesContainerRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   const sendMessage = (e) => {
     e.preventDefault();
     const messageText = input.trim();
-    
-    if (!messageText || !targetUserId || !userId || !socketRef.current) {
-      console.log('⚠️ Cannot send message - missing requirements');
+
+    if (!messageText) {
+      setErrors((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "send",
+          message: "Cannot send an empty message.",
+        },
+      ]);
       return;
     }
-    
-    console.log('\n📤 Sending message:');
-    console.log('- From:', userId);
-    console.log('- To:', targetUserId);
-    console.log('- Message:', messageText);
-    
+    if (!userId || !targetUserId) {
+      let missing = [];
+      if (!userId) missing.push("user");
+      if (!targetUserId) missing.push("recipient");
+      setErrors((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "send",
+          message: `Cannot send message: missing ${missing.join(" and ")}.`,
+        },
+      ]);
+      return;
+    }
+    if (!socketRef.current) {
+      setErrors((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "send",
+          message: "Cannot send message: not connected to chat server.",
+        },
+      ]);
+      return;
+    }
+
+    console.log("\n📤 Sending message:");
+    console.log("- From:", userId);
+    console.log("- To:", targetUserId);
+    console.log("- Message:", messageText);
+
     const messageData = {
       to: targetUserId.toString(),
       from: userId.toString(),
-      message: messageText
+      message: messageText,
     };
-    
+
     socketRef.current.emit("private_message", messageData);
     setInput("");
   };
@@ -181,79 +284,393 @@ export default function ChatWindow({ userId, targetUserId }) {
     setErrors([]);
   };
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      setIsOpen(false);
+    }
+  };
+
+  const bubbleButtonStyle = {
+    position: "fixed",
+    bottom: 32,
+    right: 32,
+    zIndex: 1000,
+    background: "#000",
+    color: "#fff",
+    borderRadius: "50%",
+    width: 64,
+    height: 64,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+    cursor: "pointer",
+    fontSize: 32,
+    border: "none",
+    transition: "all 0.2s ease",
+    ...customStyles.bubbleButtonStyle,
+  };
+
+  const popupStyle = {
+    width: "100%",
+    maxWidth: "400px",
+    height: "500px",
+    background: "#fff",
+    borderRadius: 16,
+    boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    overflow: "hidden",
+    display: forceOpen || isOpen ? "flex" : "none",
+    flexDirection: "column",
+    border: "1px solid #e5e7eb",
+    ...customStyles.popupStyle,
+  };
+
+  const [currentUserInfo, setCurrentUserInfo] = useState(null);
+  const [targetUserInfo, setTargetUserInfo] = useState(null);
+
+  useEffect(() => {
+    if (propCurrentUser) setCurrentUserInfo(getUserDisplay(propCurrentUser));
+    else if (typeof window !== "undefined") {
+      try {
+        const reduxUser =
+          window.__NEXT_REDUX_WRAPPER__?.getState?.()?.user?.data;
+        setCurrentUserInfo(getUserDisplay(reduxUser));
+      } catch {}
+    }
+  }, [propCurrentUser, userId]);
+
+  useEffect(() => {
+    if (propTargetUser) setTargetUserInfo(getUserDisplay(propTargetUser));
+    else if (targetUserId && typeof window !== "undefined") {
+      fetch(`/api/users/${targetUserId}`)
+        .then((res) => res.json())
+        .then((data) => setTargetUserInfo(getUserDisplay(data)))
+        .catch(() => setTargetUserInfo(getUserDisplay(null)));
+    }
+  }, [propTargetUser, targetUserId]);
+
   return (
-    <div className="border rounded w-full max-w-md mx-auto flex flex-col h-96 bg-white">
-      {/* Header */}
-      <div style={{fontSize:12, color:'#888', padding:'4px 8px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between'}}>
-        <span>Socket: {socketId || 'Connecting...'}</span>
-        <span>History: {isHistoryLoaded ? '✓' : '⏳'}</span>
-      </div>
-      
-      {/* Error Messages */}
-      {errors.length > 0 && (
-        <div style={{backgroundColor: '#fff3cd', borderBottom: '1px solid #ffeaa7', padding: '8px', fontSize: 12}}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <strong style={{color: '#856404'}}>Warnings ({errors.length})</strong>
-            <button onClick={clearErrors} style={{background: 'none', border: 'none', color: '#856404', cursor: 'pointer'}}>×</button>
-          </div>
-          {errors.slice(-2).map((error, idx) => (
-            <div key={idx} style={{marginTop: 4, color: '#856404'}}>
-              • {error.type}: {error.message}
-            </div>
-          ))}
-        </div>
+    <>
+      {!forceOpen && (
+        <button
+          style={bubbleButtonStyle}
+          aria-label={isOpen ? "Close chat" : "Open chat"}
+          onClick={() => setIsOpen((v) => !v)}
+          onMouseEnter={(e) => {
+            e.target.style.transform = "scale(1.1)";
+            e.target.style.background = "#333";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = "scale(1)";
+            e.target.style.background = "#000";
+          }}
+        >
+          {isOpen ? (
+            <X size={24} />
+          ) : (
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path
+                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </button>
       )}
-      
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-2">
-        {!isHistoryLoaded && (
-          <div style={{textAlign: 'center', color: '#888', fontSize: 12, padding: '20px'}}>
-            Loading chat history...
+
+      {/* Chat Popup */}
+      <div style={popupStyle}>
+        {/* Header (optional) */}
+        {!hideHeader && (
+          <div
+            style={{
+              padding: "20px 20px 18px 20px",
+              borderBottom: "none",
+              background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow: "0 2px 12px 0 rgba(0,0,0,0.06)",
+              zIndex: 2,
+            }}
+          >
+            <div className="font-semibold text-black text-base truncate">
+              {/* Always prefer a real name, fallback to username/email, never show 'User 123' */}
+              {(() => {
+                if (
+                  targetUserInfo?.name &&
+                  !/^User \d+$/i.test(targetUserInfo.name)
+                ) {
+                  return targetUserInfo.name;
+                }
+                if (propTargetUser?.username) return propTargetUser.username;
+                if (propTargetUser?.email) return propTargetUser.email;
+                return "Chat";
+              })()}
+            </div>
+            <button
+              onClick={handleClose}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "8px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.2s, box-shadow 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "#f3f4f6";
+                e.target.style.boxShadow = "0 2px 8px 0 rgba(0,0,0,0.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "none";
+                e.target.style.boxShadow = "none";
+              }}
+              aria-label="Close chat"
+            >
+              <X size={20} color="#6b7280" />
+            </button>
           </div>
         )}
-        
-        {messages.map((msg, idx) => (
+
+        {/* Error Messages */}
+        {errors.length > 0 && (
           <div
-            key={msg.id || idx}
-            className={`mb-2 flex ${msg.from === userId.toString() ? "justify-end" : "justify-start"}`}
+            style={{
+              backgroundColor: "#fef3c7",
+              borderBottom: "1px solid #f59e0b",
+              padding: "8px 16px",
+              fontSize: "12px",
+            }}
           >
             <div
-              className={`px-3 py-2 rounded-lg max-w-xs text-sm ${
-                msg.from === userId.toString()
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-900"
-              }`}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
             >
-              <div>{msg.message}</div>
-              <div style={{fontSize: 10, opacity: 0.7, marginTop: 2, display: 'flex', justifyContent: 'space-between'}}>
-                <span>{msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}</span>
-                {msg.source === 'realtime' && (
-                  <span style={{color: msg.from === userId.toString() ? '#add8e6' : '#666'}}>●</span>
-                )}
+              <strong style={{ color: "#92400e" }}>
+                Warnings ({errors.length})
+              </strong>
+              <button
+                onClick={clearErrors}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#92400e",
+                  cursor: "pointer",
+                  padding: "4px",
+                }}
+              >
+                ×
+              </button>
+            </div>
+            {errors.slice(-2).map((error, idx) => (
+              <div key={idx} style={{ marginTop: 4, color: "#92400e" }}>
+                • {error.type}: {error.message}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Messages Container */}
+        <div
+          ref={messagesContainerRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "24px 16px 16px 16px",
+            background: "#fff",
+            minHeight: 0,
+            maxHeight: "calc(100% - 140px)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+          }}
+        >
+          {!isHistoryLoaded && (
+            <div
+              style={{
+                textAlign: "center",
+                color: "#6b7280",
+                fontSize: "14px",
+                padding: "20px",
+              }}
+            >
+              Loading chat history...
+            </div>
+          )}
+          {messages.length === 0 && isHistoryLoaded && (
+            <div
+              style={{
+                textAlign: "center",
+                color: "#9ca3af",
+                fontSize: "14px",
+                padding: "32px 16px",
+              }}
+            >
+              <div style={{ fontSize: "32px", marginBottom: "8px" }}>💬</div>
+              <div>No messages yet. Say hello!</div>
+            </div>
+          )}
+          {messages.map((msg, idx) => (
+            <div
+              key={msg.id || idx}
+              style={{
+                marginBottom: "10px",
+                display: "flex",
+                justifyContent:
+                  msg.from === userId?.toString() ? "flex-end" : "flex-start",
+                transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: "75%",
+                  padding: "13px 18px 11px 18px",
+                  borderRadius: "22px",
+                  fontSize: "15px",
+                  lineHeight: "1.5",
+                  wordBreak: "break-word",
+                  boxShadow:
+                    msg.from === userId?.toString()
+                      ? "0 2px 8px 0 rgba(0,0,0,0.10)"
+                      : "0 2px 8px 0 rgba(0,0,0,0.06)",
+                  ...(msg.from === userId?.toString()
+                    ? {
+                        background: "#111",
+                        color: "#fff",
+                        borderBottomRightRadius: "7px",
+                        borderTopRightRadius: "7px",
+                        border: "none",
+                      }
+                    : {
+                        background: "#f6f6f6",
+                        color: "#222",
+                        borderBottomLeftRadius: "7px",
+                        borderTopLeftRadius: "7px",
+                        border: "1px solid #ececec",
+                      }),
+                  opacity: 1,
+                  animation: "fadeIn 0.3s cubic-bezier(.4,0,.2,1)",
+                }}
+              >
+                <div>{msg.message}</div>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    opacity: 0.6,
+                    marginTop: "6px",
+                    textAlign: "right",
+                    letterSpacing: 0.2,
+                  }}
+                >
+                  {msg.timestamp
+                    ? new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      {/* Input */}
-      <form onSubmit={sendMessage} className="p-2 border-t flex gap-2">
-        <input
-          className="flex-1 border rounded p-2 text-sm"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message..."
-          disabled={!isHistoryLoaded || !socketId}
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
-          disabled={!input.trim() || !isHistoryLoaded || !socketId}
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Form */}
+        <form
+          onSubmit={sendMessage}
+          style={{
+            padding: "18px 16px 18px 16px",
+            borderTop: "none",
+            background: "#fff",
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            boxShadow: "0 -2px 12px 0 rgba(0,0,0,0.04)",
+            zIndex: 2,
+          }}
         >
-          Send
-        </button>
-      </form>
-    </div>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message..."
+            disabled={!isHistoryLoaded || !socketId}
+            style={{
+              flex: 1,
+              padding: "13px 18px",
+              border: "1.5px solid #ececec",
+              borderRadius: "22px",
+              fontSize: "15px",
+              outline: "none",
+              background: "#fafafa",
+              transition: "border-color 0.2s, box-shadow 0.2s",
+              boxShadow: "0 1px 4px 0 rgba(0,0,0,0.03)",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#111";
+              e.target.style.boxShadow = "0 2px 8px 0 rgba(0,0,0,0.08)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#ececec";
+              e.target.style.boxShadow = "0 1px 4px 0 rgba(0,0,0,0.03)";
+            }}
+            autoComplete="off"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || !isHistoryLoaded || !socketId}
+            style={{
+              background:
+                input.trim() && isHistoryLoaded && socketId
+                  ? "#111"
+                  : "#ececec",
+              color:
+                input.trim() && isHistoryLoaded && socketId ? "#fff" : "#bbb",
+              border: "none",
+              borderRadius: "50%",
+              width: "44px",
+              height: "44px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor:
+                input.trim() && isHistoryLoaded && socketId
+                  ? "pointer"
+                  : "not-allowed",
+              transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
+              boxShadow:
+                input.trim() && isHistoryLoaded && socketId
+                  ? "0 2px 8px 0 rgba(0,0,0,0.10)"
+                  : "none",
+            }}
+            onMouseEnter={(e) => {
+              if (input.trim() && isHistoryLoaded && socketId) {
+                e.target.style.background = "#222";
+                e.target.style.transform = "scale(1.07)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (input.trim() && isHistoryLoaded && socketId) {
+                e.target.style.background = "#111";
+                e.target.style.transform = "scale(1)";
+              }
+            }}
+          >
+            <Send size={18} />
+          </button>
+        </form>
+      </div>
+    </>
   );
 }
