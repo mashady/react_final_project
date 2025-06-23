@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 import React, { useState, useEffect } from "react";
 import { CheckCircle, Clock, Search } from "lucide-react";
@@ -316,5 +315,3 @@ const PendingUsers = () => {
 };
 
 export default PendingUsers;
-=======
->>>>>>> dd0da46772323ea4c4d3e56b4c74349150cb025c

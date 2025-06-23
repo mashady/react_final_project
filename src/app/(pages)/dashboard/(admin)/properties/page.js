@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 import React, { useState, useEffect } from "react";
 import { Plus, X, Save } from "lucide-react";
@@ -231,5 +230,3 @@ const PropertyManagement = () => {
 };
 
 export default PropertyManagement;
-=======
->>>>>>> dd0da46772323ea4c4d3e56b4c74349150cb025c

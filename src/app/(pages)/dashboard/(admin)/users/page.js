@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -507,5 +506,3 @@ const Users = () => {
 };
 
 export default Users;
-=======
->>>>>>> dd0da46772323ea4c4d3e56b4c74349150cb025c
