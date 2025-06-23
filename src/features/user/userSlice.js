@@ -55,8 +55,7 @@ export const registerUser = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
-
-      localStorage.setItem("token", response.data.token);
+      // localStorage.setItem("token", response.data.token);
       return response.data;
     } catch (err) {
       return rejectWithValue(
@@ -138,8 +137,6 @@ const userSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload.data;
-        state.token = action.payload.token;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
