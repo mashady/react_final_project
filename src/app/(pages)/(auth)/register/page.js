@@ -196,6 +196,16 @@ const RegisterPage = () => {
                 Log in
               </Link>
             </div>
+            <div className="text-center">
+              <span className="text-muted-foreground">Or</span>
+              <Link
+                href="/sign-with-google"
+                passHref
+                className="text-black m-2 hover:underline"
+              >
+                Sign up with Google
+              </Link>
+            </div>
           </CardFooter>
         </Card>
       </div>
