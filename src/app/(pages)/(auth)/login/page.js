@@ -30,6 +30,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error, data } = useSelector((state) => state.user);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
 
   const [toast, setToast] = useState({
     message: "",
@@ -50,7 +51,12 @@ const LoginPage = () => {
       const resultAction = await dispatch(loginUser(values));
 
       if (loginUser.fulfilled.match(resultAction)) {
+        
         showToast("Login successful!", "success");
+
+        setTimeout(() => {
+          router.push("/");
+        }, 3000);
       } else {
         throw resultAction.payload;
       }
@@ -69,9 +75,17 @@ const LoginPage = () => {
   }, [data, router]);
 
   return (
-    <>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-[450px] min-h-[450px] border-1 rounded-1xl shadow-lg py-16">
+    <> 
+      <div className="min-h-screen py-32 bg-gray-50">
+        <div className="my-4 p-4 w-[300px] m-auto bg-yellow-100 border border-yellow-400 text-yellow-700 rounded md:w-[450px]">
+          <span>Your email is not verified? Please check your inbox and verify your email to proceed.</span>
+          <p>
+            <Link href="/verify/resend_verify_mail" className="ml-2 text-blue-600 hover:underline">
+              Resend Verification Email
+            </Link>
+          </p>
+        </div>
+        <Card className="w-[300px] m-auto min-h-[450px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
           <CardHeader>
             <CardTitle className="text-center text-3xl">Login</CardTitle>
           </CardHeader>
@@ -92,7 +106,7 @@ const LoginPage = () => {
                       type="text"
                       as={Input}
                       placeholder="Email*"
-                      className="border rounded-none p-6 text-5xl"
+                      className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
                       name="email"
@@ -107,7 +121,7 @@ const LoginPage = () => {
                       type="password"
                       as={Input}
                       placeholder="Password*"
-                      className="border rounded-none p-6 text-5xl"
+                      className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
                       name="password"
@@ -136,6 +150,16 @@ const LoginPage = () => {
                 className="text-black m-2 hover:underline"
               >
                 Register here
+              </Link>
+            </div>
+            <div className="text-center">
+              <span className="text-muted-foreground">Or</span>
+              <Link
+                href="/sign-with-google"
+                passHref
+                className="text-black m-2 hover:underline"
+              >
+                Sign in with Google
               </Link>
             </div>
           </CardFooter>
