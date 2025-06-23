@@ -47,7 +47,7 @@ export default function PropertyFilters({
       number_of_beds: "",
       number_of_bathrooms: "",
       space: "",
-      priceRange: [100, 1000000],
+      priceRange: [100, 10000],
     });
     handleReset();
   };
@@ -141,7 +141,7 @@ export default function PropertyFilters({
             <Slider
               value={localFilters.priceRange}
               onValueChange={handleLocalPriceRange}
-              max={1000000}
+              max={10000}
               min={100}
               step={1000}
               className="w-full"

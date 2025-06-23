@@ -1,15 +1,65 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
+import { X, Send, User } from "lucide-react";
 
-// Always use the page's protocol and host for Socket.IO
-const SOCKET_URL = typeof window !== "undefined" ? window.location.origin : "";
+// Always use backend port for Socket.IO
+const SOCKET_URL = "http://localhost:4000";
+
+function getUserDisplay(user) {
+  if (!user) return { name: "User", avatar: "/owner.jpg" };
+  // If user.name is like 'User 123' (fallback), but user.username/email exists, prefer those
+  let name = user.name;
+  if (!name || /^User\s*\d+$/i.test(name)) {
+    name = user.username || user.email || undefined;
+  }
+  return {
+    name: name || "User",
+    avatar: user.avatar || user.picture || "/owner.jpg",
+  };
+}
 
 export default function ChatWindow({
   userId,
   targetUserId,
   forceOpen = false,
+  currentUser: propCurrentUser,
+  targetUser: propTargetUser,
+  onClose,
+  customStyles = {},
+  hideHeader = false,
 }) {
+  // Prevent user from chatting with themselves
+  const isSelfChat =
+    userId && targetUserId && String(userId) === String(targetUserId);
+  if (isSelfChat) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          height: "200px",
+          background: "#fff",
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "1px solid #e5e7eb",
+          ...customStyles.popupStyle,
+        }}
+      >
+        <div className="text-center w-full">
+          <div className="font-semibold text-black text-lg mb-2">
+            You cannot chat with yourself.
+          </div>
+          <div className="text-gray-500 text-sm">
+            Please select another user to start a conversation.
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(undefined);
@@ -17,14 +67,14 @@ export default function ChatWindow({
   const [input, setInput] = useState("");
   const [errors, setErrors] = useState([]);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
-  // Only use isOpen state if not forceOpen
   const [isOpen, setIsOpen] = useState(!!forceOpen);
+
   useEffect(() => {
     if (forceOpen) setIsOpen(true);
   }, [forceOpen]);
 
-  // Initialize socket connection
   useEffect(() => {
     console.log("🔌 Initializing socket connection");
     const newSocket = io(SOCKET_URL, {
@@ -43,7 +93,6 @@ export default function ChatWindow({
       console.error("❌ Socket connection error:", err);
     });
 
-    // Handle server errors (non-blocking database errors)
     newSocket.on("database_error", (errorData) => {
       console.warn("⚠️ Database error (non-blocking):", errorData);
       setErrors((prev) => [
@@ -65,15 +114,20 @@ export default function ChatWindow({
     };
   }, []);
 
-  // Load chat history when users change
   useEffect(() => {
-    if (!userId || !targetUserId) return;
+    if (!userId || !targetUserId) {
+      setIsHistoryLoaded(true);
+      setMessages([]);
+      return;
+    }
 
     console.log("\n📥 Loading chat history...");
     setMessages([]);
     setIsHistoryLoaded(false);
 
-    fetch(`/api/messages?user1=${userId}&user2=${targetUserId}`)
+    fetch(
+      `http://localhost:4000/api/messages?user1=${userId}&user2=${targetUserId}`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data && data.messages) {
@@ -105,10 +159,9 @@ export default function ChatWindow({
       });
   }, [userId, targetUserId]);
 
-  // Handle incoming messages
   const handlePrivateMessage = useCallback(({ from, message, timestamp }) => {
     const msgObj = {
-      id: `temp-${Date.now()}`, // Temporary ID for real-time messages
+      id: `temp-${Date.now()}`,
       from: from.toString(),
       message,
       timestamp,
@@ -120,7 +173,6 @@ export default function ChatWindow({
     setMessages((prev) => [...prev, msgObj]);
   }, []);
 
-  // Handle message sent confirmations
   const handleSentConfirmation = useCallback(({ from, message, timestamp }) => {
     const msgObj = {
       id: `temp-${Date.now()}`,
@@ -135,7 +187,6 @@ export default function ChatWindow({
     setMessages((prev) => [...prev, msgObj]);
   }, []);
 
-  // Set up socket event listeners
   useEffect(() => {
     if (!socket || !socketId || !userId || !isHistoryLoaded) {
       return;
@@ -146,10 +197,8 @@ export default function ChatWindow({
     console.log("- Target User:", targetUserId);
     console.log("- Socket ID:", socketId);
 
-    // Join user's room
     socket.emit("join", userId.toString());
 
-    // Set up event listeners
     socket.on("private_message", handlePrivateMessage);
     socket.on("message_sent_confirmation", handleSentConfirmation);
 
@@ -169,17 +218,50 @@ export default function ChatWindow({
     handleSentConfirmation,
   ]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current && messagesContainerRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   const sendMessage = (e) => {
     e.preventDefault();
     const messageText = input.trim();
 
-    if (!messageText || !targetUserId || !userId || !socketRef.current) {
-      console.log("⚠️ Cannot send message - missing requirements");
+    if (!messageText) {
+      setErrors((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "send",
+          message: "Cannot send an empty message.",
+        },
+      ]);
+      return;
+    }
+    if (!userId || !targetUserId) {
+      let missing = [];
+      if (!userId) missing.push("user");
+      if (!targetUserId) missing.push("recipient");
+      setErrors((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "send",
+          message: `Cannot send message: missing ${missing.join(" and ")}.`,
+        },
+      ]);
+      return;
+    }
+    if (!socketRef.current) {
+      setErrors((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "send",
+          message: "Cannot send message: not connected to chat server.",
+        },
+      ]);
       return;
     }
 
@@ -202,13 +284,20 @@ export default function ChatWindow({
     setErrors([]);
   };
 
-  // Bubble button style
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      setIsOpen(false);
+    }
+  };
+
   const bubbleButtonStyle = {
     position: "fixed",
     bottom: 32,
     right: 32,
     zIndex: 1000,
-    background: "#2563eb",
+    background: "#000",
     color: "#fff",
     borderRadius: "50%",
     width: 64,
@@ -216,44 +305,72 @@ export default function ChatWindow({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
     cursor: "pointer",
     fontSize: 32,
     border: "none",
-    transition: "background 0.2s",
+    transition: "all 0.2s ease",
+    ...customStyles.bubbleButtonStyle,
   };
 
-  // Chat popup style
   const popupStyle = {
-    position: "fixed",
-    bottom: 112,
-    right: 32,
-    zIndex: 1100,
-    width: 350,
-    maxWidth: "90vw",
+    width: "100%",
+    maxWidth: "400px",
+    height: "500px",
     background: "#fff",
     borderRadius: 16,
-    boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
     overflow: "hidden",
     display: forceOpen || isOpen ? "flex" : "none",
     flexDirection: "column",
-    minHeight: 420,
-    maxHeight: "70vh",
+    border: "1px solid #e5e7eb",
+    ...customStyles.popupStyle,
   };
+
+  const [currentUserInfo, setCurrentUserInfo] = useState(null);
+  const [targetUserInfo, setTargetUserInfo] = useState(null);
+
+  useEffect(() => {
+    if (propCurrentUser) setCurrentUserInfo(getUserDisplay(propCurrentUser));
+    else if (typeof window !== "undefined") {
+      try {
+        const reduxUser =
+          window.__NEXT_REDUX_WRAPPER__?.getState?.()?.user?.data;
+        setCurrentUserInfo(getUserDisplay(reduxUser));
+      } catch {}
+    }
+  }, [propCurrentUser, userId]);
+
+  useEffect(() => {
+    if (propTargetUser) setTargetUserInfo(getUserDisplay(propTargetUser));
+    else if (targetUserId && typeof window !== "undefined") {
+      fetch(`/api/users/${targetUserId}`)
+        .then((res) => res.json())
+        .then((data) => setTargetUserInfo(getUserDisplay(data)))
+        .catch(() => setTargetUserInfo(getUserDisplay(null)));
+    }
+  }, [propTargetUser, targetUserId]);
 
   return (
     <>
-      {/* Only show bubble button if not forceOpen */}
       {!forceOpen && (
         <button
           style={bubbleButtonStyle}
           aria-label={isOpen ? "Close chat" : "Open chat"}
           onClick={() => setIsOpen((v) => !v)}
+          onMouseEnter={(e) => {
+            e.target.style.transform = "scale(1.1)";
+            e.target.style.background = "#333";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = "scale(1)";
+            e.target.style.background = "#000";
+          }}
         >
           {isOpen ? (
-            <span style={{ fontSize: 28, fontWeight: 700 }}>&times;</span>
+            <X size={24} />
           ) : (
-            <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
               <path
                 d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
                 stroke="#fff"
@@ -265,45 +382,73 @@ export default function ChatWindow({
           )}
         </button>
       )}
+
       {/* Chat Popup */}
       <div style={popupStyle}>
-        {/* Header */}
-        <div
-          style={{
-            fontSize: 16,
-            color: "#2563eb",
-            padding: "10px 16px",
-            borderBottom: "1px solid #eee",
-            fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "#f3f6fa",
-          }}
-        >
-          <span>Chat</span>
-          <button
-            onClick={() => setIsOpen(false)}
+        {/* Header (optional) */}
+        {!hideHeader && (
+          <div
             style={{
-              background: "none",
-              border: "none",
-              fontSize: 22,
-              color: "#2563eb",
-              cursor: "pointer",
-              fontWeight: 700,
+              padding: "20px 20px 18px 20px",
+              borderBottom: "none",
+              background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow: "0 2px 12px 0 rgba(0,0,0,0.06)",
+              zIndex: 2,
             }}
           >
-            &times;
-          </button>
-        </div>
+            <div className="font-semibold text-black text-base truncate">
+              {/* Always prefer a real name, fallback to username/email, never show 'User 123' */}
+              {(() => {
+                if (
+                  targetUserInfo?.name &&
+                  !/^User \d+$/i.test(targetUserInfo.name)
+                ) {
+                  return targetUserInfo.name;
+                }
+                if (propTargetUser?.username) return propTargetUser.username;
+                if (propTargetUser?.email) return propTargetUser.email;
+                return "Chat";
+              })()}
+            </div>
+            <button
+              onClick={handleClose}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "8px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.2s, box-shadow 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "#f3f4f6";
+                e.target.style.boxShadow = "0 2px 8px 0 rgba(0,0,0,0.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "none";
+                e.target.style.boxShadow = "none";
+              }}
+              aria-label="Close chat"
+            >
+              <X size={20} color="#6b7280" />
+            </button>
+          </div>
+        )}
+
         {/* Error Messages */}
         {errors.length > 0 && (
           <div
             style={{
-              backgroundColor: "#fff3cd",
-              borderBottom: "1px solid #ffeaa7",
-              padding: "8px",
-              fontSize: 12,
+              backgroundColor: "#fef3c7",
+              borderBottom: "1px solid #f59e0b",
+              padding: "8px 16px",
+              fontSize: "12px",
             }}
           >
             <div
@@ -313,7 +458,7 @@ export default function ChatWindow({
                 alignItems: "center",
               }}
             >
-              <strong style={{ color: "#856404" }}>
+              <strong style={{ color: "#92400e" }}>
                 Warnings ({errors.length})
               </strong>
               <button
@@ -321,108 +466,208 @@ export default function ChatWindow({
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#856404",
+                  color: "#92400e",
                   cursor: "pointer",
+                  padding: "4px",
                 }}
               >
                 ×
               </button>
             </div>
             {errors.slice(-2).map((error, idx) => (
-              <div key={idx} style={{ marginTop: 4, color: "#856404" }}>
+              <div key={idx} style={{ marginTop: 4, color: "#92400e" }}>
                 • {error.type}: {error.message}
               </div>
             ))}
           </div>
         )}
-        {/* Messages */}
+
+        {/* Messages Container */}
         <div
-          className="flex-1 overflow-y-auto p-2"
-          style={{ background: "#f9fafb", minHeight: 0 }}
+          ref={messagesContainerRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "24px 16px 16px 16px",
+            background: "#fff",
+            minHeight: 0,
+            maxHeight: "calc(100% - 140px)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+          }}
         >
           {!isHistoryLoaded && (
             <div
               style={{
                 textAlign: "center",
-                color: "#888",
-                fontSize: 12,
+                color: "#6b7280",
+                fontSize: "14px",
                 padding: "20px",
               }}
             >
               Loading chat history...
             </div>
           )}
+          {messages.length === 0 && isHistoryLoaded && (
+            <div
+              style={{
+                textAlign: "center",
+                color: "#9ca3af",
+                fontSize: "14px",
+                padding: "32px 16px",
+              }}
+            >
+              <div style={{ fontSize: "32px", marginBottom: "8px" }}>💬</div>
+              <div>No messages yet. Say hello!</div>
+            </div>
+          )}
           {messages.map((msg, idx) => (
             <div
               key={msg.id || idx}
-              className={`mb-2 flex ${
-                msg.from === userId.toString() ? "justify-end" : "justify-start"
-              }`}
+              style={{
+                marginBottom: "10px",
+                display: "flex",
+                justifyContent:
+                  msg.from === userId?.toString() ? "flex-end" : "flex-start",
+                transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
+              }}
             >
               <div
-                className={`px-3 py-2 rounded-lg max-w-xs text-sm ${
-                  msg.from === userId.toString()
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-900"
-                }`}
                 style={{
+                  maxWidth: "75%",
+                  padding: "13px 18px 11px 18px",
+                  borderRadius: "22px",
+                  fontSize: "15px",
+                  lineHeight: "1.5",
+                  wordBreak: "break-word",
                   boxShadow:
-                    msg.from === userId.toString()
-                      ? "0 2px 8px #2563eb22"
-                      : "0 2px 8px #8882",
+                    msg.from === userId?.toString()
+                      ? "0 2px 8px 0 rgba(0,0,0,0.10)"
+                      : "0 2px 8px 0 rgba(0,0,0,0.06)",
+                  ...(msg.from === userId?.toString()
+                    ? {
+                        background: "#111",
+                        color: "#fff",
+                        borderBottomRightRadius: "7px",
+                        borderTopRightRadius: "7px",
+                        border: "none",
+                      }
+                    : {
+                        background: "#f6f6f6",
+                        color: "#222",
+                        borderBottomLeftRadius: "7px",
+                        borderTopLeftRadius: "7px",
+                        border: "1px solid #ececec",
+                      }),
+                  opacity: 1,
+                  animation: "fadeIn 0.3s cubic-bezier(.4,0,.2,1)",
                 }}
               >
                 <div>{msg.message}</div>
                 <div
                   style={{
-                    fontSize: 10,
-                    opacity: 0.7,
-                    marginTop: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
+                    fontSize: "10px",
+                    opacity: 0.6,
+                    marginTop: "6px",
+                    textAlign: "right",
+                    letterSpacing: 0.2,
                   }}
                 >
-                  <span>
-                    {msg.timestamp
-                      ? new Date(msg.timestamp).toLocaleTimeString()
-                      : ""}
-                  </span>
-                  {msg.source === "realtime" && (
-                    <span
-                      style={{
-                        color:
-                          msg.from === userId.toString() ? "#add8e6" : "#666",
-                      }}
-                    >
-                      ●
-                    </span>
-                  )}
+                  {msg.timestamp
+                    ? new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
                 </div>
               </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
-        {/* Input */}
+
+        {/* Input Form */}
         <form
           onSubmit={sendMessage}
-          className="p-2 border-t flex gap-2"
-          style={{ background: "#f3f6fa" }}
+          style={{
+            padding: "18px 16px 18px 16px",
+            borderTop: "none",
+            background: "#fff",
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            boxShadow: "0 -2px 12px 0 rgba(0,0,0,0.04)",
+            zIndex: 2,
+          }}
         >
           <input
-            className="flex-1 border rounded p-2 text-sm"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
             disabled={!isHistoryLoaded || !socketId}
-            style={{ background: "#fff" }}
+            style={{
+              flex: 1,
+              padding: "13px 18px",
+              border: "1.5px solid #ececec",
+              borderRadius: "22px",
+              fontSize: "15px",
+              outline: "none",
+              background: "#fafafa",
+              transition: "border-color 0.2s, box-shadow 0.2s",
+              boxShadow: "0 1px 4px 0 rgba(0,0,0,0.03)",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#111";
+              e.target.style.boxShadow = "0 2px 8px 0 rgba(0,0,0,0.08)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#ececec";
+              e.target.style.boxShadow = "0 1px 4px 0 rgba(0,0,0,0.03)";
+            }}
+            autoComplete="off"
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
             disabled={!input.trim() || !isHistoryLoaded || !socketId}
+            style={{
+              background:
+                input.trim() && isHistoryLoaded && socketId
+                  ? "#111"
+                  : "#ececec",
+              color:
+                input.trim() && isHistoryLoaded && socketId ? "#fff" : "#bbb",
+              border: "none",
+              borderRadius: "50%",
+              width: "44px",
+              height: "44px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor:
+                input.trim() && isHistoryLoaded && socketId
+                  ? "pointer"
+                  : "not-allowed",
+              transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
+              boxShadow:
+                input.trim() && isHistoryLoaded && socketId
+                  ? "0 2px 8px 0 rgba(0,0,0,0.10)"
+                  : "none",
+            }}
+            onMouseEnter={(e) => {
+              if (input.trim() && isHistoryLoaded && socketId) {
+                e.target.style.background = "#222";
+                e.target.style.transform = "scale(1.07)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (input.trim() && isHistoryLoaded && socketId) {
+                e.target.style.background = "#111";
+                e.target.style.transform = "scale(1)";
+              }
+            }}
           >
-            Send
+            <Send size={18} />
           </button>
         </form>
       </div>
