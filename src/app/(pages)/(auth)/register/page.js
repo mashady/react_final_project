@@ -41,9 +41,9 @@ const RegisterPage = () => {
       const resultAction = await dispatch(registerUser(values));
 
       if (registerUser.fulfilled.match(resultAction)) {
-        showToast("Registration successful!", "success");
+        showToast("Registration successful!, Please check your email to verify your account.", "success");
         setTimeout(() => {
-          router.push("/");
+          router.push("/login");
         }, 2000);
       } else {
         throw resultAction.payload;
@@ -194,6 +194,16 @@ const RegisterPage = () => {
                 className="text-black m-2 hover:underline"
               >
                 Log in
+              </Link>
+            </div>
+            <div className="text-center">
+              <span className="text-muted-foreground">Or</span>
+              <Link
+                href="/sign-with-google"
+                passHref
+                className="text-black m-2 hover:underline"
+              >
+                Sign up with Google
               </Link>
             </div>
           </CardFooter>
