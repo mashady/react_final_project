@@ -11,12 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/features/user/userSlice";
-
-const NAV_LINKS = [
-  { label: "HOME", href: "/" },
-  { label: "PROPERTIES", href: "/properties" },
-  { label: "PLANS", href: "/plans" },
-];
+import { useTranslation } from "@/TranslationContext";
 
 const defaultUser =
   "https://secure.gravatar.com/avatar/placeholder?s=76&d=mm&r=g";
@@ -29,34 +24,43 @@ const Navbar = () => {
   const { data: user, token } = useSelector((state) => state.user);
   const isLoggedIn = !!token;
   const userRole = user?.role;
-
   const toggleMenu = () => setIsMenuOpen((open) => !open);
 
   const handleLogout = () => {
     dispatch(logout());
     router.push("/");
   };
-
-  const baseDropdownItems = [
-    { href: "/dashboard", label: "My Profile" },
-    { href: "/dashboard/edit-profile", label: "Edit Profile" },
-    { href: "/dashboard/messages", label: "Messages" },
+  const { t, locale, changeLanguage } = useTranslation();
+  const NAV_LINKS = [
+    { label: t("navbarLinkOne"), href: "/" },
+    { label: t("navbarLinkTwo"), href: "/properties" },
+    ...(userRole !== "student" && userRole !== "admin"
+      ? [{ label: t("navbarLinkThree"), href: "/plans" }]
+      : []),
   ];
+  const baseDropdownItems =
+    userRole === "admin"
+      ? []
+      : [
+          { href: "/dashboard", label: t("navbarDropMyProfile") },
+          { href: "/dashboard/edit-profile", label: t("navbarDropEditProfile") },
+          { href: "/dashboard/messages", label: t("navbarDropMessages") },
+        ];
 
   const studentDropdownItems = [
     { href: "/dashboard/my-wishlist", label: "My Wishlist" },
   ];
 
   const ownerDropdownItems = [
-    { href: "/dashboard/my-packages", label: "My Packages" },
-    { href: "/dashboard/my-properties", label: "My Properties" },
-    { href: "/dashboard/add-property", label: "Add Property" },
+    { href: "/dashboard/my-packages", label: t("navbarDropMyPackages") },
+    { href: "/dashboard/my-properties", label: t("navbarDropMyProperties") },
+    { href: "/dashboard/add-property", label: t("navbarAddProperty") },
   ];
 
   const adminDropdownItems = [
-    { href: "/dashboard/users", label: "Users" },
-    { href: "/dashboard/properties", label: "All Properties" },
-    { href: "/dashboard/verify-pending", label: "Verify Pending" },
+    { href: "/dashboard/users", label: t("navbarUsers") },
+    { href: "/dashboard/properties", label: t("navbarAllProperties") },
+    { href: "/dashboard/verify-pending", label: t("navbarVerifyPending") },
   ];
 
   const getDropdownItems = () => {
@@ -72,7 +76,6 @@ const Navbar = () => {
 
     return items;
   };
-
   const dropdownItems = getDropdownItems();
 
   return (
@@ -134,9 +137,21 @@ const Navbar = () => {
                     ))}
                     <DropdownMenuItem
                       className="cursor-pointer text-red-600"
+                      onClick={() => changeLanguage("ar")}
+                    >
+                      {t("navbarArabic")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer text-red-600"
+                      onClick={() => changeLanguage("en")}
+                    >
+                      {t("navbarEnglish")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer text-red-600"
                       onClick={handleLogout}
                     >
-                      Logout
+                      {t("navbarLogout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -146,14 +161,15 @@ const Navbar = () => {
                 href="/register"
                 className="bg-white text-black pl-4 py-2 rounded font-medium hover:text-yellow-600 transition-colors"
               >
-                JOIN US
+                <User className="inline-block w-5 h-5 mr-1" />
+                {t("navbarJoin")}
               </Link>
             )}
             {(userRole === "owner" || userRole === "admin") && (
               <Link href="/dashboard/add-property">
                 <button className="bg-white text-gray-900 px-4 py-2 text font-medium hover:text-yellow-600 transition-colors flex items-center space-x-2 cursor-pointer">
                   <Plus className="w-4 h-4" />
-                  <span>ADD PROPERTY</span>
+                  <span>{t("navbarAddProperty")}</span>
                 </button>
               </Link>
             )}
@@ -208,7 +224,7 @@ const Navbar = () => {
                   <Link href="/dashboard/add-property">
                     <button className="w-full bg-white text-black px-4 py-2 text-sm font-medium hover:text-yellow-600 transition-colors flex items-center justify-center space-x-2">
                       <Plus className="w-4 h-4" />
-                      <span>ADD PROPERTY</span>
+                      <span>{t("navbarAddProperty")}</span>
                     </button>
                   </Link>
                 )}
@@ -218,7 +234,7 @@ const Navbar = () => {
                 href="/register"
                 className="block w-full bg-yellow-500 text-white px-4 py-2 rounded font-medium text-center hover:bg-yellow-600 transition-colors"
               >
-                JOIN US
+                {t("navbarJoin")}
               </Link>
             )}
           </div>

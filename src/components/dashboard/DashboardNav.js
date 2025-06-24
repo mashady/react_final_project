@@ -13,36 +13,69 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
+import { useTranslation } from "@/TranslationContext";
 
 const DashboardNav = () => {
+  let { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
 
   const { data: user } = useSelector((state) => state.user);
   const userRole = user?.role;
 
-  const baseNavLinks = [
-    { href: "/dashboard", label: "My Profile", icon: User },
-    { href: "/dashboard/edit-profile", label: "Edit Profile", icon: Settings },
-    { href: "/dashboard/messages", label: "Messages", icon: MessageSquareDot },
-  ];
+  const baseNavLinks =
+    userRole === "admin"
+      ? []
+      : [
+          { href: "/dashboard", label: t("navbarDropMyProfile"), icon: User },
+          {
+            href: "/dashboard/edit-profile",
+            label: t("navbarDropEditProfile"),
+            icon: Settings,
+          },
+          {
+            href: "/dashboard/messages",
+            label: t("navbarDropMyProfile"),
+            icon: MessageSquareDot,
+          },
+        ];
 
   const studentLinks = [
-    { href: "/dashboard/my-wishlist", label: "My Wishlist", icon: Heart },
+    {
+      href: "/dashboard/my-wishlist",
+      label: t("navbarDropMyWishlist"),
+      icon: Heart,
+    },
   ];
 
   const ownerLinks = [
-    { href: "/dashboard/my-packages", label: "My Packages", icon: Archive },
-    { href: "/dashboard/my-properties", label: "My Properties", icon: House },
-    { href: "/dashboard/add-property", label: "Add Property", icon: FilePlus },
+    {
+      href: "/dashboard/my-packages",
+      label: t("navbarDropMyPackages"),
+      icon: Archive,
+    },
+    {
+      href: "/dashboard/my-properties",
+      label: t("navbarDropMyProperties"),
+      icon: House,
+    },
+    {
+      href: "/dashboard/add-property",
+      label: t("navbarAddProperty"),
+      icon: FilePlus,
+    },
   ];
 
   const adminLinks = [
-    { href: "/dashboard/users", label: "Users", icon: User },
-    { href: "/dashboard/properties", label: "Properties", icon: House },
+    { href: "/dashboard/users", label: t("Users"), icon: User },
+    {
+      href: "/dashboard/properties",
+      label: t("navbarAllProperties"),
+      icon: House,
+    },
     {
       href: "/dashboard/verify-pending",
-      label: "Verify Pending",
+      label: t("navbarVerifyPending"),
       icon: FilePlus,
     },
   ];
@@ -98,7 +131,7 @@ const DashboardNav = () => {
         className="flex flex-col items-center text-center transition-colors duration-200 text-black hover:text-yellow-500 cursor-pointer"
       >
         <LogOut className="h-6 w-6 mb-1 mx-auto" />
-        <span className="text-sm">Log Out</span>
+        <span className="text-sm">{t("navbarLogout")}</span>
       </button>
     </div>
   );

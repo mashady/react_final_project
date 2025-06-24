@@ -1,3 +1,5 @@
+"use client";
+import { useTranslation } from "@/TranslationContext";
 import {
   Bath,
   Bed,
@@ -9,30 +11,27 @@ import {
   Key,
 } from "lucide-react";
 export const HowItWorks = () => {
+  let { t } = useTranslation();
   const steps = [
     {
       icon: <Home className="w-8 h-8 " />,
-      title: "Find real estate",
-      description:
-        "Sumo petentium ut per, at his wisim utinam adipiscing. Est el graeco quod suavitate vix.",
+      title: t("findAperfectHomeListItemOneHeading"),
+      description: t("findAperfectHomeListItemOneDescription"),
     },
     {
       icon: <Handshake className="w-8 h-8" />,
-      title: "Meet relator",
-      description:
-        "Sumo petentium ut per, at his wisim utinam adipiscing. Est el graeco quod suavitate vix.",
+      title: t("findAperfectHomeListItemTwoHeading"),
+      description: t("findAperfectHomeListItemTwoDescription"),
     },
     {
       icon: <FileText className="w-8 h-8" />,
-      title: "Documents",
-      description:
-        "Sumo petentium ut per, at his wisim utinam adipiscing. Est el graeco quod suavitate vix.",
+      title: t("findAperfectHomeListItemThreeHeading"),
+      description: t("findAperfectHomeListItemThreeDescription"),
     },
     {
       icon: <Key className="w-8 h-8" />,
-      title: "Take the keys",
-      description:
-        "Sumo petentium ut per, at his wisim utinam adipiscing. Est el graeco quod suavitate vix.",
+      title: t("findAperfectHomeListItemFourHeading"),
+      description: t("findAperfectHomeListItemFourDescription"),
     },
   ];
 
@@ -47,7 +46,7 @@ export const HowItWorks = () => {
               lineHeight: 1.1,
             }}
           >
-            How It Works?
+            {t("howItWorkSection")}
           </h2>
           <p
             className="text-[45px] text-black"
@@ -56,7 +55,7 @@ export const HowItWorks = () => {
               lineHeight: 1.1,
             }}
           >
-            Find a perfect home
+            {t("findAperfectHome")}
           </p>
         </div>
 

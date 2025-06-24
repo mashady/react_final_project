@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/TranslationContext";
 export const SmallNavBar = () => {
   return (
     <nav className="flex-row bg-white shadow-sm justify-start items-center p-2 space-x-4">
@@ -45,7 +46,7 @@ export const HeroSection = () => {
   ];
 
   const [currentImage, setCurrentImage] = useState(0);
-
+  const { t } = useTranslation();
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % images.length);
@@ -70,7 +71,7 @@ export const HeroSection = () => {
             width: "70%",
           }}
         >
-          Buy or rent properties with no commission
+          {t("header")}
         </h1>
 
         {/* <div className="flex space-x-4 justify-start w-220 max-w-8xl mb-0">

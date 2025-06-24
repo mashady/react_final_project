@@ -11,34 +11,69 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorMessage from "./components/ErrorMessage";
 
 const propertyService = {
-  async fetchProperties({ pageParam = 1, filters = {}, pageSize = 5 }) {
+  async fetchProperties({ pageParam = 1, filters = {}, pageSize = 10 }) {
     const params = new URLSearchParams({
       page: pageParam.toString(),
       per_page: pageSize.toString(),
     });
 
+    // Enhanced filter parameter mapping
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== "" && value !== null && value !== undefined) {
         if (key === "priceRange" && Array.isArray(value)) {
-          if (value[0] > 100) params.append("min_price", value[0].toString());
-          if (value[1] < 1000000)
+          // Only add price filters if they're not default values
+          if (value[0] > 100) {
+            params.append("min_price", value[0].toString());
+          }
+          if (value[1] < 1000000) {
             params.append("max_price", value[1].toString());
+          }
+        } else if (key === "number_of_beds" || key === "number_of_bathrooms") {
+          // Ensure numeric values are properly formatted
+          const numValue = parseInt(value);
+          if (!isNaN(numValue) && numValue > 0) {
+            params.append(key, numValue.toString());
+          }
+        } else if (key === "space") {
+          // Handle space/area filtering
+          const numValue = parseInt(value);
+          if (!isNaN(numValue) && numValue > 0) {
+            params.append("min_space", numValue.toString());
+          }
         } else {
-          params.append(key, value.toString());
+          // Handle text filters with trimming
+          const trimmedValue = value.toString().trim();
+          if (trimmedValue.length > 0) {
+            params.append(key, trimmedValue);
+          }
         }
       }
     });
 
-    const response = await fetch(`http://127.0.0.1:8000/api/ads?${params}`);
+    console.log("API Request:", `http://127.0.0.1:8000/api/ads?${params}`);
+    
+    const response = await fetch(`http://127.0.0.1:8000/api/ads?${params}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', response.status, errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return response.json();
+    
+    const data = await response.json();
+    console.log("API Response:", data);
+    return data;
   },
 };
 
 const useProperties = (filters) => {
-  const debouncedFilters = useDebounce(filters, 300);
+  // Use shorter debounce for better responsiveness
+  const debouncedFilters = useDebounce(filters, 500);
   const queryClient = useQueryClient();
 
   const query = useInfiniteQuery({
@@ -47,86 +82,61 @@ const useProperties = (filters) => {
       propertyService.fetchProperties({
         pageParam,
         filters: debouncedFilters,
-        pageSize: pageParam === 1 ? 5 : 10, // First page: 5 items, subsequent pages: 10 items
+        pageSize: 10, // Consistent page size
       }),
     getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.data || lastPage.data.length === 0) return undefined;
+      // Enhanced pagination logic
+      if (!lastPage || !lastPage.data || lastPage.data.length === 0) {
+        return undefined;
+      }
 
-      const expectedPageSize = allPages.length === 1 ? 5 : 10;
-      if (lastPage.data.length < expectedPageSize) return undefined;
+      const isLastPage = lastPage.data.length < 10;
+      if (isLastPage) {
+        return undefined;
+      }
 
       return allPages.length + 1;
     },
     initialPageParam: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (updated from cacheTime)
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
-    retry: 2,
+    retry: (failureCount, error) => {
+      // Only retry on network errors, not on 4xx/5xx HTTP errors
+      if (error.message.includes('HTTP error!')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
+  // Log query state for debugging
   useEffect(() => {
-    if (query.hasNextPage && !query.isFetchingNextPage) {
-      const nextPage = query.data?.pages?.length
-        ? query.data.pages.length + 1
-        : 1;
-      queryClient.prefetchInfiniteQuery({
-        queryKey: ["properties", debouncedFilters],
-        queryFn: () =>
-          propertyService.fetchProperties({
-            pageParam: nextPage,
-            filters: debouncedFilters,
-            pageSize: nextPage === 1 ? 5 : 10,
-          }),
-        pages: 1,
-      });
-    }
-  }, [
-    query.data?.pages?.length,
-    query.hasNextPage,
-    query.isFetchingNextPage,
-    debouncedFilters,
-    queryClient,
-  ]);
+    console.log('Query State:', {
+      isLoading: query.isLoading,
+      isError: query.isError,
+      error: query.error,
+      dataLength: query.data?.pages?.flatMap(page => page.data || []).length || 0,
+      hasNextPage: query.hasNextPage,
+    });
+  }, [query.isLoading, query.isError, query.error, query.data, query.hasNextPage]);
 
   return query;
 };
 
-const useVirtualScrolling = (
-  items,
-  itemHeight = 300,
-  containerHeight = 800
-) => {
-  const [scrollTop, setScrollTop] = useState(0);
-
-  const visibleItems = useMemo(() => {
-    const startIndex = Math.floor(scrollTop / itemHeight);
-    const endIndex = Math.min(
-      startIndex + Math.ceil(containerHeight / itemHeight) + 2,
-      items.length
-    );
-
-    return {
-      startIndex: Math.max(0, startIndex - 1),
-      endIndex,
-      visibleItems: items.slice(startIndex, endIndex),
-      totalHeight: items.length * itemHeight,
-      offsetY: startIndex * itemHeight,
-    };
-  }, [items, itemHeight, containerHeight, scrollTop]);
-
-  return { visibleItems, setScrollTop };
-};
-
 const PropertyList = () => {
+  // Enhanced initial filter state
   const [filters, setFilters] = useState({
+    title: "",
+    description: "",
     type: "",
-    category: "",
-    location: "",
-    bedrooms: "",
-    bathrooms: "",
-    priceRange: [0, 10000],
-    minArea: "",
-    maxArea: "",
+    area: "",
+    street: "",
+    block: "",
+    number_of_beds: "",
+    number_of_bathrooms: "",
+    space: "",
+    priceRange: [100, 10000],
   });
 
   const queryClient = useQueryClient();
@@ -142,9 +152,15 @@ const PropertyList = () => {
     refetch,
   } = useProperties(filters);
 
-  // Flatten all pages into a single array
+  // Flatten all pages into a single array with error handling
   const properties = useMemo(() => {
-    return data?.pages?.flatMap((page) => page.data) || [];
+    if (!data?.pages) return [];
+    return data.pages.flatMap((page) => {
+      if (page && page.data && Array.isArray(page.data)) {
+        return page.data;
+      }
+      return [];
+    });
   }, [data]);
 
   // Get total count from the first page
@@ -154,44 +170,60 @@ const PropertyList = () => {
   const { ref: sentinelRef } = useIntersection({
     onIntersect: () => {
       if (hasNextPage && !isFetchingNextPage) {
+        console.log('Loading next page...');
         fetchNextPage();
       }
     },
-    rootMargin: "100px", // Trigger loading when sentinel is 100px away from viewport
+    rootMargin: "200px", // Increased margin for earlier loading
   });
 
-  // Virtual scrolling (optional - for very large lists)
-  const { visibleItems } = useVirtualScrolling(properties);
-
-  // Optimized handlers
+  // Enhanced filter change handler
   const handleFilterChange = useCallback((key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    console.log('Filter changed:', key, value);
+    setFilters((prev) => {
+      const newFilters = { ...prev, [key]: value };
+      console.log('New filters:', newFilters);
+      return newFilters;
+    });
   }, []);
 
+  // Enhanced price range handler
   const handlePriceRangeChange = useCallback((newRange) => {
+    console.log('Price range changed:', newRange);
     setFilters((prev) => ({ ...prev, priceRange: newRange }));
   }, []);
 
+  // Enhanced reset handler
   const handleReset = useCallback(() => {
-    setFilters({
+    console.log('Resetting filters');
+    const resetFilters = {
+      title: "",
+      description: "",
       type: "",
-      category: "",
-      location: "",
-      bedrooms: "",
-      bathrooms: "",
+      area: "",
+      street: "",
+      block: "",
+      number_of_beds: "",
+      number_of_bathrooms: "",
+      space: "",
       priceRange: [100, 1000000],
-      minArea: "",
-      maxArea: "",
-    });
+    };
+    
+    setFilters(resetFilters);
+    
+    // Invalidate and refetch
     queryClient.invalidateQueries({ queryKey: ["properties"] });
   }, [queryClient]);
 
+  // Enhanced search handler
   const handleSearch = useCallback(() => {
-    refetch();
-  }, [refetch]);
+    console.log('Manual search triggered with filters:', filters);
+    queryClient.invalidateQueries({ queryKey: ["properties"] });
+  }, [queryClient, filters]);
 
   // Memoized utility functions
   const formatPrice = useCallback((price) => {
+    if (!price || isNaN(price)) return "$0";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -201,9 +233,11 @@ const PropertyList = () => {
   }, []);
 
   const formatPriceShort = useCallback((price) => {
-    if (price >= 1000000) return `${(price / 1000000).toFixed(1)}M`;
-    if (price >= 1000) return `${(price / 1000).toFixed(0)}K`;
-    return price.toString();
+    if (!price || isNaN(price)) return "0";
+    const numPrice = parseFloat(price);
+    if (numPrice >= 1000000) return `${(numPrice / 1000000).toFixed(1)}M`;
+    if (numPrice >= 1000) return `${(numPrice / 1000).toFixed(0)}K`;
+    return numPrice.toString();
   }, []);
 
   const getPropertyImage = useCallback((property) => {
@@ -216,41 +250,63 @@ const PropertyList = () => {
     return "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=400&h=300&fit=crop";
   }, []);
 
-  // Memoized unique values
+  // Enhanced unique values extraction
   const { uniqueTypes, uniqueLocations } = useMemo(() => {
     const types = new Set();
     const locations = new Set();
 
     properties.forEach((property) => {
-      if (property.type) types.add(property.type);
-      if (property.location) {
-        locations.add(property.location.split(",")[0]);
+      if (property.type && property.type.trim()) {
+        types.add(property.type.trim());
+      }
+      if (property.area && property.area.trim()) {
+        locations.add(property.area.trim());
+      }
+      // Also check location field as backup
+      if (property.location && property.location.trim()) {
+        const locationParts = property.location.split(",");
+        if (locationParts[0] && locationParts[0].trim()) {
+          locations.add(locationParts[0].trim());
+        }
       }
     });
 
     return {
-      uniqueTypes: Array.from(types),
-      uniqueLocations: Array.from(locations),
+      uniqueTypes: Array.from(types).sort(),
+      uniqueLocations: Array.from(locations).sort(),
     };
   }, [properties]);
 
-  // Debug log to see how many properties are loaded
+  // Debug logging
   useEffect(() => {
     console.log(
-      `Properties loaded: ${properties.length}, Has next page: ${hasNextPage}`
+      `Properties loaded: ${properties.length}, Total: ${totalCount}, Has next page: ${hasNextPage}, Unique types: ${uniqueTypes.length}, Unique locations: ${uniqueLocations.length}`
     );
-  }, [properties.length, hasNextPage]);
+  }, [properties.length, totalCount, hasNextPage, uniqueTypes.length, uniqueLocations.length]);
 
-  // if (isLoading) return <LoadingSpinner />;
-  if (isError)
+  // Handle error state
+  if (isError) {
+    console.error('Property list error:', error);
     return (
-      <ErrorMessage error={error?.message || "Failed to load properties"} />
+      <div className="min-h-screen p-4 md:p-6">
+        <div className="max-w-7xl mx-auto">
+          <ErrorMessage 
+            error={error?.message || "Failed to load properties"} 
+            onRetry={() => refetch()}
+          />
+        </div>
+      </div>
     );
+  }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <PropertyHeader totalProperties={totalCount} error={null} />
+        <PropertyHeader 
+          totalProperties={totalCount} 
+          error={null}
+          isLoading={isLoading}
+        />
 
         <PropertyFilters
           filters={filters}
@@ -261,21 +317,22 @@ const PropertyList = () => {
           getUniqueTypes={() => uniqueTypes}
           getUniqueLocations={() => uniqueLocations}
           formatPriceShort={formatPriceShort}
+          isLoading={isLoading}
         />
 
-        {isLoading ? (
+        {isLoading && properties.length === 0 ? (
           <div className="flex justify-center items-center py-16">
             <LoadingSpinner />
           </div>
         ) : properties.length > 0 ? (
           <>
             <PropertyGrid
-              properties={properties} // Use visibleItems.visibleItems for virtual scrolling
+              properties={properties}
               getPropertyImage={getPropertyImage}
               formatPrice={formatPrice}
             />
 
-            {/* Infinite scroll sentinel - only show if there are more pages */}
+            {/* Infinite scroll sentinel */}
             {hasNextPage && (
               <div
                 ref={sentinelRef}
@@ -284,32 +341,42 @@ const PropertyList = () => {
                 {isFetchingNextPage ? (
                   <div className="flex items-center space-x-2">
                     <LoadingSpinner />
+                    <span className="text-gray-500">Loading more properties...</span>
                   </div>
                 ) : (
                   <div className="text-center">
                     <div className="animate-pulse h-2 w-32 bg-gray-200 rounded mb-2"></div>
                     <span className="text-gray-400 text-sm">
-                      Scroll for more
+                      Scroll for more properties
                     </span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* End message when all properties are loaded */}
-            {!hasNextPage && properties.length > 5 && (
-              <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8">
+            {/* End message */}
+            {!hasNextPage && properties.length > 0 && (
+              <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8 bg-white rounded-lg">
                 <p className="text-lg font-medium">
-                  You've seen all {totalCount} properties
+                  You've seen all {totalCount} matching properties
                 </p>
                 <p className="text-sm text-gray-400 mt-1">
-                  Started with 5, loaded {properties.length} total
+                  {properties.length === totalCount ? 
+                    `Showing all ${totalCount} properties` : 
+                    `Loaded ${properties.length} of ${totalCount} properties`
+                  }
                 </p>
               </div>
             )}
           </>
         ) : (
-          <EmptyState />
+          <EmptyState 
+            hasActiveFilters={Object.values(filters).some(val => 
+              val !== "" && val !== null && val !== undefined && 
+              (Array.isArray(val) ? val[0] > 100 || val[1] < 1000000 : true)
+            )}
+            onClearFilters={handleReset}
+          />
         )}
       </div>
     </div>
