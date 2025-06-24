@@ -26,6 +26,7 @@ import { useParams } from "next/navigation";
 import ChatWindow from "@/components/chat/ChatWindow";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import { useSelector } from "react-redux";
+import Toast from "./components/Toast";
 
 const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const params = useParams();
@@ -49,6 +50,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const [ownerDetails, setOwnerDetails] = useState(null);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
   // Fetch property data
   useEffect(() => {
@@ -226,15 +228,21 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 
   const handleToggleWishlist = async () => {
     if (!currentUser) {
-      alert("Please log in to use wishlist.");
+      setToast({
+        message: "Please log in to use wishlist.",
+        type: "warning",
+        visible: true,
+      });
       return;
     }
-
     if (!propertyId) {
-      alert("Invalid property ID.");
+      setToast({
+        message: "Invalid property ID.",
+        type: "error",
+        visible: true,
+      });
       return;
     }
-
     setWishlistLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -247,7 +255,11 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
       setIsInWishlist(res.data.is_in_wishlist);
     } catch (err) {
       console.error(err);
-      alert("Failed to update wishlist. Please try again.");
+      setToast({
+        message: "Failed to update wishlist. Please try again.",
+        type: "error",
+        visible: true,
+      });
     } finally {
       setWishlistLoading(false);
     }
@@ -308,6 +320,14 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notification */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, visible: false })}
+        />
+      )}
       <div className="relative h-[600px] bg-gray-200 overflow-hidden">
         {images.length > 0 ? (
           <>
@@ -406,38 +426,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   </div>
                 ))}
               </div>
-              {property.price_per_sqm && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <div
-                    className="text-[26px] text-black"
-                    style={{
-                      fontWeight: 500,
-                    }}
-                  >
-                    {property.price_per_sqm}
-                  </div>
-                </div>
-              )}
             </div>
-
-            {/* Reviews Section */}
-            {/* <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Reviews</h2>
-              {reviewsLoading ? (
-                <div className="text-gray-500 mb-6">Loading reviews...</div>
-              ) : (
-                <ReviewList reviews={reviews} />
-              )}
-              <div className="border-t border-gray-100 pt-6 mt-6">
-                <ReviewForm
-                  reviewForm={reviewForm}
-                  setReviewForm={setReviewForm}
-                  submittingReview={submittingReview}
-                  reviewError={reviewError}
-                  onSubmit={handleReviewSubmit}
-                />
-              </div>
-            </div> */}
           </div>
 
           {/* Sidebar */}
