@@ -8,7 +8,7 @@ import axios from "axios";
 import { formSections, initialValues } from "../../validation/formSections";
 import { validationSchema } from "../../validation/add-property-validation";
 import FormSection from "../add-property/FormSection";
-import MediaUpload from "../add-property/MediaUpload";
+import MediaUpload from "./MediaUpload";
 import SubmitStatus from "../add-property/SubmitStatus";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 
@@ -18,6 +18,8 @@ const EditPropertyForm = ({ propertyId }) => {
   const [submitStatus, setSubmitStatus] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const router = useRouter();
+  const [mediaDeleted, setMediaDeleted] = useState(false);
+
 
   useEffect(() => {
     if (propertyId) {
@@ -28,7 +30,7 @@ const EditPropertyForm = ({ propertyId }) => {
           setFormValues({
             ...initialValues,
             ...data,
-            media: data.media?.map((m) => m.file_path) || [],
+            media: data.media?.map((m) => ({ id: m.id, file_path: m.file_path })) || [],
           });
           setLoading(false);
         })
@@ -50,25 +52,38 @@ const EditPropertyForm = ({ propertyId }) => {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitStatus(null);
-
+  
     try {
       const submitData = new FormData();
-
+      
+      // Append all non-media fields first
       Object.keys(values).forEach((key) => {
-        if (key === "media") {
-          values[key].forEach((file, index) => {
-            submitData.append(`media[${index}]`, file);
-          });
-        } else if (
-          values[key] !== null &&
-          values[key] !== undefined &&
-          values[key] !== ""
-        ) {
+        if (key !== 'media' && values[key] !== null && values[key] !== undefined) {
           submitData.append(key, values[key]);
         }
       });
-
-      await axios.post(
+  
+      // Handle media files - both existing and new
+      if (values.media && values.media.length > 0) {
+        values.media.forEach((file) => {
+          if (file instanceof File) {
+            // New file - append directly
+            submitData.append('media[]', file);
+          } else if (file?.id) {
+            // Existing file - append ID
+            submitData.append('existing_media[]', file.id);
+          }
+        });
+      } else {
+        // If no media selected at all, keep all existing media
+        formValues.media?.forEach((file) => {
+          if (file?.id) {
+            submitData.append('existing_media[]', file.id);
+          }
+        });
+      }
+  
+      const response = await axios.post(
         `http://127.0.0.1:8000/api/ads/${propertyId}?_method=PUT`,
         submitData,
         {
@@ -79,23 +94,36 @@ const EditPropertyForm = ({ propertyId }) => {
           },
         }
       );
-
+  
       showToast("Property updated successfully!", "success");
       router.push("/dashboard/my-properties");
     } catch (error) {
       console.error("Submission error:", error);
-      if (error.response && error.response.data) {
-        showToast(
-          error.response.data.message || "Failed to update property",
-          "error"
-        );
-      } else {
-        showToast("An unexpected error occurred!", "error");
-      }
+      showToast(error.response?.data?.message || "Failed to update property", "error");
     } finally {
       setSubmitting(false);
     }
   };
+  const handleRemoveAllMedia = async () => {
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/ads/${propertyId}/media`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      setFormValues((prev) => ({
+        ...prev,
+        media: [],
+      }));
+  
+      showToast("All media deleted successfully.", "success");
+    } catch (err) {
+      console.error("Failed to delete media:", err);
+      showToast("Failed to delete media.", "error");
+    }
+  };
+  
 
   return (
     <div className="p-4 md:p-6 min-h-screen">
@@ -125,7 +153,8 @@ const EditPropertyForm = ({ propertyId }) => {
                 <FormSection key={index} section={section} />
               ))}
 
-              <MediaUpload />
+            <MediaUpload onRemoveAllMedia={handleRemoveAllMedia} propertyId={propertyId} />
+
 
               <div className="flex justify-end gap-3 pt-6">
                 <button
