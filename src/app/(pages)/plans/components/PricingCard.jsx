@@ -149,7 +149,7 @@ const PricingCard = ({
       <div className="mt-auto">
         <button
           onClick={handleAddToCart}
-          disabled={loading ||  hasPlanfree || isDisabled}
+          disabled={loading ||  planId == 1 && hasPlanfree || isDisabled}
           className={`w-full py-3 px-6 rounded-none font-medium transition-colors cursor-pointer ${
             isDisabled
               ? "bg-gray-300 text-gray-600 cursor-not-allowed "
