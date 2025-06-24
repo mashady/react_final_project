@@ -1,17 +1,15 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
-import { X, Send, User } from "lucide-react";
+import { X, Send } from "lucide-react";
 
-// Always use backend port for Socket.IO
 const SOCKET_URL = "http://localhost:4000";
 
 function getUserDisplay(user) {
   if (!user) return { name: "User", avatar: "/owner.jpg" };
-  // If user.name is like 'User 123' (fallback), but user.username/email exists, prefer those
   let name = user.name;
   if (!name || /^User\s*\d+$/i.test(name)) {
-    name = user.username || user.email || undefined;
+    name = user.email || undefined;
   }
   return {
     name: name || "User",
@@ -29,7 +27,6 @@ export default function ChatWindow({
   customStyles = {},
   hideHeader = false,
 }) {
-  // Prevent user from chatting with themselves
   const isSelfChat =
     userId && targetUserId && String(userId) === String(targetUserId);
   if (isSelfChat) {
@@ -60,6 +57,7 @@ export default function ChatWindow({
       </div>
     );
   }
+
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(undefined);
@@ -168,11 +166,9 @@ export default function ChatWindow({
       type: "received",
       source: "realtime",
       sender_name: msg.sender_name,
-      sender_username: msg.sender_username,
       sender_email: msg.sender_email,
       sender_avatar: msg.sender_avatar,
       receiver_name: msg.receiver_name,
-      receiver_username: msg.receiver_username,
       receiver_email: msg.receiver_email,
       receiver_avatar: msg.receiver_avatar,
     };
@@ -189,11 +185,9 @@ export default function ChatWindow({
       type: "sent",
       source: "realtime",
       sender_name: msg.sender_name,
-      sender_username: msg.sender_username,
       sender_email: msg.sender_email,
       sender_avatar: msg.sender_avatar,
       receiver_name: msg.receiver_name,
-      receiver_username: msg.receiver_username,
       receiver_email: msg.receiver_email,
       receiver_avatar: msg.receiver_avatar,
     };
@@ -397,9 +391,7 @@ export default function ChatWindow({
         </button>
       )}
 
-      {/* Chat Popup */}
       <div style={popupStyle}>
-        {/* Header (optional) */}
         {!hideHeader && (
           <div
             style={{
@@ -414,15 +406,13 @@ export default function ChatWindow({
             }}
           >
             <div className="font-semibold text-black text-base truncate">
-              {/* Always prefer a real name, fallback to username/email, never show 'User 123' */}
               {(() => {
                 if (
                   targetUserInfo?.name &&
-                  !/^User \d+$/i.test(targetUserInfo.name)
+                  !/^User\s*\d+$/i.test(targetUserInfo.name)
                 ) {
                   return targetUserInfo.name;
                 }
-                if (propTargetUser?.username) return propTargetUser.username;
                 if (propTargetUser?.email) return propTargetUser.email;
                 return "Chat";
               })()}
@@ -455,7 +445,6 @@ export default function ChatWindow({
           </div>
         )}
 
-        {/* Error Messages */}
         {errors.length > 0 && (
           <div
             style={{
@@ -496,7 +485,6 @@ export default function ChatWindow({
           </div>
         )}
 
-        {/* Messages Container */}
         <div
           ref={messagesContainerRef}
           style={{
@@ -544,7 +532,6 @@ export default function ChatWindow({
                 display: "flex",
                 justifyContent:
                   msg.from === userId?.toString() ? "flex-end" : "flex-start",
-                transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
               }}
             >
               <div
@@ -557,39 +544,28 @@ export default function ChatWindow({
                   wordBreak: "break-word",
                   boxShadow:
                     msg.from === userId?.toString()
-                      ? "0 2px 8px 0 rgba(0,0,0,0.10)"
-                      : "0 2px 8px 0 rgba(0,0,0,0.06)",
+                      ? "0 2px 8px rgba(0,0,0,0.1)"
+                      : "0 2px 8px rgba(0,0,0,0.06)",
                   ...(msg.from === userId?.toString()
                     ? {
                         background: "#111",
                         color: "#fff",
                         borderBottomRightRadius: "7px",
-                        borderTopRightRadius: "7px",
+                        borderTopRightRadius: "0px",
                         border: "none",
                       }
                     : {
                         background: "#f6f6f6",
                         color: "#222",
                         borderBottomLeftRadius: "7px",
-                        borderTopLeftRadius: "7px",
+                        borderTopLeftRadius: "0px",
                         border: "1px solid #ececec",
                       }),
                   opacity: 1,
-                  animation: "fadeIn 0.3s cubic-bezier(.4,0,.2,1)",
+                  animation: "none",
                 }}
               >
-                {/* Display sender or receiver name above the message */}
-                <div
-                  style={{
-                    fontSize: "12px",
-                    opacity: 0.8,
-                    marginBottom: "4px",
-                  }}
-                >
-                  {msg.from === userId?.toString()
-                    ? msg.sender_name || `User ${msg.from}`
-                    : msg.receiver_name || `User ${msg.to}`}
-                </div>
+                {/* Only show message text and timestamp, no user name */}
                 <div>{msg.message}</div>
                 <div
                   style={{
@@ -613,17 +589,16 @@ export default function ChatWindow({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Form */}
         <form
           onSubmit={sendMessage}
           style={{
             padding: "18px 16px 18px 16px",
             borderTop: "none",
-            background: "#fff",
+            backgroundColor: "#fff",
             display: "flex",
             gap: "10px",
             alignItems: "center",
-            boxShadow: "0 -2px 12px 0 rgba(0,0,0,0.04)",
+            boxShadow: "0 -2px 12px rgba(0,0,0,0.04)",
             zIndex: 2,
           }}
         >
@@ -639,17 +614,17 @@ export default function ChatWindow({
               borderRadius: "22px",
               fontSize: "15px",
               outline: "none",
-              background: "#fafafa",
+              backgroundColor: "#fafafa",
               transition: "border-color 0.2s, box-shadow 0.2s",
-              boxShadow: "0 1px 4px 0 rgba(0,0,0,0.03)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
             }}
             onFocus={(e) => {
               e.target.style.borderColor = "#111";
-              e.target.style.boxShadow = "0 2px 8px 0 rgba(0,0,0,0.08)";
+              e.target.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08) ";
             }}
             onBlur={(e) => {
               e.target.style.borderColor = "#ececec";
-              e.target.style.boxShadow = "0 1px 4px 0 rgba(0,0,0,0.03)";
+              e.target.style.boxShadow = "0 1px 4px rgba(0,0,0,0.03)";
             }}
             autoComplete="off"
           />
@@ -677,18 +652,18 @@ export default function ChatWindow({
               transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
               boxShadow:
                 input.trim() && isHistoryLoaded && socketId
-                  ? "0 2px 8px 0 rgba(0,0,0,0.10)"
+                  ? "0 2px 8px rgba(0,0,0,0.10)"
                   : "none",
             }}
             onMouseEnter={(e) => {
               if (input.trim() && isHistoryLoaded && socketId) {
                 e.target.style.background = "#222";
-                e.target.style.transform = "scale(1.07)";
+                e.target.style.transform = "scale(1)";
               }
             }}
             onMouseLeave={(e) => {
               if (input.trim() && isHistoryLoaded && socketId) {
-                e.target.style.background = "#111";
+                e.target.style.backgroundColor = "#111";
                 e.target.style.transform = "scale(1)";
               }
             }}

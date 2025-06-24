@@ -426,38 +426,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   </div>
                 ))}
               </div>
-              {property.price_per_sqm && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <div
-                    className="text-[26px] text-black"
-                    style={{
-                      fontWeight: 500,
-                    }}
-                  >
-                    {property.price_per_sqm}
-                  </div>
-                </div>
-              )}
             </div>
-
-            {/* Reviews Section */}
-            {/* <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Reviews</h2>
-              {reviewsLoading ? (
-                <div className="text-gray-500 mb-6">Loading reviews...</div>
-              ) : (
-                <ReviewList reviews={reviews} />
-              )
-              <div className="border-t border-gray-100 pt-6 mt-6">
-                <ReviewForm
-                  reviewForm={reviewForm}
-                  setReviewForm={setReviewForm}
-                  submittingReview={submittingReview}
-                  reviewError={reviewError}
-                  onSubmit={handleReviewSubmit}
-                />
-              </div>
-            </div> */}
           </div>
 
           {/* Sidebar */}
