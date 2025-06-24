@@ -64,19 +64,27 @@ const PricingCard = ({
       );
 
       const data = await response.json();
-      setToast("Added to cart successfully!", "success");
-      // setMessage(data.message || "Added to cart successfully!");
 
-      // Auto-navigate to cart after successful addition
+      if (data.message === "Plan already added to cart") {
+        setToast({
+          message: data.message,
+          type: "error", 
+          visible: true,
+        });
+        return; 
+      }
+      
+      setToast({
+        message: data.message,
+        type: "success", 
+        visible: true,
+      });
+      
       router.push("/cart");
-      // setTimeout(() => {
-      //   console.log("Navigate to cart");
-      // }, 1500);
+      
     } catch (err) {
       console.error("Add to cart error:", err);
       setToast("Error adding to cart", "error");
-
-      // setMessage("Error adding to cart");
     } finally {
       setLoading(false);
     }

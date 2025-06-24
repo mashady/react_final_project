@@ -43,8 +43,8 @@ export default function CartTable({
                     </span>
                     {item.plan?.features && (
                       <span className="text-sm text-gray-500">
-                        {item.plan?.ads_limit
-                          ? `${item.plan.ads_limit} ads limit`
+                        {item.plan?.ads_Limit
+                          ? `${item.plan.ads_Limit} ads limit`
                           : "Unlimited ads"}
                       </span>
                     )}
