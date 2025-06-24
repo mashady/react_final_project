@@ -445,24 +445,6 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                     </span>
                   </div>
                 </div>
-                {/* <div className="flex space-x-2">
-                  <button
-                    className={`flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors ${
-                      isInWishlist ? "text-red-500" : ""
-                    }`}
-                    onClick={handleToggleWishlist}
-                    disabled={wishlistLoading}
-                  >
-                    <Heart className="w-5 h-5" />
-                    <span className="text-sm">
-                      {isInWishlist
-                        ? "Remove from wishlist"
-                        : "Add to wishlist"}
-                    </span>
-                  </button>
-                  <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors"></button>
-                  <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors"></button>
-                </div> */}
               </div>
             </div>
 
@@ -531,28 +513,43 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                       View my profile
                     </a>
                   )}
-                  {/* Chat with Owner Button */}
-                  {senderId && senderId !== ownerDetails.user_id && (
-                    <button
-                      className={`mt-4 w-full bg-black  text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2`}
-                      onClick={toggleChat}
-                      title={
-                        !senderId ? "Please log in to chat with the owner." : ""
+                  {/* Chat with Owner Button - always visible */}
+                  <button
+                    className={`mt-4 w-full bg-black text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center space-x-2`}
+                    onClick={() => {
+                      if (!senderId) {
+                        setToast({
+                          message: "You should login first",
+                          type: "warning",
+                          visible: true,
+                        });
+                        return;
                       }
-                    >
-                      <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
-                      {showChat ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  )}
-                  {!senderId && (
-                    <div className="text-xs text-red-500 mt-2 text-center">
-                      Please log in to chat with the owner.
-                    </div>
-                  )}
+                      if (senderId === ownerDetails.user_id) {
+                        setToast({
+                          message: "You cannot chat with yourself.",
+                          type: "warning",
+                          visible: true,
+                        });
+                        return;
+                      }
+                      toggleChat();
+                    }}
+                    title={
+                      !senderId
+                        ? "You should login first"
+                        : senderId === ownerDetails.user_id
+                        ? "You cannot chat with yourself."
+                        : ""
+                    }
+                  >
+                    <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
+                    {showChat ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
                 </>
               ) : (
                 <div className="text-gray-500">

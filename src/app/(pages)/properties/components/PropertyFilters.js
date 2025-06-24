@@ -25,10 +25,11 @@ export default function PropertyFilters({
 
   const handleLocalPriceRange = (range) => {
     setLocalFilters((prev) => ({ ...prev, priceRange: range }));
+    if (handleFilterChange) handleFilterChange("priceRange", range);
+    if (handlePriceRangeChange) handlePriceRangeChange(range);
   };
 
   const onSearch = () => {
-
     Object.entries(localFilters).forEach(([key, value]) => {
       handleFilterChange(key, value);
     });
@@ -78,11 +79,18 @@ export default function PropertyFilters({
           onChange={(e) => handleLocalChange("type", e.target.value)}
         >
           <option value="">Types</option>
-          {getUniqueTypes().map((type) => (
+          {["apartment", "room", "bed"].map((type) => (
             <option key={type} value={type}>
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </option>
           ))}
+          {getUniqueTypes && getUniqueTypes().filter(
+            (type) => !["apartment", "room", "bed"].includes(type)
+          ).length === 0 ? null : (
+            <option value="notfound" disabled>
+              Not found
+            </option>
+          )}
         </select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
@@ -143,7 +151,6 @@ export default function PropertyFilters({
               onValueChange={handleLocalPriceRange}
               max={10000}
               min={100}
-              step={1000}
               className="w-full"
             />
           </div>
