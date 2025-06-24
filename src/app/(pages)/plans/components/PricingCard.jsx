@@ -12,7 +12,8 @@ const PricingCard = ({
   planId,
   isDisabled = false,
   isUpgrade,
-  duration = "/month*", // Add duration prop with default
+  duration = "/month*",
+  hasPlanfree
 }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -33,13 +34,12 @@ const PricingCard = ({
     if (!planId) {
       showToast("Invalid plan selected", "error");
 
-      // setMessage("Invalid plan selected");
       return;
     }
 
     const token = window.localStorage?.getItem("token");
     if (!token) {
-      // router.push would be used here in your actual implementation
+    
       router.push("/login");
       console.log("Redirect to login");
       return;
@@ -49,7 +49,7 @@ const PricingCard = ({
     setMessage("");
 
     try {
-      // Your axios call would go here in the actual implementation
+    
       const response = await fetch(
         "http://127.0.0.1:8000/api/plans/add-to-cart",
         {
@@ -96,7 +96,7 @@ const PricingCard = ({
         isPopular ? "bg-blue-50 border-blue-200" : ""
       }`}
     >
-      {/* Popular badge */}
+    
       {isPopular && (
         <div className="absolute -top-3 right-6">
           <div className="bg-white rounded-full p-2 shadow-sm border border-gray-200">
@@ -149,7 +149,7 @@ const PricingCard = ({
       <div className="mt-auto">
         <button
           onClick={handleAddToCart}
-          disabled={loading || isDisabled}
+          disabled={loading ||  hasPlanfree || isDisabled}
           className={`w-full py-3 px-6 rounded-none font-medium transition-colors cursor-pointer ${
             isDisabled
               ? "bg-gray-300 text-gray-600 cursor-not-allowed "
@@ -158,13 +158,16 @@ const PricingCard = ({
               : "bg-yellow-500 hover:bg-yellow-600 text-black"
           } ${loading && "opacity-50 cursor-wait"}`}
         >
-          {loading
-            ? "Adding..."
-            : isDisabled
-            ? "Current Plan"
-            : isUpgrade
-            ? "Upgrade"
-            : "Get Started"}
+        {loading
+          ? "Adding..."
+          : planId == 1 && hasPlanfree
+          ? "Already Taken"
+          : isDisabled
+          ? "Current Plan"
+          : isUpgrade
+          ? "Upgrade"
+          : "Get Started"}
+
         </button>
 
         {/* {message && (

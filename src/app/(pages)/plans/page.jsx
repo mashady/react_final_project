@@ -109,6 +109,7 @@ export default function PricingPage() {
                 planId={plan.id}
                 isDisabled={isDisabled}
                 isUpgrade={isUpgrade}
+                hasPlanfree={hasUsedFreePlan}
               />
             );
           })}
