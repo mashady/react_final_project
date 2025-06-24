@@ -7,6 +7,8 @@ import CartTotals from "./components/CartTotals";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "../properties/components/LoadingSpinner";
 import Header from "@/components/shared/Header";
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import { setLoading } from "@/features/wishlist/wishlistSlice";
 
 export default function CartPage() {
   const router = useRouter();
@@ -20,6 +22,7 @@ export default function CartPage() {
   const [couponMessage, setCouponMessage] = useState("");
   const [couponStatus, setCouponStatus] = useState("");
   const [session, $session] = useState("");
+  const [toastData, setToastData] = useState(null);
 
   const API_BASE = "http://127.0.0.1:8000/api/plans";
 
@@ -192,14 +195,25 @@ export default function CartPage() {
       console.error("No plan ID provided for checkout");
       return;
     }
-
+  
+    if (cartItems.length > 1) {
+      setToastData({
+        message: "You can't buy more than 1 plan at a time",
+        type: "error",
+      });
+      return;
+    }
+  
+    setIsLoading(true);
+  
     if (planId === 1) {
       const $session = "freeplan" + id;
       router.push(`/payment-success?session_id=${$session}&plan_id=${planId}`);
-      return;
+    } else {
+      router.push(`/payment/${planId}`);
     }
-    router.push(`/payment/${planId}`);
   };
+  
 
   if (isLoading && cartItems.length === 0) {
     return <LoadingSpinner />;
@@ -253,6 +267,14 @@ export default function CartPage() {
               isLoading={isLoading}
               appliedCoupon={appliedCoupon}
             />
+            {toastData && (
+            <Toast
+              message={toastData.message}
+              type={toastData.type}
+              onClose={() => setToastData(null)}
+            />
+          )}
+
           </>
         )}
       </div>

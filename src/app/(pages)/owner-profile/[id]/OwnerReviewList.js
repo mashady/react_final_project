@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import ConfirmDialog from "@/app/(pages)/property/[id]/components/ConfirmDialog";
 
 function OwnerReviewList({ ownerId, refreshKey }) {
   const [reviews, setReviews] = useState([]);
@@ -11,6 +13,8 @@ function OwnerReviewList({ ownerId, refreshKey }) {
   const [editContent, setEditContent] = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [toast, setToast] = useState({ message: "", type: "", visible: false });
+  const [confirm, setConfirm] = useState({ open: false, reviewId: null });
   const currentUser = useSelector((state) => state.user.data);
 
   useEffect(() => {
@@ -71,8 +75,13 @@ function OwnerReviewList({ ownerId, refreshKey }) {
     }
   };
 
-  const handleDelete = async (reviewId) => {
-    if (!window.confirm("Are you sure you want to delete this review?")) return;
+  const handleDelete = (reviewId) => {
+    setConfirm({ open: true, reviewId });
+  };
+
+  const handleConfirmDelete = async () => {
+    const reviewId = confirm.reviewId;
+    setConfirm({ open: false, reviewId: null });
     setDeletingId(reviewId);
     setError("");
     try {
@@ -87,8 +96,14 @@ function OwnerReviewList({ ownerId, refreshKey }) {
         { headers }
       );
       setReviews(res.data.data || []);
+      setToast({ message: "Review deleted.", type: "success", visible: true });
     } catch (err) {
       setError("Failed to delete review");
+      setToast({
+        message: "Failed to delete review",
+        type: "error",
+        visible: true,
+      });
     } finally {
       setDeletingId(null);
     }
@@ -108,6 +123,19 @@ function OwnerReviewList({ ownerId, refreshKey }) {
     );
   return (
     <div className="space-y-6">
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, visible: false })}
+        />
+      )}
+      <ConfirmDialog
+        open={confirm.open}
+        message="Are you sure you want to delete this review?"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirm({ open: false, reviewId: null })}
+      />
       {reviews.map((review) => {
         const isReviewAuthor =
           currentUser && review.user && review.user.id === currentUser.id;

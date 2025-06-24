@@ -37,13 +37,25 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Create message object with timestamp
+    // Fetch user information for sender and receiver
+    const [senderInfo, receiverInfo] = await Promise.all([
+      getUserInfo(from),
+      getUserInfo(to),
+    ]);
+
+    // Create message object with timestamp and user info
     const timestamp = new Date().toISOString();
     const messageObj = {
       from,
       to,
       message,
       timestamp,
+      sender_name: senderInfo?.name || senderInfo?.email || `User ${from}`,
+      sender_email: senderInfo?.email || null,
+      sender_avatar: senderInfo?.avatar || senderInfo?.picture || null,
+      receiver_name: receiverInfo?.name || receiverInfo?.email || `User ${to}`,
+      receiver_email: receiverInfo?.email || null,
+      receiver_avatar: receiverInfo?.avatar || receiverInfo?.picture || null,
     };
 
     // Send to recipient immediately for real-time experience
@@ -54,10 +66,9 @@ io.on("connection", (socket) => {
     console.log(`📤 Sending confirmation to ${from}`);
     socket.emit("message_sent_confirmation", messageObj);
 
-    // Handle database operations asynchronously (don't block real-time)
+    // Handle database operations asynchronously
     setImmediate(async () => {
       try {
-        // Validate and convert user IDs to bigint
         const senderId = parseInt(from);
         const receiverId = parseInt(to);
 
@@ -66,7 +77,6 @@ io.on("connection", (socket) => {
           return;
         }
 
-        // Save message to database
         const messageData = {
           sender_id: senderId,
           receiver_id: receiverId,
@@ -82,7 +92,6 @@ io.on("connection", (socket) => {
 
         if (insertError) {
           console.error("❌ Database insert error:", insertError);
-          // Emit error to sender only (don't disrupt real-time for others)
           socket.emit("database_error", {
             message: "Failed to save message to database",
             error: insertError.message,
@@ -100,19 +109,38 @@ io.on("connection", (socket) => {
     });
   });
 
+  async function getUserInfo(userId) {
+    try {
+      const { data, error } = await supabase
+        .from("user")
+        .select("id,name,email,avatar,picture")
+        .eq("id", userId)
+        .single();
+
+      console.log(`User ${userId} data:`, data); // Debug log
+      if (error) {
+        console.error(`❌ Error fetching user ${userId}:`, error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`❌ Error fetching user ${userId}:`, error);
+      return null;
+    }
+  }
+
   socket.on("join", (userId) => {
     console.log("\n🔵 Join Event:");
     console.log("- User ID:", userId);
     console.log("- Socket ID:", socket.id);
 
-    // Leave previous room if any
     if (connectedUsers.has(socket.id)) {
       const oldRoom = connectedUsers.get(socket.id);
       console.log(`- Leaving old room: ${oldRoom}`);
       socket.leave(oldRoom);
     }
 
-    // Join new room
     console.log(`- Joining new room: ${userId}`);
     socket.join(userId);
     connectedUsers.set(socket.id, userId);
@@ -176,50 +204,56 @@ app.get("/api/messages/inbox", async (req, res) => {
     return res.status(400).json({ error: "Missing userId" });
   }
   try {
-    // Get all messages where user is sender or receiver, order by created_at desc
-    // Also join user table to get names for sender and receiver
     const { data, error } = await supabase
       .from("messages")
-      .select(`*, sender:sender_id (id, name), receiver:receiver_id (id, name)`)
+      .select(
+        `*,sender:sender_id(id,name,email),receiver:receiver_id(id,name,email)`
+      )
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order("created_at", { ascending: false });
     if (error) {
       return res.status(500).json({ error: error.message });
     }
 
-    // Find all unique user IDs that are missing names
+    console.log("Inbox API response:", data); // Debug log
+
     const missingUserIds = new Set();
     (data || []).forEach((msg) => {
-      if (!msg.sender?.name) missingUserIds.add(msg.sender_id);
-      if (!msg.receiver?.name) missingUserIds.add(msg.receiver_id);
+      if (!msg.sender?.name && !msg.sender?.email)
+        missingUserIds.add(msg.sender_id);
+      if (!msg.receiver?.name && !msg.receiver?.email)
+        missingUserIds.add(msg.receiver_id);
     });
 
-    let userIdToName = {};
+    let userIdToInfo = {};
     if (missingUserIds.size > 0) {
-      // Fetch missing user names in one query
       const { data: usersData, error: usersError } = await supabase
         .from("user")
-        .select("id, name")
+        .select("id,name,email,avatar,picture")
         .in("id", Array.from(missingUserIds));
       if (!usersError && usersData) {
         usersData.forEach((u) => {
-          userIdToName[u.id] = u.name;
+          userIdToInfo[u.id] = u;
         });
       }
     }
 
-    // Attach sender_name and receiver_name for easier frontend use
-    const withNames = (data || []).map((msg) => ({
-      ...msg,
-      sender_name:
-        msg.sender?.name ||
-        userIdToName[msg.sender_id] ||
-        `User ${msg.sender_id}`,
-      receiver_name:
-        msg.receiver?.name ||
-        userIdToName[msg.receiver_id] ||
-        `User ${msg.receiver_id}`,
-    }));
+    const withNames = (data || []).map((msg) => {
+      const senderInfo = msg.sender || userIdToInfo[msg.sender_id] || {};
+      const receiverInfo = msg.receiver || userIdToInfo[msg.receiver_id] || {};
+      return {
+        ...msg,
+        sender_name:
+          senderInfo.name || senderInfo.email || `User ${msg.sender_id}`,
+        sender_email: senderInfo.email || null,
+        sender_avatar: senderInfo.avatar || senderInfo.picture || null,
+        receiver_name:
+          receiverInfo.name || receiverInfo.email || `User ${msg.receiver_id}`,
+        receiver_email: receiverInfo.email || null,
+        receiver_avatar: receiverInfo.avatar || receiverInfo.picture || null,
+      };
+    });
+
     return res.status(200).json(withNames);
   } catch (err) {
     return res.status(500).json({ error: err.message });
