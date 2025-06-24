@@ -6,7 +6,7 @@ import LoadingSpinner from "../../properties/components/LoadingSpinner";
 
 const stripePromise = loadStripe(
   "pk_test_51Oa1apC2Y3Ne3oUhz8quAdzU0O1aAgoTSP0wwiEMbUqZDd0knNgOnMSyU3Us4s05QjCdwvqmxA2EDGAT3Mj9a3kj00BKiR5q83"
-); // replace with your real key
+);
 
 export default function CheckoutPage({ params }) {
   const { planId } = params;
