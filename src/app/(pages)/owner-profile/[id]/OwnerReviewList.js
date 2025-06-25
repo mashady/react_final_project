@@ -23,10 +23,13 @@ function OwnerReviewList({ ownerId, refreshKey }) {
       setError("");
       try {
         const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        // Only set headers if token exists
+        const headers = token
+          ? { Authorization: `Bearer ${token}` }
+          : undefined;
         const res = await axios.get(
           `http://127.0.0.1:8000/api/owners/${ownerId}/reviews`,
-          { headers }
+          headers ? { headers } : undefined
         );
         setReviews(res.data.data || []);
       } catch (err) {
@@ -109,10 +112,14 @@ function OwnerReviewList({ ownerId, refreshKey }) {
     }
   };
 
+  // Check if current user already has a review for this owner
+  const userHasReview =
+    currentUser && reviews.some((r) => r.user && r.user.id === currentUser.id);
+
   if (loading) {
     return <div className="text-gray-500">Loading reviews...</div>;
   }
-  if (error) {
+  if (error && (!reviews || reviews.length === 0)) {
     return <div className="text-red-500">{error}</div>;
   }
   if (!reviews.length)
@@ -136,6 +143,18 @@ function OwnerReviewList({ ownerId, refreshKey }) {
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirm({ open: false, reviewId: null })}
       />
+      {/* Only show review form if user is logged in and hasn't reviewed yet */}
+      {currentUser && !userHasReview ? (
+        <div className="mb-4">
+          {/* Place your review form here, or render children, etc. */}
+          {/* Example: <ReviewForm ... /> */}
+        </div>
+      ) : null}
+      {currentUser && userHasReview && (
+        <div className="text-blue-600 text-sm mb-2">
+          You have already submitted a review for this owner.
+        </div>
+      )}
       {reviews.map((review) => {
         const isReviewAuthor =
           currentUser && review.user && review.user.id === currentUser.id;
@@ -146,6 +165,7 @@ function OwnerReviewList({ ownerId, refreshKey }) {
           >
             <div className="font-semibold text-[#222] text-lg mb-1 flex items-center justify-between">
               <span>{review.user?.name || "Anonymous"}</span>
+              {/* Only allow edit/delete if this is the user's own review */}
               {isReviewAuthor && editingId !== review.id && (
                 <div className="flex gap-2 ml-2">
                   <button
@@ -203,5 +223,4 @@ function OwnerReviewList({ ownerId, refreshKey }) {
     </div>
   );
 }
-
 export default OwnerReviewList;

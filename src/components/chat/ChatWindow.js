@@ -397,7 +397,7 @@ export default function ChatWindow({
             style={{
               padding: "20px 20px 18px 20px",
               borderBottom: "none",
-              background: "#fff",
+              background: "#000", // Set header background to black
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -405,7 +405,7 @@ export default function ChatWindow({
               zIndex: 2,
             }}
           >
-            <div className="font-semibold text-black text-base truncate">
+            <div className="font-semibold text-white text-base truncate">
               {(() => {
                 if (
                   targetUserInfo?.name &&
@@ -440,7 +440,7 @@ export default function ChatWindow({
               }}
               aria-label="Close chat"
             >
-              <X size={20} color="#6b7280" />
+              <X size={20} color="#fff" />
             </button>
           </div>
         )}
