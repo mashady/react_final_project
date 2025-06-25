@@ -27,7 +27,7 @@ export default function UsersModal({
   formatDate,
 }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl transform transition-all duration-300 border border-amber-200">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium text-slate-800">
