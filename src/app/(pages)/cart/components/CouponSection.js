@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/TranslationContext";
 import { CheckCircle, AlertCircle } from "lucide-react";
 
 export default function CouponSection({
@@ -10,6 +11,7 @@ export default function CouponSection({
   couponMessage,
   couponStatus,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col sm:flex-row gap-4 justify-between items-start mb-8">
       <div className="flex flex-col gap-2">
@@ -27,7 +29,9 @@ export default function CouponSection({
             disabled={!couponCode.trim() || isLoading}
             className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-black font-medium transition-colors"
           >
-            {isLoading ? "Applying..." : "Apply coupon"}
+            {isLoading
+              ? t("cartTableItemApplingCoupon")
+              : t("cartTableItemApplyCoupon")}
           </button>
         </div>
         {couponMessage && (
@@ -50,7 +54,9 @@ export default function CouponSection({
         disabled={isLoading}
         className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-black font-medium transition-colors"
       >
-        {isLoading ? "Updating..." : "Update cart"}
+        {isLoading
+          ? t("cartTableItemUpdateCart")
+          : t("cartTableItemUpdatingCart")}
       </button>
     </div>
   );
