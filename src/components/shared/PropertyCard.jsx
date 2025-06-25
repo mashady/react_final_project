@@ -108,6 +108,7 @@ const PropertyCard = ({
 
   const currentUser = useSelector((state) => state.user.data);
   const isOwner = currentUser?.role === "owner";
+  const isAdmin = currentUser?.role === "admin";
   const isLoggedIn = !!currentUser;
 
   const handleFavoriteClick = (e) => {
@@ -184,7 +185,7 @@ const PropertyCard = ({
           </div>
         )}
 
-        {!isOwner && isLoggedIn && (
+        {!isOwner && !isAdmin && isLoggedIn && (
           <button
             type="button"
             className={`absolute top-4 right-4 z-10 rounded p-2 shadow transition-all duration-300 cursor-pointer
@@ -236,12 +237,14 @@ const PropertyCard = ({
                 className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded shadow-md w-32"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  onClick={handleEdit}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                >
-                  Edit
-                </button>
+                {!isAdmin && (
+                  <button
+                    onClick={handleEdit}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                  >
+                    Edit
+                  </button>
+                )}
                 <button
                   onClick={handleDelete}
                   className="w-full text-left px-4 py-2 hover:bg-red-100 text-sm text-red-600"

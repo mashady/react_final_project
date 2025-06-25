@@ -60,6 +60,7 @@ export default {
   navbarEnglish: "English",
   navbarJoin: "Join Us",
   navbarUsers: "Users",
+  navbarCart: "Cart",
   navbarAllProperties: "All Properties",
   navbarVerifyPending: "Verify Pending",
   dashboardHeader: "User Dashboard",

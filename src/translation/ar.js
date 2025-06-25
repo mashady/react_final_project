@@ -60,6 +60,7 @@ export default {
   navbarUsers: "المستخدمون",
   navbarAllProperties: "جميع العقارات",
   navbarVerifyPending: "التحقق قيد الانتظار",
+  navbarCart: "السلة",
   dashboardHeader: "لوحة التحكم",
   dashboardProfileEmail: "البريد الإلكتروني",
   dashboardProfilePhone: "الهاتف",

@@ -7,7 +7,7 @@ import api from "../../../../api/axiosConfig";
 import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
-import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import
+import RequireAuth from "@/components/shared/RequireAuth";
 
 const MyPackagesContent = () => {
   const [packages, setPackages] = useState([]);

@@ -43,7 +43,10 @@ const Navbar = () => {
       ? []
       : [
           { href: "/dashboard", label: t("navbarDropMyProfile") },
-          { href: "/dashboard/edit-profile", label: t("navbarDropEditProfile") },
+          {
+            href: "/dashboard/edit-profile",
+            label: t("navbarDropEditProfile"),
+          },
           { href: "/dashboard/messages", label: t("navbarDropMessages") },
         ];
 
@@ -55,6 +58,7 @@ const Navbar = () => {
     { href: "/dashboard/my-packages", label: t("navbarDropMyPackages") },
     { href: "/dashboard/my-properties", label: t("navbarDropMyProperties") },
     { href: "/dashboard/add-property", label: t("navbarAddProperty") },
+    { href: "/cart", label: t("navbarCart") },
   ];
 
   const adminDropdownItems = [
@@ -217,7 +221,7 @@ const Navbar = () => {
                     className="w-8 h-8 rounded-full object-cover"
                   />
                   <span className="text-sm text-gray-700">
-                    HELLO: {user?.name || "User"}
+                    {user?.name || "User"}
                   </span>
                 </div>
                 {(userRole === "owner" || userRole === "admin") && (
