@@ -6,6 +6,7 @@ import PropertyList from "./PropertyList";
 import PropertyModal from "./PropertyModal";
 import PropertyViewModal from "./PropertyViewModal";
 import axios from "axios";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -163,10 +164,9 @@ const PropertyManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading properties...</p>
+          <LoadingSpinner />
         </div>
       </div>
     );
@@ -174,35 +174,13 @@ const PropertyManagement = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-light text-slate-800 tracking-tight flex items-center gap-3">
-                Property Management
-              </h1>
-              <p className="text-slate-600 mt-2 font-light">
-                Manage all property listings in the system
-              </p>
-            </div>
-            <div className="text-right">
-              <button
-                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 shadow-lg"
-                onClick={() => openModal()}
-              >
-                <Plus className="w-5 h-5" /> Add Property
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-6">
             {error}
           </div>
         )}
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <div className="bg-white overflow-hidden">
           <PropertyList
             properties={properties}
             onEdit={openModal}

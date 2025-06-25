@@ -12,14 +12,15 @@ import {
   MessageSquareDot,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "@/TranslationContext";
+import { logout } from "@/features/user/userSlice";
 
 const DashboardNav = () => {
   let { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
-
+  const dispatch = useDispatch();
   const { data: user } = useSelector((state) => state.user);
   const userRole = user?.role;
 
@@ -97,8 +98,7 @@ const DashboardNav = () => {
   const navLinks = getNavLinks();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    dispatch(logout());
     router.push("/");
   };
 
