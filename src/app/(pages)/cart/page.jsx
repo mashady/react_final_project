@@ -9,8 +9,10 @@ import LoadingSpinner from "../properties/components/LoadingSpinner";
 import Header from "@/components/shared/Header";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { setLoading } from "@/features/wishlist/wishlistSlice";
+import { useTranslation } from "@/TranslationContext";
 
 export default function CartPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [cartItems, setCartItems] = useState([]);
   const [couponCode, setCouponCode] = useState("");
@@ -195,7 +197,7 @@ export default function CartPage() {
       console.error("No plan ID provided for checkout");
       return;
     }
-  
+
     if (cartItems.length > 1) {
       setToastData({
         message: "You can't buy more than 1 plan at a time",
@@ -203,9 +205,9 @@ export default function CartPage() {
       });
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     if (planId === 1) {
       const $session = "freeplan" + id;
       router.push(`/payment-success?session_id=${$session}&plan_id=${planId}`);
@@ -213,7 +215,6 @@ export default function CartPage() {
       router.push(`/payment/${planId}`);
     }
   };
-  
 
   if (isLoading && cartItems.length === 0) {
     return <LoadingSpinner />;
@@ -221,21 +222,21 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Cart" />
+      <Header title={t("navbarCart")} />
 
       <div className="max-w-6xl mx-auto p-6 bg-white mt-6">
         {cartItems.length === 0 ? (
           <div className="text-center py-16">
             <ShoppingCart size={64} className="mx-auto text-gray-400 mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Your cart is empty
+              {t("cartEmpty")}
             </h2>
-            <p className="text-gray-600 mb-8">Add some plans to get started!</p>
+            <p className="text-gray-600 mb-8">{t("cartEmptyMsg")}</p>
             <button
               onClick={() => router.push("/plans")}
               className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-medium transition-colors"
             >
-              Browse Plans
+              {t("cartAddPlans")}
             </button>
           </div>
         ) : (
@@ -268,13 +269,12 @@ export default function CartPage() {
               appliedCoupon={appliedCoupon}
             />
             {toastData && (
-            <Toast
-              message={toastData.message}
-              type={toastData.type}
-              onClose={() => setToastData(null)}
-            />
-          )}
-
+              <Toast
+                message={toastData.message}
+                type={toastData.type}
+                onClose={() => setToastData(null)}
+              />
+            )}
           </>
         )}
       </div>

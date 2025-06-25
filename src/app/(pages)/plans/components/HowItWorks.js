@@ -1,6 +1,9 @@
 "use client";
 
+import { useTranslation } from "@/TranslationContext";
+
 export default function HowItWorks() {
+  let { t } = useTranslation();
   return (
     <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
       <div>
@@ -10,18 +13,14 @@ export default function HowItWorks() {
             fontWeight: 500,
           }}
         >
-          How It Works?
+          {t("howItWorksHeader")}
           <br />
-          Find a perfect home
+
+          {t("howItWorksHeader2")}
         </h1>
       </div>
       <div className="text-[#555] text-[17px] leading-relaxed">
-        <p>
-          Maxim saepe instructor mei ei, sanctus assueverit per at, ad eam veri
-          putent nonumes. Maluisset id duo modo quidam, ut mei tractatos
-          intellegat. Ea electram repudiandae qui. Ea soluta meliore accumsan
-          vel.
-        </p>
+        <p>{t("howItWorksText1")}</p>
       </div>
     </div>
   );

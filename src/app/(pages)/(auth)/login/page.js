@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, fetchUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/TranslationContext";
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
@@ -27,6 +28,7 @@ const LoginSchema = Yup.object().shape({
 });
 
 const LoginPage = () => {
+  let { t } = useTranslation();
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error, data } = useSelector((state) => state.user);
@@ -51,7 +53,6 @@ const LoginPage = () => {
       const resultAction = await dispatch(loginUser(values));
 
       if (loginUser.fulfilled.match(resultAction)) {
-        
         showToast("Login successful!", "success");
 
         setTimeout(() => {
@@ -75,19 +76,25 @@ const LoginPage = () => {
   }, [data, router]);
 
   return (
-    <> 
+    <>
       <div className="min-h-screen py-32 bg-gray-50">
         <div className="my-4 p-4 w-[300px] m-auto bg-yellow-100 border border-yellow-400 text-yellow-700 rounded md:w-[450px]">
-          <span>Your email is not verified? Please check your inbox and verify your email to proceed.</span>
+          <span>{t("loginVerifyEmailMsg")}</span>
           <p>
-            <Link href="/verify/resend_verify_mail" className="ml-2 text-blue-600 hover:underline">
-              Resend Verification Email
+            <Link
+              href="/verify/resend_verify_mail"
+              className="ml-2 text-blue-600 hover:underline"
+            >
+              {t("loginResend")}
             </Link>
           </p>
         </div>
         <Card className="w-[300px] m-auto min-h-[450px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
           <CardHeader>
-            <CardTitle className="text-center text-3xl">Login</CardTitle>
+            <CardTitle className="text-center text-3xl">
+              {" "}
+              {t("loginHeader")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Formik
@@ -105,7 +112,7 @@ const LoginPage = () => {
                       name="email"
                       type="text"
                       as={Input}
-                      placeholder="Email*"
+                      placeholder={t("loginEmailPlaceholder")}
                       className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
@@ -120,7 +127,7 @@ const LoginPage = () => {
                       name="password"
                       type="password"
                       as={Input}
-                      placeholder="Password*"
+                      placeholder={t("loginPasswordPlaceholder")}
                       className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
@@ -135,7 +142,7 @@ const LoginPage = () => {
                     disabled={loading}
                     className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
                   >
-                    {loading ? "Logging in..." : "Login"}
+                    {loading ? t("loginLoading") : t("loginButton")}
                   </Button>
                 </Form>
               )}
@@ -143,23 +150,23 @@ const LoginPage = () => {
           </CardContent>
           <CardFooter className="flex-col gap-2">
             <div className="text-center">
-              <span className="text-muted-foreground">Not a member?</span>
+              <span className="text-muted-foreground">{t("notAMamber")}</span>
               <Link
                 href="/register"
                 passHref
                 className="text-black m-2 hover:underline"
               >
-                Register here
+                {t("registerHere")}
               </Link>
             </div>
             <div className="text-center">
-              <span className="text-muted-foreground">Or</span>
+              <span className="text-muted-foreground">{t("or")}</span>
               <Link
                 href="/sign-with-google"
                 passHref
                 className="text-black m-2 hover:underline"
               >
-                Sign in with Google
+                {t("googleAuth")}
               </Link>
             </div>
           </CardFooter>
