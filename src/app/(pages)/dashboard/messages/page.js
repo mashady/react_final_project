@@ -317,60 +317,51 @@ const Page = () => {
       </div>
 
       {targetUserId && targetUserInfo && (
-        <>
-          {/* Optional: Backdrop for UX */}
-          <div
-            className="fixed inset-0 bg-black/30 z-40"
-            onClick={() => setTargetUserId(null)}
-            aria-label="Close chat overlay"
-          />
-          <div
-            className="fixed top-0 left-0 z-50 shadow-xl"
-            style={{ width: 350, height: "100vh", maxWidth: "100vw" }}
-          >
-            <div className="bg-white rounded-r-xl shadow border border-gray-300 overflow-hidden h-full flex flex-col">
-              {/* Chat Header (black, with close button) */}
-              <div className="bg-black px-4 py-3 flex items-center justify-between">
-                <div className="font-semibold text-white text-base truncate">
-                  {targetUserInfo?.name || targetUserInfo?.email || "User"}
-                </div>
-                <button
-                  onClick={() => setTargetUserId(null)}
-                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
-                  aria-label="Close chat"
-                >
-                  <X className="w-4 h-4 text-white" />
-                </button>
+        <div
+          className="fixed left-4 bottom-4 z-50 transition-all duration-300 ease-in-out"
+          style={{ width: "350px", height: "50vh" }}
+        >
+          <div className="bg-white rounded-t-xl shadow border border-gray-300 overflow-hidden h-full flex flex-col">
+            <div className="bg-black px-4 py-3 flex items-center justify-between">
+              <div className="font-semibold text-white text-base truncate">
+                {targetUserInfo?.name || targetUserInfo?.email || "User"}
               </div>
-              {/* Chat Content */}
-              <div className="flex-1 min-h-0">
-                <ChatWindow
-                  userId={userId}
-                  targetUserId={targetUserId}
-                  currentUser={user}
-                  targetUser={targetUserInfo}
-                  forceOpen={true}
-                  customStyles={{
-                    popupStyle: {
-                      position: "static",
-                      boxShadow: "none",
-                      borderRadius: 0,
-                      width: "100%",
-                      height: "100%",
-                      minHeight: 0,
-                      maxHeight: "100%",
-                      background: "transparent",
-                      border: "none",
-                    },
-                    bubbleButtonStyle: { display: "none" },
-                  }}
-                  onClose={() => setTargetUserId(null)}
-                  hideHeader={true}
-                />
-              </div>
+              <button
+                onClick={() => setTargetUserId(null)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
+                aria-label="Close chat"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+            {/* Chat Content */}
+            <div className="flex-1 min-h-0">
+              <ChatWindow
+                userId={userId}
+                targetUserId={targetUserId}
+                currentUser={user}
+                targetUser={targetUserInfo}
+                forceOpen={true}
+                customStyles={{
+                  popupStyle: {
+                    position: "static",
+                    boxShadow: "none",
+                    borderRadius: 0,
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 0,
+                    maxHeight: "100%",
+                    background: "transparent",
+                    border: "none",
+                  },
+                  bubbleButtonStyle: { display: "none" },
+                }}
+                onClose={() => setTargetUserId(null)}
+                hideHeader={true}
+              />
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
