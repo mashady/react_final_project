@@ -17,13 +17,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser, fetchUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/TranslationContext";
+import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
     .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
     .required("Email is required"),
   password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
 });
 
@@ -136,7 +136,14 @@ const LoginPage = () => {
                       className="text-red-500 text-sm"
                     />
                   </div>
-
+                  <div>
+                    <Link
+                      href="/forgot-password"
+                      className="text-gray-600  hover:underline"
+                    >
+                      {t("Forgot Password?")}
+                    </Link>
+                  </div>
                   <Button
                     type="submit"
                     disabled={loading}
@@ -159,15 +166,11 @@ const LoginPage = () => {
                 {t("registerHere")}
               </Link>
             </div>
-            <div className="text-center">
-              <span className="text-muted-foreground">{t("or")}</span>
-              <Link
-                href="/sign-with-google"
-                passHref
-                className="text-black m-2 hover:underline"
-              >
-                {t("googleAuth")}
-              </Link>
+            <div>
+              <p> or </p>
+            </div>
+            <div className="flex justify-center items-center">
+              <GoogleSignInButton page="login" />
             </div>
           </CardFooter>
         </Card>

@@ -17,6 +17,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/TranslationContext";
+import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
+
 
 const RegisterPage = () => {
   let { t } = useTranslation();
@@ -209,15 +211,11 @@ const RegisterPage = () => {
                 {t("loginHeader")}
               </Link>
             </div>
-            <div className="text-center">
-              <span className="text-muted-foreground">{t("or")}</span>
-              <Link
-                href="/sign-with-google"
-                passHref
-                className="text-black m-2 hover:underline"
-              >
-                {t("googleAuthRegister")}
-              </Link>
+            <div>
+              <p> or </p>
+            </div>
+            <div className="flex justify-center items-center">
+              <GoogleSignInButton page="register" />
             </div>
           </CardFooter>
         </Card>
