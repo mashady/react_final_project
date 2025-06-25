@@ -1,27 +1,25 @@
 "use client";
+import { useTranslation } from "@/TranslationContext";
 import { X } from "lucide-react";
 
-export default function CartTable({
-  items,
-  removeItem,
-  isLoading,
-}) {
+export default function CartTable({ items, removeItem, isLoading }) {
+  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto mb-8">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
             <th className="text-left py-4 px-4 font-medium text-gray-700">
-              Product
+              {t("cartTableItemProduct")}
             </th>
             <th className="text-left py-4 px-4 font-medium text-gray-700">
-              Price
+              {t("cartTableItemPrice")}
             </th>
             <th className="text-left py-4 px-4 font-medium text-gray-700">
-              Billing
+              {t("cartTableItemBilling")}
             </th>
             <th className="text-left py-4 px-4 font-medium text-gray-700">
-              Subtotal
+              {t("cartTableItemSubtotal")}
             </th>
           </tr>
         </thead>
@@ -52,15 +50,17 @@ export default function CartTable({
                 </div>
               </td>
               <td className="py-6 px-4 font-medium">
-                ${item.plan?.price !== undefined ? item.plan.price.toFixed(2) : "0.00"}
+                $
+                {item.plan?.price !== undefined
+                  ? item.plan.price.toFixed(2)
+                  : "0.00"}
               </td>
               <td className="py-6 px-4 text-sm text-gray-600">
-                {item.plan?.billing_interval ?? "-"} ({item.plan?.duration ?? "-"} days)
+                {item.plan?.billing_interval ?? "-"} (
+                {item.plan?.duration ?? "-"} {t("cartTableItemDays")})
               </td>
               <td className="py-6 px-4 font-medium">
-                {item.plan?.price
-                  ? `$${item.plan.price.toFixed(2)}`
-                  : "0.00"}
+                {item.plan?.price ? `$${item.plan.price.toFixed(2)}` : "0.00"}
               </td>
             </tr>
           ))}

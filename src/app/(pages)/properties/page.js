@@ -21,13 +21,8 @@ const propertyService = {
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== "" && value !== null && value !== undefined) {
         if (key === "priceRange" && Array.isArray(value)) {
-          // Only add price filters if they're not default values
-          if (value[0] > 100) {
-            params.append("min_price", value[0].toString());
-          }
-          if (value[1] < 1000000) {
-            params.append("max_price", value[1].toString());
-          }
+          params.append("min_price", value[0].toString());
+          params.append("max_price", value[1].toString());
         } else if (key === "number_of_beds" || key === "number_of_bathrooms") {
           // Ensure numeric values are properly formatted
           const numValue = parseInt(value);
@@ -51,20 +46,20 @@ const propertyService = {
     });
 
     console.log("API Request:", `http://127.0.0.1:8000/api/ads?${params}`);
-    
+
     const response = await fetch(`http://127.0.0.1:8000/api/ads?${params}`, {
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API Error:', response.status, errorText);
+      console.error("API Error:", response.status, errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     console.log("API Response:", data);
     return data;
@@ -103,7 +98,7 @@ const useProperties = (filters) => {
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
       // Only retry on network errors, not on 4xx/5xx HTTP errors
-      if (error.message.includes('HTTP error!')) {
+      if (error.message.includes("HTTP error!")) {
         return false;
       }
       return failureCount < 2;
@@ -112,14 +107,21 @@ const useProperties = (filters) => {
 
   // Log query state for debugging
   useEffect(() => {
-    console.log('Query State:', {
+    console.log("Query State:", {
       isLoading: query.isLoading,
       isError: query.isError,
       error: query.error,
-      dataLength: query.data?.pages?.flatMap(page => page.data || []).length || 0,
+      dataLength:
+        query.data?.pages?.flatMap((page) => page.data || []).length || 0,
       hasNextPage: query.hasNextPage,
     });
-  }, [query.isLoading, query.isError, query.error, query.data, query.hasNextPage]);
+  }, [
+    query.isLoading,
+    query.isError,
+    query.error,
+    query.data,
+    query.hasNextPage,
+  ]);
 
   return query;
 };
@@ -170,7 +172,7 @@ const PropertyList = () => {
   const { ref: sentinelRef } = useIntersection({
     onIntersect: () => {
       if (hasNextPage && !isFetchingNextPage) {
-        console.log('Loading next page...');
+        console.log("Loading next page...");
         fetchNextPage();
       }
     },
@@ -179,23 +181,23 @@ const PropertyList = () => {
 
   // Enhanced filter change handler
   const handleFilterChange = useCallback((key, value) => {
-    console.log('Filter changed:', key, value);
+    console.log("Filter changed:", key, value);
     setFilters((prev) => {
       const newFilters = { ...prev, [key]: value };
-      console.log('New filters:', newFilters);
+      console.log("New filters:", newFilters);
       return newFilters;
     });
   }, []);
 
   // Enhanced price range handler
   const handlePriceRangeChange = useCallback((newRange) => {
-    console.log('Price range changed:', newRange);
+    console.log("Price range changed:", newRange);
     setFilters((prev) => ({ ...prev, priceRange: newRange }));
   }, []);
 
   // Enhanced reset handler
   const handleReset = useCallback(() => {
-    console.log('Resetting filters');
+    console.log("Resetting filters");
     const resetFilters = {
       title: "",
       description: "",
@@ -208,16 +210,16 @@ const PropertyList = () => {
       space: "",
       priceRange: [100, 1000000],
     };
-    
+
     setFilters(resetFilters);
-    
+
     // Invalidate and refetch
     queryClient.invalidateQueries({ queryKey: ["properties"] });
   }, [queryClient]);
 
   // Enhanced search handler
   const handleSearch = useCallback(() => {
-    console.log('Manual search triggered with filters:', filters);
+    console.log("Manual search triggered with filters:", filters);
     queryClient.invalidateQueries({ queryKey: ["properties"] });
   }, [queryClient, filters]);
 
@@ -282,16 +284,22 @@ const PropertyList = () => {
     console.log(
       `Properties loaded: ${properties.length}, Total: ${totalCount}, Has next page: ${hasNextPage}, Unique types: ${uniqueTypes.length}, Unique locations: ${uniqueLocations.length}`
     );
-  }, [properties.length, totalCount, hasNextPage, uniqueTypes.length, uniqueLocations.length]);
+  }, [
+    properties.length,
+    totalCount,
+    hasNextPage,
+    uniqueTypes.length,
+    uniqueLocations.length,
+  ]);
 
   // Handle error state
   if (isError) {
-    console.error('Property list error:', error);
+    console.error("Property list error:", error);
     return (
       <div className="min-h-screen p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
-          <ErrorMessage 
-            error={error?.message || "Failed to load properties"} 
+          <ErrorMessage
+            error={error?.message || "Failed to load properties"}
             onRetry={() => refetch()}
           />
         </div>
@@ -302,8 +310,8 @@ const PropertyList = () => {
   return (
     <div className="min-h-screen p-4 md:p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <PropertyHeader 
-          totalProperties={totalCount} 
+        <PropertyHeader
+          totalProperties={totalCount}
           error={null}
           isLoading={isLoading}
         />
@@ -341,7 +349,9 @@ const PropertyList = () => {
                 {isFetchingNextPage ? (
                   <div className="flex items-center space-x-2">
                     <LoadingSpinner />
-                    <span className="text-gray-500">Loading more properties...</span>
+                    <span className="text-gray-500">
+                      Loading more properties...
+                    </span>
                   </div>
                 ) : (
                   <div className="text-center">
@@ -361,19 +371,21 @@ const PropertyList = () => {
                   You've seen all {totalCount} matching properties
                 </p>
                 <p className="text-sm text-gray-400 mt-1">
-                  {properties.length === totalCount ? 
-                    `Showing all ${totalCount} properties` : 
-                    `Loaded ${properties.length} of ${totalCount} properties`
-                  }
+                  {properties.length === totalCount
+                    ? `Showing all ${totalCount} properties`
+                    : `Loaded ${properties.length} of ${totalCount} properties`}
                 </p>
               </div>
             )}
           </>
         ) : (
-          <EmptyState 
-            hasActiveFilters={Object.values(filters).some(val => 
-              val !== "" && val !== null && val !== undefined && 
-              (Array.isArray(val) ? val[0] > 100 || val[1] < 1000000 : true)
+          <EmptyState
+            hasActiveFilters={Object.values(filters).some(
+              (val) =>
+                val !== "" &&
+                val !== null &&
+                val !== undefined &&
+                (Array.isArray(val) ? val[0] > 100 || val[1] < 1000000 : true)
             )}
             onClearFilters={handleReset}
           />

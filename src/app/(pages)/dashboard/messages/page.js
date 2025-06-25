@@ -2,38 +2,40 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import ChatWindow from "@/components/chat/ChatWindow";
 import { Loader2, MessageSquare, X, Clock, Search } from "lucide-react";
-import { io } from "socket.io-client";
+import dynamic from "next/dynamic";
 
-const SOCKET_URL = "http://localhost:4000";
+const ChatWindow = dynamic(() => import("@/components/chat/ChatWindow"), {
+  ssr: false,
+});
 
 // Helper to get user display info from inbox message
-function getUserDisplayFromMsg(msg, fallback) {
-  let name = msg?.sender_name || msg?.receiver_name || fallback?.name || "User";
-  if (
-    (/^User\s*\d+$/.test(name) || /^User\d+$/.test(name)) &&
-    fallback?.name &&
-    !/^User\s*\d+$/.test(fallback.name) &&
-    !/^User\d+$/.test(fallback.name)
-  ) {
-    name = fallback.name;
+function getUserDisplayFromMsg(msg, currentUserId, fallback) {
+  const isCurrentUserSender = msg.sender_id === currentUserId;
+  const otherUserId = isCurrentUserSender ? msg.receiver_id : msg.sender_id;
+
+  const otherUserName = isCurrentUserSender
+    ? msg.receiver_name
+    : msg.sender_name;
+  const otherUserEmail = isCurrentUserSender
+    ? msg.receiver_email
+    : msg.sender_email;
+
+  let displayName = otherUserName;
+
+  if (!displayName || displayName.trim() === "") {
+    if (otherUserEmail) {
+      displayName = otherUserEmail;
+    } else {
+      displayName = `User ${otherUserId}`;
+    }
   }
-  if ((/^User\s*\d+$/.test(name) || /^User\d+$/.test(name)) && fallback) {
-    if (fallback.email) name = fallback.email;
-  }
-  if (/^user\s*\d+$/.test(name) || /^User\d+$/.test(name)) {
-    if (msg?.sender_email) name = msg.sender_email;
-    else if (msg?.receiver_email) name = msg.receiver_email;
-  }
+
   return {
-    name,
-    avatar:
-      msg?.sender_avatar ||
-      msg?.receiver_avatar ||
-      fallback?.avatar ||
-      "/owner.jpg",
-    id: msg?.sender_id || fallback?.id,
+    id: otherUserId,
+    name: displayName,
+    email: otherUserEmail,
+    avatar: "/owner.jpg",
   };
 }
 
@@ -47,7 +49,6 @@ const Page = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [targetUserId, setTargetUserId] = useState(null);
-  const [socket, setSocket] = useState(null);
   const [targetUserInfo, setTargetUserInfo] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chatMinimized, setChatMinimized] = useState(false);
@@ -65,144 +66,76 @@ const Page = () => {
       .then((res) => {
         setInbox(res.data || []);
       })
-      .catch(() => setError("Failed to load inbox"))
+      .catch((err) => {
+        console.error("Inbox error:", err);
+        setError("Failed to load inbox");
+      })
       .finally(() => setLoading(false));
   }, [userId, token]);
 
-  useEffect(() => {
-    if (!userId) return;
-    const socketInstance = io(SOCKET_URL, {
-      transports: ["websocket", "polling"],
-    });
-    setSocket(socketInstance);
-    socketInstance.on("connect", () => {
-      console.log("Socket connected:", socketInstance.id);
-      socketInstance.emit("join", userId.toString());
-    });
-
-    socketInstance.on("private_message", (msg) => {
-      console.log("Raw socket message:", msg);
-      setInbox((prev) => {
-        const messageObj = {
-          id: `temp-${Date.now()}`,
-          sender_id: Number(msg.from),
-          receiver_id: Number(msg.to),
-          message: msg.message,
-          created_at: msg.timestamp,
-          is_read: false,
-          sender_name: msg.sender_name,
-          sender_email: msg.sender_email,
-          sender_avatar: msg.sender_avatar,
-          receiver_name: msg.receiver_name,
-          receiver_email: msg.receiver_email,
-          receiver_avatar: msg.receiver_avatar,
-        };
-
-        const exists = prev.some(
-          (m) =>
-            m.sender_id === messageObj.sender_id &&
-            m.receiver_id === messageObj.receiver_id &&
-            m.message === messageObj.message &&
-            m.created_at === messageObj.created_at
-        );
-        if (exists) {
-          console.log("Duplicate message ignored:", messageObj);
-          return prev;
-        }
-
-        const otherUserId =
-          Number(msg.from) === userId ? Number(msg.to) : Number(msg.from);
-        if (!targetUserId || otherUserId !== Number(targetUserId)) {
-          setNewMessageMap((prevMap) => ({ ...prevMap, [otherUserId]: true }));
-        }
-
-        console.log("Adding new message to inbox:", messageObj);
-        return [messageObj, ...prev];
-      });
-    });
-
-    return () => {
-      socketInstance.emit("leave_room");
-      socketInstance.disconnect();
-    };
-  }, [userId, targetUserId]);
-
-  useEffect(() => {
-    console.log(
-      "Inbox updated:",
-      inbox.map((m) => ({
-        sender_id: m.sender_id,
-        receiver_id: m.receiver_id,
-        message: m.message,
-        created_at: m.created_at,
-      }))
-    );
-  }, [inbox]);
-
   const senders = useMemo(() => {
-    const result = Array.from(
-      new Map(
-        inbox.map((msg) => {
-          const otherUserId =
-            msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
-          const otherUserName =
-            msg.sender_id === userId ? msg.receiver_name : msg.sender_name;
-          const otherUserAvatar =
-            msg.sender_id === userId ? msg.receiver_avatar : msg.sender_avatar;
-          return [
-            otherUserId,
-            {
-              ...msg,
-              otherUserId,
-              otherUserName,
-              otherUserAvatar,
-            },
-          ];
-        })
-      ).values()
-    );
-    console.log(
-      "Computed senders:",
-      result.map((s) => ({
-        otherUserId: s.otherUserId,
-        message: s.message,
-        created_at: s.created_at,
-      }))
-    );
-    return result;
+    if (!userId || !inbox.length) return [];
+
+    const conversationMap = new Map();
+
+    inbox.forEach((msg) => {
+      const otherUserId =
+        msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
+
+      if (
+        !conversationMap.has(otherUserId) ||
+        new Date(msg.created_at) >
+          new Date(conversationMap.get(otherUserId).created_at)
+      ) {
+        conversationMap.set(otherUserId, msg);
+      }
+    });
+
+    return Array.from(conversationMap.values());
   }, [inbox, userId]);
 
   const filteredSenders = senders.filter((msg) => {
-    const otherUserName =
-      msg.sender_id === userId ? msg.receiver_name : msg.sender_name;
+    const userDisplay = getUserDisplayFromMsg(msg, userId, user);
     return (
-      otherUserName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      userDisplay.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      userDisplay.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       msg.message?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   useEffect(() => {
     if (!targetUserId) return setTargetUserInfo(null);
-    const msg = inbox.find(
+
+    const conversation = inbox.find(
       (m) => m.sender_id === targetUserId || m.receiver_id === targetUserId
     );
-    if (msg) {
-      setTargetUserInfo(
-        getUserDisplayFromMsg(msg, {
-          id: targetUserId,
-          name: user?.name,
-          email: user?.email,
-          avatar: user?.avatar,
-        })
-      );
+
+    if (conversation) {
+      const userDisplay = getUserDisplayFromMsg(conversation, userId, user);
+      setTargetUserInfo(userDisplay);
     } else {
-      setTargetUserInfo({
-        id: targetUserId,
-        name: user?.name || user?.email || `User ${targetUserId}`,
-        avatar: user?.avatar || "/owner.jpg",
-      });
+      axios
+        .get(`http://localhost:4000/api/users/${targetUserId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          setTargetUserInfo({
+            id: targetUserId,
+            name: res.data.name || res.data.email || `User ${targetUserId}`,
+            email: res.data.email,
+            avatar: "/owner.jpg",
+          });
+        })
+        .catch(() => {
+          setTargetUserInfo({
+            id: targetUserId,
+            name: `User ${targetUserId}`,
+            email: null,
+            avatar: "/owner.jpg",
+          });
+        });
     }
-  }, [targetUserId, inbox, user?.id, user?.name, user?.email, user?.avatar]);
+  }, [targetUserId, inbox, userId, user, token]);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -216,6 +149,7 @@ const Page = () => {
   }, [targetUserId]);
 
   const handleUserSelect = (senderId) => {
+    console.log("User selected:", senderId); // Debug log
     setTargetUserId(senderId);
     setChatMinimized(false);
     setNewMessageMap((prevMap) => ({ ...prevMap, [senderId]: false }));
@@ -238,25 +172,9 @@ const Page = () => {
     }
   };
 
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return "Today";
-    }
-    if (diffDays === 1) {
-      return "Yesterday";
-    }
-    if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    }
-
-    return date.toLocaleDateString();
-  };
-
   const hasNewMessages = Object.values(newMessageMap).some(Boolean);
+
+  console.log("Current state:", { targetUserId, targetUserInfo }); // Debug log
 
   return (
     <div className="min-h-screen bg-gray-100 text-black">
@@ -338,31 +256,34 @@ const Page = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredSenders.map((msg) => {
-                      const otherUserId =
-                        msg.sender_id === userId
-                          ? msg.receiver_id
-                          : msg.sender_id;
-                      const otherUserName =
-                        msg.sender_id === userId
-                          ? msg.receiver_name
-                          : msg.sender_name;
-
+                      const userDisplay = getUserDisplayFromMsg(
+                        msg,
+                        userId,
+                        user
+                      );
+                      const hasNew = newMessageMap[userDisplay.id];
                       return (
                         <tr
-                          key={otherUserId}
+                          key={userDisplay.id}
                           className="hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
-                          onClick={() => handleUserSelect(otherUserId)}
+                          onClick={() => handleUserSelect(userDisplay.id)}
                         >
                           <td className="px-4 py-3">
                             <div className="font-semibold text-black group-hover:text-black transition-colors duration-200">
-                              {otherUserName || `User ${otherUserId}`}
+                              {userDisplay.name}
+                              {hasNew && (
+                                <span
+                                  className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"
+                                  title="New message"
+                                ></span>
+                              )}
                             </div>
                           </td>
                           <td className="px-4 py-3">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleUserSelect(otherUserId);
+                                handleUserSelect(userDisplay.id);
                               }}
                               className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white rounded-md hover:bg-gray-900 transition-colors duration-200 text-sm font-medium"
                             >
@@ -397,64 +318,48 @@ const Page = () => {
 
       {targetUserId && targetUserInfo && (
         <div
-          className={`fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out ${
-            chatMinimized ? "translate-y-full" : "translate-y-0"
-          }`}
-          style={{
-            width: "350px",
-            height: chatMinimized ? "60px" : "500px",
-          }}
+          className="fixed left-4 bottom-4 z-50 transition-all duration-300 ease-in-out"
+          style={{ width: "350px", height: "50vh" }}
         >
-          <div className="bg-white rounded-t-xl shadow-xl border border-gray-300 overflow-hidden h-full flex flex-col">
+          <div className="bg-white rounded-t-xl shadow border border-gray-300 overflow-hidden h-full flex flex-col">
             <div className="bg-black px-4 py-3 flex items-center justify-between">
               <div className="font-semibold text-white text-base truncate">
-                {targetUserInfo.name}
+                {targetUserInfo?.name || targetUserInfo?.email || "User"}
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setChatMinimized(!chatMinimized)}
-                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
-                >
-                  <span className="text-white text-lg font-bold">
-                    {chatMinimized ? "↑" : "−"}
-                  </span>
-                </button>
-                <button
-                  onClick={() => setTargetUserId(null)}
-                  className="w-8 h-8 rounded bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
-                >
-                  <X className="w-4 h-4 text-white" />
-                </button>
-              </div>
+              <button
+                onClick={() => setTargetUserId(null)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200"
+                aria-label="Close chat"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
             </div>
-
-            {!chatMinimized && (
-              <div className="flex-1 min-h-0">
-                <ChatWindow
-                  userId={userId}
-                  targetUserId={targetUserId}
-                  forceOpen={true}
-                  currentUser={user}
-                  targetUser={targetUserInfo}
-                  customStyles={{
-                    popupStyle: {
-                      position: "static",
-                      boxShadow: "none",
-                      borderRadius: 0,
-                      width: "100%",
-                      height: "100%",
-                      minHeight: "0",
-                      maxHeight: "100%",
-                      background: "transparent",
-                      border: "none",
-                    },
-                    bubbleButtonStyle: { display: "none" },
-                  }}
-                  onClose={() => setTargetUserId(null)}
-                  hideHeader={true}
-                />
-              </div>
-            )}
+            {/* Chat Content */}
+            <div className="flex-1 min-h-0">
+              <ChatWindow
+                userId={userId}
+                targetUserId={targetUserId}
+                currentUser={user}
+                targetUser={targetUserInfo}
+                forceOpen={true}
+                customStyles={{
+                  popupStyle: {
+                    position: "static",
+                    boxShadow: "none",
+                    borderRadius: 0,
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 0,
+                    maxHeight: "100%",
+                    background: "transparent",
+                    border: "none",
+                  },
+                  bubbleButtonStyle: { display: "none" },
+                }}
+                onClose={() => setTargetUserId(null)}
+                hideHeader={true}
+              />
+            </div>
           </div>
         </div>
       )}

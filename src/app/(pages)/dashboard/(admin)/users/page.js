@@ -223,7 +223,9 @@ const Users = () => {
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
     try {
-      const response = await axios.delete(`${API_BASE_URL}/users/${userToDelete}`);
+      const response = await axios.delete(
+        `${API_BASE_URL}/users/${userToDelete}`
+      );
       if (response.data.success) {
         setSuccessMessage("User deleted successfully!");
         await fetchUsers();
@@ -404,7 +406,7 @@ const Users = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
+    <div className="min-h-screen">
       {/* Custom Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -446,8 +448,11 @@ const Users = () => {
             </div>
             <div className="text-right">
               <button
-                className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 shadow-lg"
+                className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-black px-6 py-3 transition-all duration-300 flex items-center gap-2"
                 onClick={() => openModal("create")}
+                style={{
+                  fontWeight: 500,
+                }}
               >
                 <Plus className="w-5 h-5" /> Add User
               </button>

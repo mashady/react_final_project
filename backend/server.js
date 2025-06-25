@@ -17,10 +17,48 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const app = express();
 app.use(cors());
+app.use(express.json()); // Add this to parse JSON bodies
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 const connectedUsers = new Map();
+
+// Helper function to get user info with caching
+const userCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+async function getUserInfo(userId) {
+  try {
+    // Check cache first
+    const cacheKey = `user_${userId}`;
+    const cached = userCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    }
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, name, email")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error(`❌ Error fetching user ${userId}:`, error);
+      return null;
+    }
+
+    // Cache the result
+    userCache.set(cacheKey, {
+      data,
+      timestamp: Date.now(),
+    });
+
+    return data;
+  } catch (error) {
+    console.error(`❌ Error fetching user ${userId}:`, error);
+    return null;
+  }
+}
 
 io.on("connection", (socket) => {
   console.log("🟢 New client connected:", socket.id);
@@ -50,12 +88,12 @@ io.on("connection", (socket) => {
       to,
       message,
       timestamp,
-      sender_name: senderInfo?.name || senderInfo?.email || `User ${from}`,
+      sender_name: senderInfo?.name || `User ${from}`,
       sender_email: senderInfo?.email || null,
-      sender_avatar: senderInfo?.avatar || senderInfo?.picture || null,
-      receiver_name: receiverInfo?.name || receiverInfo?.email || `User ${to}`,
+      sender_avatar: null,
+      receiver_name: receiverInfo?.name || `User ${to}`,
       receiver_email: receiverInfo?.email || null,
-      receiver_avatar: receiverInfo?.avatar || receiverInfo?.picture || null,
+      receiver_avatar: null,
     };
 
     // Send to recipient immediately for real-time experience
@@ -109,27 +147,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  async function getUserInfo(userId) {
-    try {
-      const { data, error } = await supabase
-        .from("user")
-        .select("id,name,email,avatar,picture")
-        .eq("id", userId)
-        .single();
-
-      console.log(`User ${userId} data:`, data); // Debug log
-      if (error) {
-        console.error(`❌ Error fetching user ${userId}:`, error);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error(`❌ Error fetching user ${userId}:`, error);
-      return null;
-    }
-  }
-
   socket.on("join", (userId) => {
     console.log("\n🔵 Join Event:");
     console.log("- User ID:", userId);
@@ -172,7 +189,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// API endpoint to fetch messages between two users
+// API endpoint to fetch messages between two users with user names
 app.get("/api/messages", async (req, res) => {
   const { user1, user2 } = req.query;
   if (!user1 || !user2) {
@@ -181,18 +198,38 @@ app.get("/api/messages", async (req, res) => {
       .json({ error: "Missing user1 or user2 query parameter" });
   }
   try {
+    // Get messages with user information using joins
     const { data, error } = await supabase
       .from("messages")
-      .select("*")
+      .select(
+        `
+        *,
+        sender:users!messages_sender_id_foreign(id, name, email),
+        receiver:users!messages_receiver_id_foreign(id, name, email)
+      `
+      )
       .or(
         `and(sender_id.eq.${user1},receiver_id.eq.${user2}),and(sender_id.eq.${user2},receiver_id.eq.${user1})`
       )
       .order("created_at", { ascending: true });
+
     if (error) {
+      console.error("Messages API error:", error);
       return res.status(500).json({ error: error.message });
     }
-    return res.json({ messages: data });
+
+    // Enhanced messages with user info
+    const enhancedMessages = (data || []).map((msg) => ({
+      ...msg,
+      sender_name: msg.sender?.name || null,
+      sender_email: msg.sender?.email || null,
+      receiver_name: msg.receiver?.name || null,
+      receiver_email: msg.receiver?.email || null,
+    }));
+
+    return res.json({ messages: enhancedMessages });
   } catch (err) {
+    console.error("Messages API error:", err);
     return res.status(500).json({ error: err.message });
   }
 });
@@ -201,66 +238,78 @@ app.get("/api/messages", async (req, res) => {
 app.get("/api/messages/inbox", async (req, res) => {
   const userId = req.query.userId;
   if (!userId) {
-    return res.status(400).json({ error: "Missing userId" });
+    return res.status(400).json({ error: "Missing userId parameter" });
   }
+
   try {
-    const { data, error } = await supabase
+    // Get messages with user information using joins
+    const { data: messagesData, error: messagesError } = await supabase
       .from("messages")
       .select(
-        `*,sender:sender_id(id,name,email),receiver:receiver_id(id,name,email)`
+        `
+        *,
+        sender:users!messages_sender_id_foreign(id, name, email),
+        receiver:users!messages_receiver_id_foreign(id, name, email)
+      `
       )
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order("created_at", { ascending: false });
-    if (error) {
-      return res.status(500).json({ error: error.message });
+
+    if (messagesError) {
+      console.error("Inbox query error:", messagesError);
+      return res.status(500).json({ error: messagesError.message });
     }
 
-    console.log("Inbox API response:", data); // Debug log
+    console.log("Raw messages data with joins:", messagesData?.slice(0, 2)); // Debug log
 
-    const missingUserIds = new Set();
-    (data || []).forEach((msg) => {
-      if (!msg.sender?.name && !msg.sender?.email)
-        missingUserIds.add(msg.sender_id);
-      if (!msg.receiver?.name && !msg.receiver?.email)
-        missingUserIds.add(msg.receiver_id);
-    });
+    // Enhanced messages with user info - keep null values instead of fallback
+    const enhancedMessages = (messagesData || []).map((msg) => ({
+      ...msg,
+      sender_name: msg.sender?.name || null,
+      sender_email: msg.sender?.email || null,
+      sender_avatar: null,
+      receiver_name: msg.receiver?.name || null,
+      receiver_email: msg.receiver?.email || null,
+      receiver_avatar: null,
+    }));
 
-    let userIdToInfo = {};
-    if (missingUserIds.size > 0) {
-      const { data: usersData, error: usersError } = await supabase
-        .from("user")
-        .select("id,name,email,avatar,picture")
-        .in("id", Array.from(missingUserIds));
-      if (!usersError && usersData) {
-        usersData.forEach((u) => {
-          userIdToInfo[u.id] = u;
-        });
-      }
-    }
+    console.log("Enhanced messages:", enhancedMessages.slice(0, 2)); // Debug log
 
-    const withNames = (data || []).map((msg) => {
-      const senderInfo = msg.sender || userIdToInfo[msg.sender_id] || {};
-      const receiverInfo = msg.receiver || userIdToInfo[msg.receiver_id] || {};
-      return {
-        ...msg,
-        sender_name:
-          senderInfo.name || senderInfo.email || `User ${msg.sender_id}`,
-        sender_email: senderInfo.email || null,
-        sender_avatar: senderInfo.avatar || senderInfo.picture || null,
-        receiver_name:
-          receiverInfo.name || receiverInfo.email || `User ${msg.receiver_id}`,
-        receiver_email: receiverInfo.email || null,
-        receiver_avatar: receiverInfo.avatar || receiverInfo.picture || null,
-      };
-    });
-
-    return res.status(200).json(withNames);
+    return res.status(200).json(enhancedMessages);
   } catch (err) {
+    console.error("Inbox API error:", err);
     return res.status(500).json({ error: err.message });
   }
 });
 
+// API endpoint to get user info by ID
+app.get("/api/users/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Missing userId parameter" });
+  }
+
+  try {
+    const userInfo = await getUserInfo(userId);
+    if (!userInfo) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    return res.json(userInfo);
+  } catch (err) {
+    console.error("User API error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
 const port = process.env.PORT || 4000;
 server.listen(port, () => {
-  console.log(`Backend ready on http://localhost:${port}`);
+  console.log(`🚀 Backend ready on http://localhost:${port}`);
+  console.log(`📡 Socket.IO server running`);
+  console.log(`🔗 Supabase connected`);
 });

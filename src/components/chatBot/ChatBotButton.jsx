@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 export default function ChatBotButton() {
@@ -13,7 +13,9 @@ export default function ChatBotButton() {
   ]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Load chat history from Laravel (protected route)
+  const bottomRef = useRef(null); // 👈 new ref to track bottom of messages
+
+  // Load chat history from Laravel (protected route)
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -37,7 +39,21 @@ export default function ChatBotButton() {
       });
   }, []);
 
-  // ✅ Send user message and get RAG response
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Scroll to bottom when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [isOpen]);
+
+  // Send user message and get RAG response
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -147,9 +163,13 @@ export default function ChatBotButton() {
                 )}
               </div>
             ))}
+
             {loading && (
               <div className="text-gray-500 text-sm animate-pulse">Typing...</div>
             )}
+
+            {/* 👇 Scroll target */}
+            <div ref={bottomRef}></div>
           </div>
 
           {/* Chat Input */}

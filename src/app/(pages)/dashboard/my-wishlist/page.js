@@ -21,7 +21,7 @@ const WishlistContent = () => {
     dispatch(fetchWishlist());
   };
 
-  if (loading && !wishlist.length) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <LoadingSpinner />
