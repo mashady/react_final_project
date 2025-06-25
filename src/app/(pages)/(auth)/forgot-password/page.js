@@ -15,14 +15,15 @@ import { useState, useEffect } from "react";
 import api from "@/api/axiosConfig";
 import { useRouter } from "next/navigation";
 
-const ResendVerifyMailSchema = Yup.object().shape({
+const handleSubmitSchema = Yup.object().shape({
   email: Yup.string()
     .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
     .required("Email is required"),
 });
 
-const ResendVerifyMailPage = () => {
-  
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
   const[loading, setLoading] = useState(false);
   const [toast, setToast] = useState({
     message: "",
@@ -38,34 +39,14 @@ const ResendVerifyMailPage = () => {
     setToast({ ...toast, visible: false });
   };
 
-  const handleResendVerification = async (values) => {
+  const handleSubmit = async (values) => {
     try {
-        const response = await api.post("/email/verification-notification-guest", {
-          email: values.email,
-        }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        
-        showToast("Verification email sent successfully!", "success");
-        setLoading(false);
-        setTimeout(() => {
-          router.push("/verify/sent");
-        }, 3000);
-    } catch (error) {
-      showToast(error.message || "Failed to resend verification email", "error");
-        setLoading(false);
-        if (error.response && error.response.data && error.response.data.message === "Email already verified.") {
-            showToast("Email already verified.", "info");
-            setTimeout(() => {
-                router.push("/verify/already-verified");
-            }, 3000);
-        }
-
+      const res = await api.post('/forgot-password', { email: values.email });
+      showToast(res.data.message, "success");
+    } catch (err) {
+      showToast('Error: ' + err.response?.data?.message || 'Something went wrong.', "error");
     }
   };
-
 
   return (
     <>
@@ -77,9 +58,9 @@ const ResendVerifyMailPage = () => {
                 <CardContent>
                     <Formik
                     initialValues={{ email: "" }}
-                    validationSchema={ResendVerifyMailSchema}
+                    validationSchema={handleSubmitSchema}
                     onSubmit={(values, actions) => {
-                        handleResendVerification(values);
+                        handleSubmit(values);
                         actions.setSubmitting(false);
                     }}
                     >
@@ -122,5 +103,3 @@ const ResendVerifyMailPage = () => {
     </>
   );
 };
-
-export default ResendVerifyMailPage;
