@@ -18,6 +18,7 @@ const PlanManagement = () => {
     features: "",
     ads_Limit: "",
   });
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   // Fetch plans from API
   const fetchPlans = async () => {
@@ -73,16 +74,20 @@ const PlanManagement = () => {
 
   // Handle delete
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this plan?"))
-      return;
+    setConfirmDelete(id);
+  };
+
+  const confirmDeletePlan = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://127.0.0.1:8000/api/plans/${id}`, {
+      await axios.delete(`http://127.0.0.1:8000/api/plans/${confirmDelete}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       await fetchPlans();
+      setConfirmDelete(null);
     } catch (err) {
       setError(err.message);
+      setConfirmDelete(null);
     }
   };
 
@@ -115,6 +120,7 @@ const PlanManagement = () => {
     setIsModalOpen(false);
     setEditingPlan(null);
     setViewingPlan(null);
+    setConfirmDelete(null);
   };
 
   const getBillingIntervalBadge = (interval) => {
@@ -355,14 +361,14 @@ const PlanManagement = () => {
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      features
+                      Features
                     </label>
                     <textarea
                       value={formData.features}
                       onChange={(e) => setFormData({ ...formData, features: e.target.value })}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Describe the plan features and benefits..."
+                      placeholder="List the plan features and benefits..."
                     />
                   </div>
                 </div>
@@ -463,6 +469,43 @@ const PlanManagement = () => {
                     className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {confirmDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+              <div className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                  Delete Plan
+                </h3>
+                
+                <p className="text-gray-600 text-center mb-6">
+                  Are you sure you want to delete this plan? This action cannot be undone and will permanently remove the plan from the system.
+                </p>
+
+                <div className="flex items-center justify-center space-x-4">
+                  <button
+                    onClick={() => setConfirmDelete(null)}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeletePlan}
+                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Plan
                   </button>
                 </div>
               </div>
