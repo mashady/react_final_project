@@ -16,8 +16,12 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/TranslationContext";
+import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
+
 
 const RegisterPage = () => {
+  let { t } = useTranslation();
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error } = useSelector((state) => state.user);
@@ -41,7 +45,10 @@ const RegisterPage = () => {
       const resultAction = await dispatch(registerUser(values));
 
       if (registerUser.fulfilled.match(resultAction)) {
-        showToast("Registration successful!, Please check your email to verify your account.", "success");
+        showToast(
+          "Registration successful!, Please check your email to verify your account.",
+          "success"
+        );
         setTimeout(() => {
           router.push("/login");
         }, 2000);
@@ -58,7 +65,9 @@ const RegisterPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-[500px] border rounded-lg shadow-lg py-6">
           <CardHeader>
-            <CardTitle className="text-center text-3xl">Register</CardTitle>
+            <CardTitle className="text-center text-3xl">
+              {t("registerHeader")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Formik
@@ -83,7 +92,7 @@ const RegisterPage = () => {
                       name="name"
                       type="text"
                       as={Input}
-                      placeholder="Name*"
+                      placeholder={t("registerNamePlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
                     />
                     <ErrorMessage
@@ -98,7 +107,7 @@ const RegisterPage = () => {
                       name="email"
                       type="text"
                       as={Input}
-                      placeholder="Email*"
+                      placeholder={t("registerEmailPlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
                     />
                     <ErrorMessage
@@ -113,7 +122,7 @@ const RegisterPage = () => {
                       name="password"
                       type="password"
                       as={Input}
-                      placeholder="Password*"
+                      placeholder={t("registerPasswordPlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
                     />
                     <ErrorMessage
@@ -128,7 +137,7 @@ const RegisterPage = () => {
                       name="password_confirmation"
                       type="password"
                       as={Input}
-                      placeholder="Confirm Password*"
+                      placeholder={t("registerConfirmPasswordPlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
                     />
                     <ErrorMessage
@@ -144,9 +153,13 @@ const RegisterPage = () => {
                       as="select"
                       className="border rounded-none p-4 text-1xl text-muted-foreground"
                     >
-                      <option value="">Select role*</option>
-                      <option value="student">Student</option>
-                      <option value="owner">Owner</option>
+                      <option value="">{t("registerRolePlaceholder")}</option>
+                      <option value="student">
+                        {t("registerStudentRolePlaceholder")}
+                      </option>
+                      <option value="owner">
+                        {t("registerOwnerRolePlaceholder")}
+                      </option>
                     </Field>
                     <ErrorMessage
                       name="role"
@@ -179,7 +192,7 @@ const RegisterPage = () => {
                     disabled={loading}
                     className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
                   >
-                    {loading ? "Registering..." : "Register"}
+                    {loading ? t("registerLoading") : t("registerButton")}
                   </Button>
                 </Form>
               )}
@@ -187,24 +200,22 @@ const RegisterPage = () => {
           </CardContent>
           <CardFooter className="flex-col gap-2">
             <div className="text-center">
-              <span className="text-muted-foreground">Have an account?</span>
+              <span className="text-muted-foreground">
+                {t("haveAnAccount")}
+              </span>
               <Link
                 href="/login"
                 passHref
                 className="text-black m-2 hover:underline"
               >
-                Log in
+                {t("loginHeader")}
               </Link>
             </div>
-            <div className="text-center">
-              <span className="text-muted-foreground">Or</span>
-              <Link
-                href="/sign-with-google"
-                passHref
-                className="text-black m-2 hover:underline"
-              >
-                Sign up with Google
-              </Link>
+            <div>
+              <p> or </p>
+            </div>
+            <div className="flex justify-center items-center">
+              <GoogleSignInButton page="register" />
             </div>
           </CardFooter>
         </Card>

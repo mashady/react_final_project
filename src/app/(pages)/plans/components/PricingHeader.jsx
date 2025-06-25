@@ -1,6 +1,10 @@
 "use client";
 
+import { useTranslation } from "@/TranslationContext";
+
 export default function PricingHeader() {
+  let { t } = useTranslation();
+
   return (
     <div className="relative bg-gray-100 text-white h-[350px] overflow-hidden rounded-lg m-4">
       <div className="absolute inset-0 h-[350px]">
@@ -19,7 +23,7 @@ export default function PricingHeader() {
               className="text-[65px] text-white leading-tight"
               style={{ fontWeight: 500 }}
             >
-              Pricing Package
+              {t("plansHeader")}
             </h1>
           </div>
         </div>

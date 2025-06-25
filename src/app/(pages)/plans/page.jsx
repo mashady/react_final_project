@@ -5,8 +5,10 @@ import HowItWorks from "./components/HowItWorks";
 import PricingCard from "./components/PricingCard";
 import axios from "axios";
 import LoadingSpinner from "../properties/components/LoadingSpinner";
+import { useTranslation } from "@/TranslationContext";
 
 export default function PricingPage() {
+  let { t } = useTranslation();
   const [plans, setPlans] = useState([]);
   const [currentPlanId, setCurrentPlanId] = useState(null);
   const [hasPlan, setHasPlan] = useState(false);
@@ -28,11 +30,14 @@ export default function PricingPage() {
         setPlans(plansRes.data);
 
         // Fetch current subscription
-        const subRes = await axios.get("http://127.0.0.1:8000/api/plans/my-subscription", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const subRes = await axios.get(
+          "http://127.0.0.1:8000/api/plans/my-subscription",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (subRes.data && subRes.data.active) {
           setCurrentPlanId(subRes.data.plan_id);
@@ -45,11 +50,14 @@ export default function PricingPage() {
 
       try {
         // Check if user can use free plan
-        const freeRes = await axios.get("http://127.0.0.1:8000/api/plans/allow-free-plan", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const freeRes = await axios.get(
+          "http://127.0.0.1:8000/api/plans/allow-free-plan",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (freeRes.data.allowed === false) {
           setHasUsedFreePlan(true);
@@ -104,7 +112,7 @@ export default function PricingPage() {
                 key={plan.id}
                 title={plan.name}
                 price={plan.price}
-                fullPrice={plan.fullPrice || plan.price * 2} 
+                fullPrice={plan.fullPrice || plan.price * 2}
                 features={features}
                 planId={plan.id}
                 isDisabled={isDisabled}

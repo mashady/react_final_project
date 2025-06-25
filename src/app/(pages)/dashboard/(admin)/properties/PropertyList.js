@@ -7,6 +7,7 @@ const PropertyList = ({ properties, onEdit, onView, onDelete }) => (
       <PropertyCard
         key={property.id}
         property={property}
+        isDashboard={true}
         onClick={() => onView(property)}
         className="hover:shadow-lg transition-shadow duration-300"
       >

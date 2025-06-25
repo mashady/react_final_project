@@ -326,13 +326,13 @@ const Page = () => {
           />
           <div
             className="fixed top-0 left-0 z-50 shadow-xl"
-            style={{ width: 350, height: '100vh', maxWidth: '100vw' }}
+            style={{ width: 350, height: "100vh", maxWidth: "100vw" }}
           >
             <div className="bg-white rounded-r-xl shadow border border-gray-300 overflow-hidden h-full flex flex-col">
               {/* Chat Header (black, with close button) */}
               <div className="bg-black px-4 py-3 flex items-center justify-between">
                 <div className="font-semibold text-white text-base truncate">
-                  {targetUserInfo?.name || targetUserInfo?.email || 'User'}
+                  {targetUserInfo?.name || targetUserInfo?.email || "User"}
                 </div>
                 <button
                   onClick={() => setTargetUserId(null)}
@@ -352,17 +352,17 @@ const Page = () => {
                   forceOpen={true}
                   customStyles={{
                     popupStyle: {
-                      position: 'static',
-                      boxShadow: 'none',
+                      position: "static",
+                      boxShadow: "none",
                       borderRadius: 0,
-                      width: '100%',
-                      height: '100%',
+                      width: "100%",
+                      height: "100%",
                       minHeight: 0,
-                      maxHeight: '100%',
-                      background: 'transparent',
-                      border: 'none',
+                      maxHeight: "100%",
+                      background: "transparent",
+                      border: "none",
                     },
-                    bubbleButtonStyle: { display: 'none' },
+                    bubbleButtonStyle: { display: "none" },
                   }}
                   onClose={() => setTargetUserId(null)}
                   hideHeader={true}
