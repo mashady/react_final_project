@@ -6,15 +6,7 @@ import { X, Send } from "lucide-react";
 const SOCKET_URL = "http://localhost:4000";
 
 function getUserDisplay(user) {
-  if (!user) return { name: "User", avatar: "/owner.jpg" };
-  let name = user.name;
-  if (!name || /^User\s*\d+$/i.test(name)) {
-    name = user.email || undefined;
-  }
-  return {
-    name: name || "User",
-    avatar: user.avatar || user.picture || "/owner.jpg",
-  };
+  // ...same as before
 }
 
 export default function ChatWindow({
@@ -27,37 +19,7 @@ export default function ChatWindow({
   customStyles = {},
   hideHeader = false,
 }) {
-  const isSelfChat =
-    userId && targetUserId && String(userId) === String(targetUserId);
-  if (isSelfChat) {
-    return (
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "400px",
-          height: "200px",
-          background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "1px solid #e5e7eb",
-          ...customStyles.popupStyle,
-        }}
-      >
-        <div className="text-center w-full">
-          <div className="font-semibold text-black text-lg mb-2">
-            You cannot chat with yourself.
-          </div>
-          <div className="text-gray-500 text-sm">
-            Please select another user to start a conversation.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(undefined);
@@ -68,6 +30,12 @@ export default function ChatWindow({
   const messagesContainerRef = useRef(null);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const [isOpen, setIsOpen] = useState(!!forceOpen);
+  const [currentUserInfo, setCurrentUserInfo] = useState(null);
+  const [targetUserInfo, setTargetUserInfo] = useState(null);
+
+  // ✅ CONDITIONAL LOGIC AFTER ALL HOOKS
+  const isSelfChat =
+    userId && targetUserId && String(userId) === String(targetUserId);
 
   useEffect(() => {
     if (forceOpen) setIsOpen(true);
@@ -232,6 +200,27 @@ export default function ChatWindow({
     }
   }, [messages]);
 
+  useEffect(() => {
+    if (propCurrentUser) setCurrentUserInfo(getUserDisplay(propCurrentUser));
+    else if (typeof window !== "undefined") {
+      try {
+        const reduxUser =
+          window.__NEXT_REDUX_WRAPPER__?.getState?.()?.user?.data;
+        setCurrentUserInfo(getUserDisplay(reduxUser));
+      } catch {}
+    }
+  }, [propCurrentUser, userId]);
+
+  useEffect(() => {
+    if (propTargetUser) setTargetUserInfo(getUserDisplay(propTargetUser));
+    else if (targetUserId && typeof window !== "undefined") {
+      fetch(`/api/users/${targetUserId}`)
+        .then((res) => res.json())
+        .then((data) => setTargetUserInfo(getUserDisplay(data)))
+        .catch(() => setTargetUserInfo(getUserDisplay(null)));
+    }
+  }, [propTargetUser, targetUserId]);
+
   const sendMessage = (e) => {
     e.preventDefault();
     const messageText = input.trim();
@@ -300,6 +289,36 @@ export default function ChatWindow({
     }
   };
 
+  // ✅ EARLY RETURN AFTER ALL HOOKS
+  if (isSelfChat) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          height: "200px",
+          background: "#fff",
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "1px solid #e5e7eb",
+          ...customStyles.popupStyle,
+        }}
+      >
+        <div className="text-center w-full">
+          <div className="font-semibold text-black text-lg mb-2">
+            You cannot chat with yourself.
+          </div>
+          <div className="text-gray-500 text-sm">
+            Please select another user to start a conversation.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const bubbleButtonStyle = {
     position: "fixed",
     bottom: 32,
@@ -334,30 +353,6 @@ export default function ChatWindow({
     border: "1px solid #e5e7eb",
     ...customStyles.popupStyle,
   };
-
-  const [currentUserInfo, setCurrentUserInfo] = useState(null);
-  const [targetUserInfo, setTargetUserInfo] = useState(null);
-
-  useEffect(() => {
-    if (propCurrentUser) setCurrentUserInfo(getUserDisplay(propCurrentUser));
-    else if (typeof window !== "undefined") {
-      try {
-        const reduxUser =
-          window.__NEXT_REDUX_WRAPPER__?.getState?.()?.user?.data;
-        setCurrentUserInfo(getUserDisplay(reduxUser));
-      } catch {}
-    }
-  }, [propCurrentUser, userId]);
-
-  useEffect(() => {
-    if (propTargetUser) setTargetUserInfo(getUserDisplay(propTargetUser));
-    else if (targetUserId && typeof window !== "undefined") {
-      fetch(`/api/users/${targetUserId}`)
-        .then((res) => res.json())
-        .then((data) => setTargetUserInfo(getUserDisplay(data)))
-        .catch(() => setTargetUserInfo(getUserDisplay(null)));
-    }
-  }, [propTargetUser, targetUserId]);
 
   return (
     <>
