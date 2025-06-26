@@ -9,7 +9,6 @@ import { User } from "lucide-react";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import { useSelector } from "react-redux";
 import OwnerReviewList from "./OwnerReviewList";
-import OwnerReviewForm from "./OwnerReviewForm";
 
 const page = () => {
   const [userProfile, setUserProfile] = useState({});
@@ -24,11 +23,12 @@ const page = () => {
   const [reviewForm, setReviewForm] = useState({ comment: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState("");
+  const [hideReviewForm, setHideReviewForm] = useState(false);
 
   const handleReviewSubmit = async () => {
     setReviewError("");
     if (!user) {
-      setReviewError("Please log in to submit a review");
+      setHideReviewForm(true);
       return;
     }
     if (!reviewForm.comment.trim()) {
@@ -47,9 +47,9 @@ const page = () => {
         { headers }
       );
       setReviewForm({ comment: "" });
-      setReviewRefreshKey((k) => k + 1); // trigger OwnerReviewList refresh
+      setReviewRefreshKey((k) => k + 1);
     } catch (err) {
-      setReviewError("Failed to submit review");
+      setHideReviewForm(true);
     } finally {
       setSubmittingReview(false);
     }
@@ -160,19 +160,16 @@ const page = () => {
           {/* Owner Reviews Section under My Listing */}
           <article className="w-full bg-white px-5 py-6 rounded-sm mt-5 mb-5">
             <h3 className="text-2xl font-semibold mb-4">Owner Reviews</h3>
-            <OwnerReviewList ownerId={id} refreshKey={reviewRefreshKey} />
-            {/* Only show review form if logged-in user is NOT the owner */}
-            {user && String(user.id) !== String(id) && (
-              <div className="border-t border-gray-100 pt-6 mt-6">
-                <OwnerReviewForm
-                  reviewForm={reviewForm}
-                  setReviewForm={setReviewForm}
-                  submittingReview={submittingReview}
-                  reviewError={reviewError}
-                  onSubmit={handleReviewSubmit}
-                />
-              </div>
-            )}
+            <OwnerReviewList
+              ownerId={id}
+              refreshKey={reviewRefreshKey}
+              showReviewForm={true}
+              reviewForm={reviewForm}
+              setReviewForm={setReviewForm}
+              submittingReview={submittingReview}
+              reviewError={reviewError}
+              onSubmit={handleReviewSubmit}
+            />
           </article>
         </section>
       </section>

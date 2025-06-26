@@ -2,13 +2,48 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useIntersection } from "../../../hooks/useIntersection";
-import { useDebounce } from "../../../hooks/useDebounce";
 import PropertyHeader from "./components/PropertyHeader";
 import PropertyFilters from "./components/PropertyFilters";
 import PropertyGrid from "./components/PropertyGrid";
 import EmptyState from "./components/EmptyState";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorMessage from "./components/ErrorMessage";
+
+const textUtils = {
+  normalizeForSearch: (text) => {
+    if (!text || typeof text !== "string") return "";
+    return text.trim().toLowerCase();
+  },
+
+  formatForDisplay: (text) => {
+    if (!text || typeof text !== "string") return "";
+    return text
+      .trim()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  },
+
+  matchesSearch: (text, searchTerm) => {
+    if (!text || !searchTerm) return false;
+    return textUtils
+      .normalizeForSearch(text)
+      .includes(textUtils.normalizeForSearch(searchTerm));
+  },
+
+  deduplicateByText: (items, textKey = null) => {
+    const seen = new Map();
+    return items.filter((item) => {
+      const text = textKey ? item[textKey] : item;
+      const normalized = textUtils.normalizeForSearch(text);
+      if (seen.has(normalized)) {
+        return false;
+      }
+      seen.set(normalized, true);
+      return true;
+    });
+  },
+};
 
 const propertyService = {
   async fetchProperties({ pageParam = 1, filters = {}, pageSize = 10 }) {
@@ -17,26 +52,30 @@ const propertyService = {
       per_page: pageSize.toString(),
     });
 
-    // Enhanced filter parameter mapping
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== "" && value !== null && value !== undefined) {
         if (key === "priceRange" && Array.isArray(value)) {
-          params.append("min_price", value[0].toString());
-          params.append("max_price", value[1].toString());
+          if (value[0] > 100) {
+            params.append("min_price", value[0].toString());
+          }
+          if (value[1] < 10000) {
+            params.append("max_price", value[1].toString());
+          }
+        } else if (key === "sortBy") {
+          params.append("sort_by", value);
+        } else if (key === "sortDir") {
+          params.append("sort_dir", value);
         } else if (key === "number_of_beds" || key === "number_of_bathrooms") {
-          // Ensure numeric values are properly formatted
           const numValue = parseInt(value);
           if (!isNaN(numValue) && numValue > 0) {
             params.append(key, numValue.toString());
           }
         } else if (key === "space") {
-          // Handle space/area filtering
           const numValue = parseInt(value);
           if (!isNaN(numValue) && numValue > 0) {
             params.append("min_space", numValue.toString());
           }
         } else {
-          // Handle text filters with trimming
           const trimmedValue = value.toString().trim();
           if (trimmedValue.length > 0) {
             params.append(key, trimmedValue);
@@ -67,20 +106,17 @@ const propertyService = {
 };
 
 const useProperties = (filters) => {
-  // Use shorter debounce for better responsiveness
-  const debouncedFilters = useDebounce(filters, 500);
   const queryClient = useQueryClient();
 
   const query = useInfiniteQuery({
-    queryKey: ["properties", debouncedFilters],
+    queryKey: ["properties", filters],
     queryFn: ({ pageParam }) =>
       propertyService.fetchProperties({
         pageParam,
-        filters: debouncedFilters,
-        pageSize: 10, // Consistent page size
+        filters,
+        pageSize: 10,
       }),
     getNextPageParam: (lastPage, allPages) => {
-      // Enhanced pagination logic
       if (!lastPage || !lastPage.data || lastPage.data.length === 0) {
         return undefined;
       }
@@ -93,11 +129,10 @@ const useProperties = (filters) => {
       return allPages.length + 1;
     },
     initialPageParam: 1,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
-      // Only retry on network errors, not on 4xx/5xx HTTP errors
       if (error.message.includes("HTTP error!")) {
         return false;
       }
@@ -105,29 +140,10 @@ const useProperties = (filters) => {
     },
   });
 
-  // Log query state for debugging
-  useEffect(() => {
-    console.log("Query State:", {
-      isLoading: query.isLoading,
-      isError: query.isError,
-      error: query.error,
-      dataLength:
-        query.data?.pages?.flatMap((page) => page.data || []).length || 0,
-      hasNextPage: query.hasNextPage,
-    });
-  }, [
-    query.isLoading,
-    query.isError,
-    query.error,
-    query.data,
-    query.hasNextPage,
-  ]);
-
   return query;
 };
 
 const PropertyList = () => {
-  // Enhanced initial filter state
   const [filters, setFilters] = useState({
     title: "",
     description: "",
@@ -139,9 +155,12 @@ const PropertyList = () => {
     number_of_bathrooms: "",
     space: "",
     priceRange: [100, 10000],
+    sortBy: "created_at",
+    sortDir: "desc",
   });
 
   const queryClient = useQueryClient();
+  const [searchFilters, setSearchFilters] = useState(filters);
 
   const {
     data,
@@ -152,9 +171,8 @@ const PropertyList = () => {
     isError,
     error,
     refetch,
-  } = useProperties(filters);
+  } = useProperties(searchFilters);
 
-  // Flatten all pages into a single array with error handling
   const properties = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => {
@@ -165,10 +183,9 @@ const PropertyList = () => {
     });
   }, [data]);
 
-  // Get total count from the first page
-  const totalCount = data?.pages?.[0]?.total || properties.length;
+  const displayProperties = properties;
+  const totalCount = data?.pages?.[0]?.total || displayProperties.length;
 
-  // Intersection observer for infinite scroll
   const { ref: sentinelRef } = useIntersection({
     onIntersect: () => {
       if (hasNextPage && !isFetchingNextPage) {
@@ -176,28 +193,45 @@ const PropertyList = () => {
         fetchNextPage();
       }
     },
-    rootMargin: "200px", // Increased margin for earlier loading
+    rootMargin: "200px",
   });
 
-  // Enhanced filter change handler
   const handleFilterChange = useCallback((key, value) => {
-    console.log("Filter changed:", key, value);
-    setFilters((prev) => {
-      const newFilters = { ...prev, [key]: value };
-      console.log("New filters:", newFilters);
-      return newFilters;
-    });
+    let processedValue = value;
+    const textFields = [
+      "title",
+      "description",
+      "type",
+      "area",
+      "street",
+      "block",
+    ];
+    if (textFields.includes(key) && typeof value === "string") {
+      processedValue = value.trim();
+    }
+    setFilters((prev) => ({ ...prev, [key]: processedValue }));
   }, []);
 
-  // Enhanced price range handler
   const handlePriceRangeChange = useCallback((newRange) => {
-    console.log("Price range changed:", newRange);
     setFilters((prev) => ({ ...prev, priceRange: newRange }));
   }, []);
 
-  // Enhanced reset handler
+  const handleSortChange = useCallback((sortBy, sortDir) => {
+    console.log("Sort changed:", { sortBy, sortDir });
+    setFilters((prev) => ({
+      ...prev,
+      sortBy,
+      sortDir,
+    }));
+  }, []);
+
+  const handleSearch = useCallback(() => {
+    console.log("Search triggered with filters:", filters);
+    setSearchFilters(filters);
+    queryClient.invalidateQueries({ queryKey: ["properties"] });
+  }, [filters, queryClient]);
+
   const handleReset = useCallback(() => {
-    console.log("Resetting filters");
     const resetFilters = {
       title: "",
       description: "",
@@ -208,22 +242,15 @@ const PropertyList = () => {
       number_of_beds: "",
       number_of_bathrooms: "",
       space: "",
-      priceRange: [100, 1000000],
+      priceRange: [100, 10000],
+      sortBy: "created_at",
+      sortDir: "desc",
     };
-
     setFilters(resetFilters);
-
-    // Invalidate and refetch
+    setSearchFilters(resetFilters);
     queryClient.invalidateQueries({ queryKey: ["properties"] });
   }, [queryClient]);
 
-  // Enhanced search handler
-  const handleSearch = useCallback(() => {
-    console.log("Manual search triggered with filters:", filters);
-    queryClient.invalidateQueries({ queryKey: ["properties"] });
-  }, [queryClient, filters]);
-
-  // Memoized utility functions
   const formatPrice = useCallback((price) => {
     if (!price || isNaN(price)) return "$0";
     return new Intl.NumberFormat("en-US", {
@@ -243,56 +270,113 @@ const PropertyList = () => {
   }, []);
 
   const getPropertyImage = useCallback((property) => {
+    if (
+      property.media &&
+      Array.isArray(property.media) &&
+      property.media.length > 0
+    ) {
+      const primaryMedia =
+        property.media.find((m) => m.is_primary) || property.media[0];
+      if (primaryMedia.file_path) {
+        if (primaryMedia.file_path.startsWith("http")) {
+          return primaryMedia.file_path;
+        }
+        return `http://127.0.0.1:8000/storage/${primaryMedia.file_path}`;
+      }
+    }
+
     if (property.primary_image) {
       if (property.primary_image.startsWith("http")) {
         return property.primary_image;
       }
       return `http://127.0.0.1:8000/storage/${property.primary_image}`;
     }
+
     return "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=400&h=300&fit=crop";
   }, []);
 
-  // Enhanced unique values extraction
   const { uniqueTypes, uniqueLocations } = useMemo(() => {
-    const types = new Set();
-    const locations = new Set();
+    const typeValues = [];
+    const locationValues = [];
 
     properties.forEach((property) => {
       if (property.type && property.type.trim()) {
-        types.add(property.type.trim());
+        typeValues.push(property.type.trim());
       }
+
       if (property.area && property.area.trim()) {
-        locations.add(property.area.trim());
+        locationValues.push(property.area.trim());
       }
-      // Also check location field as backup
+
       if (property.location && property.location.trim()) {
         const locationParts = property.location.split(",");
         if (locationParts[0] && locationParts[0].trim()) {
-          locations.add(locationParts[0].trim());
+          locationValues.push(locationParts[0].trim());
         }
       }
     });
 
+    const uniqueTypes = textUtils
+      .deduplicateByText(typeValues)
+      .map((type) => ({
+        value: type,
+        display: textUtils.formatForDisplay(type),
+        original: type,
+      }))
+      .sort((a, b) => a.display.localeCompare(b.display));
+
+    const uniqueLocations = textUtils
+      .deduplicateByText(locationValues)
+      .map((location) => ({
+        value: location,
+        display: textUtils.formatForDisplay(location),
+        original: location,
+      }))
+      .sort((a, b) => a.display.localeCompare(b.display));
+
+    console.log("Unique types:", uniqueTypes);
+    console.log("Unique locations:", uniqueLocations);
+
     return {
-      uniqueTypes: Array.from(types).sort(),
-      uniqueLocations: Array.from(locations).sort(),
+      uniqueTypes: uniqueTypes.map((t) => t.display),
+      uniqueLocations: uniqueLocations.map((l) => l.display),
+      typeOptions: uniqueTypes,
+      locationOptions: uniqueLocations,
     };
   }, [properties]);
 
-  // Debug logging
+  const hasActiveFilters = useMemo(() => {
+    return Object.entries(searchFilters).some(([key, value]) => {
+      if (key === "sortBy" || key === "sortDir") {
+        return false;
+      }
+      if (key === "priceRange") {
+        return Array.isArray(value) && (value[0] > 100 || value[1] < 10000);
+      }
+      return value !== "" && value !== null && value !== undefined;
+    });
+  }, [searchFilters]);
+
   useEffect(() => {
-    console.log(
-      `Properties loaded: ${properties.length}, Total: ${totalCount}, Has next page: ${hasNextPage}, Unique types: ${uniqueTypes.length}, Unique locations: ${uniqueLocations.length}`
-    );
+    console.log("Component state:", {
+      filtersActive: hasActiveFilters,
+      propertiesCount: properties.length,
+      totalCount,
+      isLoading,
+      isError,
+      currentFilters: filters,
+      searchFilters: searchFilters,
+    });
   }, [
+    hasActiveFilters,
     properties.length,
     totalCount,
-    hasNextPage,
-    uniqueTypes.length,
-    uniqueLocations.length,
+    isLoading,
+    isError,
+    filters,
+    searchFilters,
   ]);
 
-  // Handle error state
   if (isError) {
     console.error("Property list error:", error);
     return (
@@ -320,6 +404,7 @@ const PropertyList = () => {
           filters={filters}
           handleFilterChange={handleFilterChange}
           handlePriceRangeChange={handlePriceRangeChange}
+          handleSortChange={handleSortChange}
           handleReset={handleReset}
           handleSearch={handleSearch}
           getUniqueTypes={() => uniqueTypes}
@@ -328,19 +413,18 @@ const PropertyList = () => {
           isLoading={isLoading}
         />
 
-        {isLoading && properties.length === 0 ? (
+        {isLoading && displayProperties.length === 0 ? (
           <div className="flex justify-center items-center py-16">
             <LoadingSpinner />
           </div>
-        ) : properties.length > 0 ? (
+        ) : displayProperties.length > 0 ? (
           <>
             <PropertyGrid
-              properties={properties}
+              properties={displayProperties}
               getPropertyImage={getPropertyImage}
               formatPrice={formatPrice}
             />
 
-            {/* Infinite scroll sentinel */}
             {hasNextPage && (
               <div
                 ref={sentinelRef}
@@ -364,29 +448,19 @@ const PropertyList = () => {
               </div>
             )}
 
-            {/* End message */}
-            {!hasNextPage && properties.length > 0 && (
+            {!hasNextPage && displayProperties.length > 0 && (
               <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8 bg-white rounded-lg">
-                <p className="text-lg font-medium">
-                  You've seen all {totalCount} matching properties
-                </p>
                 <p className="text-sm text-gray-400 mt-1">
-                  {properties.length === totalCount
+                  {displayProperties.length === totalCount
                     ? `Showing all ${totalCount} properties`
-                    : `Loaded ${properties.length} of ${totalCount} properties`}
+                    : `Loaded ${displayProperties.length} of ${totalCount} properties`}
                 </p>
               </div>
             )}
           </>
         ) : (
           <EmptyState
-            hasActiveFilters={Object.values(filters).some(
-              (val) =>
-                val !== "" &&
-                val !== null &&
-                val !== undefined &&
-                (Array.isArray(val) ? val[0] > 100 || val[1] < 1000000 : true)
-            )}
+            hasActiveFilters={hasActiveFilters}
             onClearFilters={handleReset}
           />
         )}
