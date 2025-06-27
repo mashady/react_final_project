@@ -169,7 +169,7 @@ const Navbar = () => {
                 {t("navbarJoin")}
               </Link>
             )}
-            {(userRole === "owner" || userRole === "admin") && (
+            {userRole === "owner" && (
               <Link href="/dashboard/add-property">
                 <button className="bg-white text-gray-900 px-4 py-2 text font-medium hover:text-yellow-600 transition-colors flex items-center space-x-2 cursor-pointer">
                   <Plus className="w-4 h-4" />
