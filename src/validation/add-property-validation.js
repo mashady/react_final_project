@@ -64,23 +64,20 @@ export const validationSchema = Yup.object({
   media: Yup.array()
     .of(
       Yup.mixed()
-        .test(
-          "fileSize",
-          "Maximum file size is 20MB",
-          (value) => !value || value.size <= 20 * 1024 * 1024
-        )
-        .test(
-          "fileType",
-          "Only images and videos are allowed",
-          (value) =>
-            !value ||
-            [
-              "image/jpeg",
-              "image/png",
-              "video/mp4",
-              "video/quicktime",
-            ].includes(value.type)
-        )
+        .test("fileSize", "File too large", (value) => {
+          if (value instanceof File) {
+            return value.size <= 20 * 1024 * 1024;
+          }
+          return true; // Skip validation for existing media (not File)
+        })
+        .test("fileType", "Unsupported file format", (value) => {
+          if (value instanceof File) {
+            return ["image/", "video/"].some((type) =>
+              value.type?.startsWith(type)
+            );
+          }
+          return true; // Skip validation for existing media
+        })
     )
     .min(1, "At least 1 media file is required")
     .max(8, "Maximum 8 media files allowed"),
