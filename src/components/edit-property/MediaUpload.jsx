@@ -4,7 +4,7 @@ import { Upload, X, Image, Video } from "lucide-react";
 import { useFormikContext } from "formik";
 import axios from "axios";
 
-const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
+const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
   const { values, setFieldValue, errors, touched } = useFormikContext();
   const { media } = values;
   const hasError = touched.media && errors.media;
@@ -14,35 +14,36 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
     input.type = "file";
     input.multiple = true;
     input.accept = "image/*,video/*";
-  
+
     input.onchange = (e) => {
       const files = Array.from(e.target.files);
       const validFiles = files.filter((file) => {
-        // Convert bytes to MB for comparison
-        const fileSizeMB = file.size / (1024 * 1024); 
+        if (!(file instanceof File)) return false;
+
+        const fileSizeMB = file.size / (1024 * 1024);
         const isValidSize = fileSizeMB <= 20;
         const isValidType =
           file.type.startsWith("image/") || file.type.startsWith("video/");
-        
+
         if (!isValidSize) {
           console.warn(`File ${file.name} is too large (${fileSizeMB.toFixed(2)}MB)`);
         }
+
         if (!isValidType) {
           console.warn(`File ${file.name} has invalid type: ${file.type}`);
         }
-        
+
         return isValidSize && isValidType;
       });
-  
+
       if (validFiles.length !== files.length) {
         showToast("Some files were skipped. Only images/videos under 20MB are allowed.", "warning");
       }
-  
-      // Combine with existing media (keeping both old and new)
+
       const newGallery = [...media, ...validFiles];
       setFieldValue("media", newGallery);
     };
-  
+
     input.click();
   };
 
@@ -52,14 +53,12 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
 
     try {
       if (fileToRemove?.id) {
-     
         await axios.delete(`http://127.0.0.1:8000/api/media/${fileToRemove.id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-      } else {
-       
+      } else if (fileToRemove instanceof File) {
         URL.revokeObjectURL(fileToRemove);
       }
 
@@ -72,19 +71,21 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
 
   const handleRemoveAllMedia = () => {
     media.forEach((file) => {
-      if (!file?.id && typeof file === "object") {
+      if (!file?.id && file instanceof File) {
         URL.revokeObjectURL(file);
       }
     });
 
-    onRemoveAllMedia(); 
+    onRemoveAllMedia();
   };
 
   const getImageUrl = (file) => {
     if (typeof file === "string") return file;
-    if (file?.file_path) return file.file_path;
-    return URL.createObjectURL(file);
+    if (file?.url) return file.url; // ✅ نستخدم url بدل file_path
+    if (file instanceof File) return URL.createObjectURL(file);
+    return "";
   };
+
 
   return (
     <div className="bg-white overflow-hidden">
@@ -123,13 +124,15 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
         </div>
 
         {hasError && <p className="text-xs text-red-500 mb-4">{errors.media}</p>}
-        
-        
+
         {media.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {media.map((file, index) => {
-              const isImage = file?.media_type === "image" || file?.type?.startsWith("image/");
-              const isVideo = file?.media_type === "video" || file?.type?.startsWith("video/");
+              const isFile = file instanceof File;
+              const isImage =
+                file?.media_type === "image" || (isFile && file.type?.startsWith("image/"));
+              const isVideo =
+                file?.media_type === "video" || (isFile && file.type?.startsWith("video/"));
               const imageUrl = getImageUrl(file);
 
               return (
@@ -154,7 +157,6 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
                     )}
                   </div>
 
-                  {/* Delete button */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <button
                       type="button"
@@ -166,7 +168,6 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
                     </button>
                   </div>
 
-                  {/* Index label */}
                   <div className="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
                     {index + 1}
                   </div>

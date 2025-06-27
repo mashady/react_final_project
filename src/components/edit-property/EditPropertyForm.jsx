@@ -30,7 +30,11 @@ const EditPropertyForm = ({ propertyId }) => {
           setFormValues({
             ...initialValues,
             ...data,
-            media: data.media?.map((m) => ({ id: m.id, file_path: m.file_path })) || [],
+            media: data.media?.map((m) => ({
+              id: m.id,
+              url: m.url, // ✅ نستخدم الرابط المباشر
+              media_type: m.media_type, // مهم علشان نعرف هل هو صورة ولا فيديو
+            })) || [],
           });
           setLoading(false);
         })
@@ -42,6 +46,8 @@ const EditPropertyForm = ({ propertyId }) => {
     }
   }, [propertyId]);
 
+
+
   const showToast = (message, type) => {
     setToast({ message, type, visible: true });
   };
@@ -52,37 +58,41 @@ const EditPropertyForm = ({ propertyId }) => {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitStatus(null);
-  
+
     try {
       const submitData = new FormData();
-      
-      // Append all non-media fields first
+
+      // Append all non-media fields
       Object.keys(values).forEach((key) => {
         if (key !== 'media' && values[key] !== null && values[key] !== undefined) {
           submitData.append(key, values[key]);
         }
       });
-  
-      // Handle media files - both existing and new
-      if (values.media && values.media.length > 0) {
-        values.media.forEach((file) => {
-          if (file instanceof File) {
-            // New file - append directly
-            submitData.append('media[]', file);
-          } else if (file?.id) {
-            // Existing file - append ID
-            submitData.append('existing_media[]', file.id);
-          }
-        });
-      } else {
-        // If no media selected at all, keep all existing media
-        formValues.media?.forEach((file) => {
-          if (file?.id) {
-            submitData.append('existing_media[]', file.id);
-          }
-        });
+
+      
+      const existingMediaIds = values.media
+        .filter((file) => file?.id)
+        .map((file) => file.id);
+
+      const newMediaFiles = values.media.filter((file) => file instanceof File);
+
+      // Validate that at least one media file is present
+      if (existingMediaIds.length + newMediaFiles.length === 0) {
+        showToast("You must upload at least one media file.", "error");
+        setSubmitting(false);
+        return;
       }
-  
+
+      // Append existing media IDs
+      existingMediaIds.forEach((id) => {
+        submitData.append("existing_media[]", id);
+      });
+
+      // Append new media files
+      newMediaFiles.forEach((file) => {
+        submitData.append("media[]", file);
+      });
+
       const response = await axios.post(
         `http://127.0.0.1:8000/api/ads/${propertyId}?_method=PUT`,
         submitData,
@@ -94,7 +104,7 @@ const EditPropertyForm = ({ propertyId }) => {
           },
         }
       );
-  
+
       showToast("Property updated successfully!", "success");
       router.push("/dashboard/my-properties");
     } catch (error) {
@@ -104,6 +114,7 @@ const EditPropertyForm = ({ propertyId }) => {
       setSubmitting(false);
     }
   };
+
   const handleRemoveAllMedia = async () => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/ads/${propertyId}/media`, {
@@ -153,7 +164,12 @@ const EditPropertyForm = ({ propertyId }) => {
                 <FormSection key={index} section={section} />
               ))}
 
-            <MediaUpload onRemoveAllMedia={handleRemoveAllMedia} propertyId={propertyId} />
+            <MediaUpload
+              onRemoveAllMedia={handleRemoveAllMedia}
+              propertyId={propertyId}
+              showToast={showToast}
+            />
+
 
 
               <div className="flex justify-end gap-3 pt-6">
