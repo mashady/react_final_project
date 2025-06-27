@@ -15,7 +15,7 @@ import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import useIntersection from "@/hooks/useIntersection";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 3;
 
 const WishlistContent = () => {
   const dispatch = useDispatch();
@@ -116,7 +116,6 @@ const WishlistContent = () => {
         <div ref={sentinelRef} className="flex justify-center mt-10">
           <div className="flex items-center space-x-2">
             <LoadingSpinner />
-            <span className="text-gray-500">Loading more...</span>
           </div>
         </div>
       )}
