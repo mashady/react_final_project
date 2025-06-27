@@ -30,6 +30,11 @@ const nextConfig = {
         hostname: "newhome.qodeinteractive.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "secure.gravatar.com",
+        pathname: "/**",
+      },
     ],
   },
 };

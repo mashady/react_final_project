@@ -46,6 +46,9 @@ const PropertyForm = () => {
       });
 
       console.log("Form values:", values);
+      // Add primary_media_index by default as 0
+      submitData.append("primary_media_index", 0);
+
       console.log(
         "Submitting form data:",
         Object.fromEntries(submitData.entries())
