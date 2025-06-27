@@ -8,20 +8,39 @@ import LoadingSpinner from "../properties/components/LoadingSpinner";
 import { useTranslation } from "@/TranslationContext";
 
 export default function PricingPage() {
-  let { t } = useTranslation();
+  const { t } = useTranslation();
   const [plans, setPlans] = useState([]);
   const [currentPlanId, setCurrentPlanId] = useState(null);
   const [hasPlan, setHasPlan] = useState(false);
   const [hasUsedFreePlan, setHasUsedFreePlan] = useState(false);
+  const [isFreePlanStatusFetched, setIsFreePlanStatusFetched] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchPlans = async () => {
+    try {
+      const plansRes = await axios.get("http://127.0.0.1:8000/api/plans");
+      setPlans(plansRes.data);
+    } catch (error) {
+      console.warn("Error fetching public plans:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      // Not logged in: skip checks but show plans
+      fetchPlans();
+      setIsFreePlanStatusFetched(true);
+      return;
+    }
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch available plans
+        // Fetch all plans
         const plansRes = await axios.get("http://127.0.0.1:8000/api/plans", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -29,45 +48,41 @@ export default function PricingPage() {
         });
         setPlans(plansRes.data);
 
-        // Fetch current subscription
-        const subRes = await axios.get(
-          "http://127.0.0.1:8000/api/plans/my-subscription",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // Fetch user's current subscription
+        const subRes = await axios.get("http://127.0.0.1:8000/api/plans/my-subscription", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (subRes.data && subRes.data.active) {
           setCurrentPlanId(subRes.data.plan_id);
           setHasPlan(true);
         }
-      } catch (error) {
-        console.warn("No current plan or error fetching subscription.");
-        setHasPlan(false);
-      }
 
-      try {
-        // Check if user can use free plan
-        const freeRes = await axios.get(
-          "http://127.0.0.1:8000/api/plans/allow-free-plan",
-          {
+        // Check if user already used the free plan
+        try {
+          await axios.get("http://127.0.0.1:8000/api/plans/allow-free-plan", {
             headers: {
               Authorization: `Bearer ${token}`,
             },
+          });
+          setHasUsedFreePlan(false); // allowed
+        } catch (error) {
+          if (error.response?.status === 403) {
+            setHasUsedFreePlan(true); // already used
           }
-        );
-
-        if (freeRes.data.allowed === false) {
-          setHasUsedFreePlan(true);
         }
+
       } catch (error) {
-        setHasUsedFreePlan(true);
+        console.warn("Error loading plans or subscription:", error);
+        setHasPlan(false);
       } finally {
+        setIsFreePlanStatusFetched(true);
         setIsLoading(false);
       }
     };
+
 
     fetchData();
   }, []);
@@ -85,16 +100,17 @@ export default function PricingPage() {
       <PricingHeader />
       <div className="max-w-[1500px] mx-auto px-6 py-16">
         <HowItWorks />
-
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan) => {
             let isDisabled = false;
             let isUpgrade = false;
 
+            // Free plan logic
             if (plan.id === 1 && hasUsedFreePlan) {
               isDisabled = true;
             }
 
+            // Current or upgrade plan logic
             if (hasPlan) {
               if (plan.id === currentPlanId) {
                 isDisabled = true;
@@ -104,7 +120,7 @@ export default function PricingPage() {
             }
 
             const features = plan.features
-              ? plan.features.split("\n").filter(Boolean) // if server sends multiline string
+              ? plan.features.split("\n").filter(Boolean)
               : [`Up to ${plan.ads_Limit} ads`];
 
             return (
@@ -117,7 +133,8 @@ export default function PricingPage() {
                 planId={plan.id}
                 isDisabled={isDisabled}
                 isUpgrade={isUpgrade}
-                hasPlanfree={hasUsedFreePlan}
+                hasUsedFreePlan={hasUsedFreePlan}
+                isFreePlanStatusFetched={isFreePlanStatusFetched}
               />
             );
           })}
