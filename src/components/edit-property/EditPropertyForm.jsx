@@ -30,7 +30,11 @@ const EditPropertyForm = ({ propertyId }) => {
           setFormValues({
             ...initialValues,
             ...data,
-            media: data.media?.map((m) => ({ id: m.id, file_path: m.file_path })) || [],
+            media: data.media?.map((m) => ({
+              id: m.id,
+              url: m.url, // ✅ نستخدم الرابط المباشر
+              media_type: m.media_type, // مهم علشان نعرف هل هو صورة ولا فيديو
+            })) || [],
           });
           setLoading(false);
         })
@@ -41,6 +45,8 @@ const EditPropertyForm = ({ propertyId }) => {
         });
     }
   }, [propertyId]);
+
+
 
   const showToast = (message, type) => {
     setToast({ message, type, visible: true });

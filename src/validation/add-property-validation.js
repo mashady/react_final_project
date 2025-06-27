@@ -51,19 +51,30 @@ export const validationSchema = Yup.object({
     .max(255, 'Block must be less than 255 characters'),
   
   media: Yup.array()
-    .of(
-      Yup.mixed()
-        .test(
-          'fileSize',
-          'File too large',
-          (value) => !value || (value.size <= 20 * 1024 * 1024) // 20MB
-        )
-        .test(
-          'fileType',
-          'Unsupported file format',
-          (value) => !value || ['image/', 'video/'].some(type => value.type?.startsWith(type))
-        )
-    )
-    .min(1, 'At least 1 media file is required')
-    .max(8, 'Maximum 8 media files allowed')
+  .of(
+    Yup.mixed()
+      .test(
+        'fileSize',
+        'File too large',
+        (value) => {
+          if (value instanceof File) {
+            return value.size <= 20 * 1024 * 1024;
+          }
+          return true; // Skip validation for existing media (not File)
+        }
+      )
+      .test(
+        'fileType',
+        'Unsupported file format',
+        (value) => {
+          if (value instanceof File) {
+            return ['image/', 'video/'].some(type => value.type?.startsWith(type));
+          }
+          return true; // Skip validation for existing media
+        }
+      )
+  )
+  .min(1, 'At least 1 media file is required')
+  .max(8, 'Maximum 8 media files allowed')
+
 });
