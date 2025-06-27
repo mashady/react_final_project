@@ -4,7 +4,7 @@ import Image from "next/image";
 const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
   if (!isOpen || !property) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">{property.title}</h2>
@@ -24,7 +24,6 @@ const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
               height={400}
               className="rounded-lg mb-6 object-cover w-full h-auto"
             />
-
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
