@@ -1,5 +1,11 @@
 "use client";
-import React, { useEffect } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useSelector, useDispatch } from "react-redux";
 import DashboardPageHeader from "@/components/dashboard/DashboardPageHeader";
 import LoadMoreBtn from "@/components/shared/LoadMoreBtn";
@@ -7,19 +13,52 @@ import PropertyCard from "@/components/shared/PropertyCard";
 import { fetchWishlist } from "@/features/wishlist/wishlistThunks";
 import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import useIntersection from "@/hooks/useIntersection";
+
+const PAGE_SIZE = 9;
 
 const WishlistContent = () => {
   const dispatch = useDispatch();
   const wishlistState = useSelector((state) => state.wishlist || {});
   const { items: wishlist = [], loading = false, error = null } = wishlistState;
 
+  // Pagination state
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const hasNextPage = wishlist.length > visibleCount;
+  const isLoadingMore = useRef(false);
+
+  // Intersection observer for lazy loading
+  const { ref: sentinelRef } = useIntersection({
+    onIntersect: () => {
+      if (hasNextPage && !isLoadingMore.current) {
+        isLoadingMore.current = true;
+        setTimeout(() => {
+          setVisibleCount((prev) => prev + PAGE_SIZE);
+          isLoadingMore.current = false;
+        }, 400); // Simulate loading delay
+      }
+    },
+    rootMargin: "200px",
+  });
+
   useEffect(() => {
     dispatch(fetchWishlist());
   }, [dispatch]);
 
+  useEffect(() => {
+    // Reset visible count if wishlist changes
+    setVisibleCount(PAGE_SIZE);
+  }, [wishlist.length]);
+
   const handleRetry = () => {
     dispatch(fetchWishlist());
   };
+
+  // Only show up to visibleCount items
+  const visibleWishlist = useMemo(
+    () => wishlist.slice(0, visibleCount),
+    [wishlist, visibleCount]
+  );
 
   if (loading) {
     return (
@@ -51,8 +90,8 @@ const WishlistContent = () => {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {wishlist.length > 0 ? (
-          wishlist.map((property) => (
+        {visibleWishlist.length > 0 ? (
+          visibleWishlist.map((property) => (
             <PropertyCard
               key={property.id}
               property={property}
@@ -72,9 +111,13 @@ const WishlistContent = () => {
         )}
       </div>
 
-      {wishlist.length > 6 && (
-        <div className="flex justify-center mt-10">
-          <LoadMoreBtn />
+      {/* Lazy loading sentinel and loading indicator */}
+      {hasNextPage && (
+        <div ref={sentinelRef} className="flex justify-center mt-10">
+          <div className="flex items-center space-x-2">
+            <LoadingSpinner />
+            <span className="text-gray-500">Loading more...</span>
+          </div>
         </div>
       )}
     </div>

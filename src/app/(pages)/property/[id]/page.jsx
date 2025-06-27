@@ -196,7 +196,6 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
         { headers }
       );
       setReviewForm({ comment: "" });
-      // Refetch reviews
       const reviewsRes = await axios.get(
         `http://127.0.0.1:8000/api/ads/${propertyId}/reviews`,
         { headers }
