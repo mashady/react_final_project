@@ -1,6 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { Search, RefreshCcw, ArrowUpDown, ChevronDown, MapPin } from "lucide-react";
+import {
+  Search,
+  RefreshCcw,
+  ArrowUpDown,
+  ChevronDown,
+  MapPin,
+} from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import Link from "next/link";
 
@@ -99,25 +105,23 @@ export default function PropertyFiltersWithSorting({
   ];
 
   const handleLocalChange = (key, value) => {
-    setLocalFilters((prev) => ({ ...prev, [key]: value }));
+    const newFilters = { ...localFilters, [key]: value };
+    setLocalFilters(newFilters);
+    handleFilterChange(key, value); // Immediately propagate changes
   };
 
   const handleLocalPriceRange = (range) => {
-    setLocalFilters((prev) => ({ ...prev, priceRange: range }));
-    if (handleFilterChange) handleFilterChange("priceRange", range);
-    if (handlePriceRangeChange) handlePriceRangeChange(range);
+    const newFilters = { ...localFilters, priceRange: range };
+    setLocalFilters(newFilters);
+    handlePriceRangeChange(range);
   };
 
   const onSearch = () => {
-    Object.entries(localFilters).forEach(([key, value]) => {
-      handleFilterChange(key, value);
-    });
-    if (handlePriceRangeChange) handlePriceRangeChange(localFilters.priceRange);
-    if (handleSearch) handleSearch();
+    handleSearch(); // Just trigger the search with current filters
   };
 
   const onReset = () => {
-    setLocalFilters({
+    const resetFilters = {
       title: "",
       description: "",
       type: "",
@@ -130,7 +134,8 @@ export default function PropertyFiltersWithSorting({
       priceRange: [100, 10000],
       sortBy: "created_at",
       sortDir: "desc",
-    });
+    };
+    setLocalFilters(resetFilters);
     handleReset();
   };
 
