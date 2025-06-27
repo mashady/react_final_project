@@ -32,7 +32,6 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error, data } = useSelector((state) => state.user);
-  const [emailNotVerified, setEmailNotVerified] = useState(false);
 
   const [toast, setToast] = useState({
     message: "",
@@ -59,7 +58,21 @@ const LoginPage = () => {
           router.push("/");
         }, 3000);
       } else {
-        throw resultAction.payload;
+        const { status, message } = resultAction.payload;
+
+        if (
+          status === 403 &&
+          message === "Please verify your email before logging in."
+        ) {
+          showToast("Please verify your email first.", "warning");
+            // Redirect to verification sent page
+            setTimeout(() => {
+              router.push("/verify/sent");
+              return;
+            }, 3000);
+        }
+
+        throw message;
       }
     } catch (error) {
       showToast(error || "Login failed", "error");
@@ -78,17 +91,6 @@ const LoginPage = () => {
   return (
     <>
       <div className="min-h-screen py-32 bg-gray-50">
-        <div className="my-4 p-4 w-[300px] m-auto bg-yellow-100 border border-yellow-400 text-yellow-700 rounded md:w-[450px]">
-          <span>{t("loginVerifyEmailMsg")}</span>
-          <p>
-            <Link
-              href="/verify/resend_verify_mail"
-              className="ml-2 text-blue-600 hover:underline"
-            >
-              {t("loginResend")}
-            </Link>
-          </p>
-        </div>
         <Card className="w-[300px] m-auto min-h-[450px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
           <CardHeader>
             <CardTitle className="text-center text-3xl">
