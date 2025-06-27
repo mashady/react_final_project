@@ -450,6 +450,9 @@ const PropertyList = () => {
 
             {!hasNextPage && displayProperties.length > 0 && (
               <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8 bg-white rounded-lg">
+                <p className="text-lg font-medium">
+                  You &apos; ve seen all {totalCount} matching properties
+                </p>
                 <p className="text-sm text-gray-400 mt-1">
                   {displayProperties.length === totalCount
                     ? `Showing all ${totalCount} properties`

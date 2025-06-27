@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { Search, RefreshCcw, ArrowUpDown, ChevronDown } from "lucide-react";
+import { Search, RefreshCcw, ArrowUpDown, ChevronDown, MapPin } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import Link from "next/link";
 
 export default function PropertyFiltersWithSorting({
   filters = {
@@ -316,6 +317,15 @@ export default function PropertyFiltersWithSorting({
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <div className="md:col-span-4 flex items-end justify-end gap-3">
+          <Link href="/properties/map" className="flex items-center gap-2">
+            <button
+              onClick={onReset}
+              className="h-[50px] w-[180px] px-4 cursor-pointer p-2 border border-gray-300 hover:bg-gray-50 transition-colors flex justify-center items-center gap-1 text-base font-semibold"
+            >
+              <MapPin className="w-5 h-5 text-gray-600" />
+              Search on Map
+            </button>
+          </Link>
           <button
             onClick={onReset}
             className="h-[50px] w-[180px] px-4 cursor-pointer p-2 border border-gray-300 hover:bg-gray-50 transition-colors flex justify-center items-center gap-1 text-base font-semibold rounded"

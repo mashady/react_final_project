@@ -36,7 +36,7 @@ const DashboardNav = () => {
           },
           {
             href: "/dashboard/messages",
-            label: t("navbarDropMyProfile"),
+            label: t("navbarDropMessages"),
             icon: MessageSquareDot,
           },
         ];

@@ -27,7 +27,7 @@ import ChatWindow from "@/components/chat/ChatWindow";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import { useSelector } from "react-redux";
 import Toast from "./components/Toast";
-
+import Image from "next/image";
 const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const params = useParams();
   const propertyId = params.id;
@@ -330,10 +330,12 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
       <div className="relative h-[600px] bg-gray-200 overflow-hidden">
         {images.length > 0 ? (
           <>
-            <img
+            <Image
               src={images[currentImageIndex]}
               alt="Property"
               className="w-full h-full object-cover"
+              width={800}
+              height={420}
             />
             {images.length > 1 && (
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
@@ -454,7 +456,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
               ) : ownerDetails ? (
                 <>
                   <div className="flex items-center space-x-4 mb-4">
-                    <img
+                    <Image
                       src={
                         ownerDetails.picture
                           ? `${ownerDetails.picture}`
@@ -462,6 +464,8 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                       }
                       alt={ownerDetails.user?.name || "Owner"}
                       className="w-16 h-16 rounded-full object-cover"
+                      width={16}
+                      height={16}
                     />
                     <div>
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
@@ -565,6 +569,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 
 // Render ChatWindow globally, fixed to bottom, only if showChat
 import dynamic from "next/dynamic";
+import CommentSection from "./components/CommentSection";
 const DynamicChatWindow = dynamic(
   () => import("@/components/chat/ChatWindow"),
   { ssr: false }
@@ -637,6 +642,7 @@ export default function PropertyListingWrapper(props) {
         senderId={senderId}
         ownerUserId={ownerUserId}
       />
+      <CommentSection adId={propertyId} currentUser={user} />
       {showChat && (
         <div
           className="fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out"

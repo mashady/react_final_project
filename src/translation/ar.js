@@ -1,4 +1,4 @@
-export default {
+const ar = {
   hello: "مرحبًا",
   welcome: "مرحبًا بك في تطبيقنا",
   header: "اشترِ أو استأجر العقارات بدون عمولة",
@@ -164,3 +164,7 @@ export default {
   registerStudentRolePlaceholder: "طالب",
   registerOwnerRolePlaceholder: "مالك",
 };
+
+
+export default ar;
+

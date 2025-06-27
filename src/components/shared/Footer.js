@@ -2,6 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { useTranslation } from "@/TranslationContext";
+import Image from "next/image";
 
 const Footer = () => {
   let { t } = useTranslation();
@@ -12,10 +13,12 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <Link href="/">
-                <img
+                <Image
                   src="https://newhome.qodeinteractive.com/wp-content/uploads/2023/03/logo-main.png"
                   alt="New Home Logo"
                   className="h-10 w-auto"
+                  width={10}
+                  height={10}
                 />
               </Link>
             </div>
