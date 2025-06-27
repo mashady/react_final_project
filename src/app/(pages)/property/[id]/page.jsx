@@ -642,6 +642,7 @@ export default function PropertyListingWrapper(props) {
         senderId={senderId}
         ownerUserId={ownerUserId}
       />
+      <CommentSection adId={propertyId} currentUser={user} />
       {showChat && (
         <div
           className="fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out"
