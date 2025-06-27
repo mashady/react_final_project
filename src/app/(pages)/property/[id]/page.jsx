@@ -27,6 +27,7 @@ import ChatWindow from "@/components/chat/ChatWindow";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import { useSelector } from "react-redux";
 import Toast from "./components/Toast";
+import CommentSection from "./components/CommentSection";
 
 const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const params = useParams();
@@ -638,6 +639,7 @@ export default function PropertyListingWrapper(props) {
         senderId={senderId}
         ownerUserId={ownerUserId}
       />
+      <CommentSection adId={propertyId} currentUser={user} />
       {showChat && (
         <div
           className="fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out"
