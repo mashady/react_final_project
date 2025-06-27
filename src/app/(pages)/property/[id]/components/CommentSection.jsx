@@ -13,7 +13,7 @@ export default function CommentSection({ adId, currentUser }) {
   const [loading, setLoading] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [formContent, setFormContent] = useState("");
-  const [replyContent, setReplyContent] = useState(""); // New state for replies
+  const [replyContent, setReplyContent] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -136,7 +136,7 @@ export default function CommentSection({ adId, currentUser }) {
             {editingCommentId === comment.id && (
               <div className="ms-10 space-y-2">
                 <textarea
-                  className="w-full p-2 border rounded"
+                  className="w-[90%] p-2 border rounded"
                   rows={2}
                   value={editingContent}
                   onChange={(e) => setEditingContent(e.target.value)}
@@ -225,7 +225,8 @@ export default function CommentSection({ adId, currentUser }) {
                     setReplyContent("");
                   }}
                 >
-                  <X className="w-4 h-4" />
+                  {/* <X className="w-4 h-4" /> */}
+                  <span className="text-sm">Cancel</span>
                 </button>
               </div>
             </div>
@@ -276,18 +277,19 @@ export default function CommentSection({ adId, currentUser }) {
               <div className="text-gray-500 text-sm flex space-x-2 mb-3 ms-5">
                 {canModify(reply) && (
                   <>
-                    {editingCommentId !== reply.id && (
-                      <button
-                        className="flex cursor-pointer items-center gap-1 text-blue-600"
-                        onClick={() => {
-                          setEditingCommentId(reply.id);
-                          setEditingContent(reply.content);
-                        }}
-                      >
-                        <span>Edit</span>
-                        {/* <Pencil className="w-4 h-4" /> */}
-                      </button>
-                    )}
+                    {editingCommentId !== reply.id &&
+                      currentUser?.id === reply.user.id && (
+                        <button
+                          className="flex cursor-pointer items-center gap-1 text-blue-600"
+                          onClick={() => {
+                            setEditingCommentId(reply.id);
+                            setEditingContent(reply.content);
+                          }}
+                        >
+                          <span>Edit</span>
+                          {/* <Pencil className="w-4 h-4" /> */}
+                        </button>
+                      )}
                     <button onClick={() => promptDelete(reply.id)}>
                       <span className="text-red-600 cursor-pointer">
                         Delete
