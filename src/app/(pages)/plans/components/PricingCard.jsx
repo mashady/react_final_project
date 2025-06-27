@@ -13,7 +13,7 @@ const PricingCard = ({
   isDisabled = false,
   isUpgrade,
   duration = "/month*",
-  hasPlanfree
+  hasUsedFreePlan  
 }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -147,28 +147,30 @@ const PricingCard = ({
 
       {/* Button */}
       <div className="mt-auto">
-        <button
-          onClick={handleAddToCart}
-          disabled={loading ||  planId == 1 && hasPlanfree || isDisabled}
-          className={`w-full py-3 px-6 rounded-none font-medium transition-colors cursor-pointer ${
-            isDisabled
-              ? "bg-gray-300 text-gray-600 cursor-not-allowed "
-              : isUpgrade
-              ? "bg-yellow-500 hover:bg-yellow-600 text-black"
-              : "bg-yellow-500 hover:bg-yellow-600 text-black"
-          } ${loading && "opacity-50 cursor-wait"}`}
-        >
+      <button
+        onClick={handleAddToCart}
+        disabled={
+          loading ||
+          (planId === 1 && hasUsedFreePlan) || // Disable Free if used before
+          isDisabled
+        }
+        className={`w-full py-3 px-6 rounded-none font-medium transition-colors cursor-pointer ${
+          isDisabled || (planId === 1 && hasUsedFreePlan)
+            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+            : "bg-yellow-500 hover:bg-yellow-600 text-black"
+        } ${loading && "opacity-50 cursor-wait"}`}
+      >
         {loading
           ? "Adding..."
-          : planId == 1 && hasPlanfree
+          : planId === 1 && hasUsedFreePlan
           ? "Already Taken"
           : isDisabled
           ? "Current Plan"
           : isUpgrade
           ? "Upgrade"
           : "Get Started"}
+      </button>
 
-        </button>
 
         {/* {message && (
           <p
