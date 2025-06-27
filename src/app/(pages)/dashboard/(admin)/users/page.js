@@ -409,7 +409,7 @@ const Users = () => {
     <div className="min-h-screen">
       {/* Custom Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000e0] bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
               Confirm Delete

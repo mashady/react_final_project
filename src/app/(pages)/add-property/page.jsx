@@ -691,7 +691,7 @@ export default function CompletePropertyForm() {
                           </div>
                         )}
                       </div>
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="absolute inset-0 bg-[#000000e0] bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <button
                           type="button"
                           onClick={() => handleRemoveGallery(index)}

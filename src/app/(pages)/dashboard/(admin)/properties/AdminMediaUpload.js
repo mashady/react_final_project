@@ -103,7 +103,7 @@ const AdminMediaUpload = ({ media, setMedia }) => {
                     <Image className="w-8 h-8 text-gray-500" alt="Video file" />
                   </div>
                 </div>
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-[#000000e0] bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <button
                     type="button"
                     onClick={() => handleRemoveMedia(index)}
@@ -121,7 +121,10 @@ const AdminMediaUpload = ({ media, setMedia }) => {
           </div>
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <Image className="w-12 h-12 text-gray-400 mx-auto mb-4" alt="No media files uploaded" />
+            <Image
+              className="w-12 h-12 text-gray-400 mx-auto mb-4"
+              alt="No media files uploaded"
+            />
             <p className="text-sm text-gray-500">No media files uploaded yet</p>
             <p className="text-xs text-gray-400 mt-1">
               Click &quot;Upload Media&quot; to add images and videos
