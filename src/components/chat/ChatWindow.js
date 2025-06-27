@@ -6,7 +6,15 @@ import { X, Send } from "lucide-react";
 const SOCKET_URL = "http://localhost:4000";
 
 function getUserDisplay(user) {
-  // ...same as before
+  if (!user) return { name: "User", avatar: "/owner.jpg" };
+  let name = user.name;
+  if (!name || /^User\s*\d+$/i.test(name)) {
+    name = user.email || undefined;
+  }
+  return {
+    name: name || "User",
+    avatar: user.avatar || user.picture || "/owner.jpg",
+  };
 }
 
 export default function ChatWindow({
@@ -19,7 +27,6 @@ export default function ChatWindow({
   customStyles = {},
   hideHeader = false,
 }) {
-  
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(undefined);

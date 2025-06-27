@@ -570,6 +570,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 
 // Render ChatWindow globally, fixed to bottom, only if showChat
 import dynamic from "next/dynamic";
+import CommentSection from "./components/CommentSection";
 const DynamicChatWindow = dynamic(
   () => import("@/components/chat/ChatWindow"),
   { ssr: false }
