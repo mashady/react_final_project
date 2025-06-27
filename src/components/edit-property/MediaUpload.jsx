@@ -4,7 +4,7 @@ import { Upload, X, Image, Video } from "lucide-react";
 import { useFormikContext } from "formik";
 import axios from "axios";
 
-const MediaUpload = ({ onRemoveAllMedia, propertyId }) => {
+const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
   const { values, setFieldValue, errors, touched } = useFormikContext();
   const { media } = values;
   const hasError = touched.media && errors.media;
