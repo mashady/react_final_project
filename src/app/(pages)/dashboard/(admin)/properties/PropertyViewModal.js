@@ -16,13 +16,6 @@ const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
           </button>
         </div>
         <div className="p-6">
-          {property.primary_image && (
-            <img
-              src={property.primary_image.url || property.media?.[0]?.url}
-              alt={property.title}
-              className="w-full h-64 object-cover rounded-lg mb-6"
-            />
-          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-semibold mb-4">Property Details</h3>

@@ -1,5 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { X, Save } from "lucide-react";
+
+const validate = (formData) => {
+  const errors = {};
+  if (!formData.name.trim()) errors.name = "Plan name is required";
+  if (!formData.price || isNaN(formData.price) || Number(formData.price) < 0)
+    errors.price = "Valid price is required";
+  if (
+    !formData.duration ||
+    isNaN(formData.duration) ||
+    Number(formData.duration) <= 0
+  )
+    errors.duration = "Duration must be a positive number";
+  if (!formData.billing_interval)
+    errors.billing_interval = "Billing interval is required";
+  if (
+    !formData.ads_Limit ||
+    isNaN(formData.ads_Limit) ||
+    Number(formData.ads_Limit) < 0
+  )
+    errors.ads_Limit = "Valid ads limit is required";
+  return errors;
+};
 
 export default function PlanModal({
   isOpen,
@@ -9,7 +31,18 @@ export default function PlanModal({
   setFormData,
   editingPlan,
 }) {
+  const [errors, setErrors] = useState({});
+
   if (!isOpen) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validate(formData);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
+    onSubmit(e);
+  };
+
   return (
     <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -24,7 +57,7 @@ export default function PlanModal({
             <X className="w-6 h-6" />
           </button>
         </div>
-        <form onSubmit={onSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6" noValidate>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -36,9 +69,13 @@ export default function PlanModal({
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                required
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  errors.name ? "border-red-500" : "border-gray-300"
+                }`}
               />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -51,9 +88,13 @@ export default function PlanModal({
                 onChange={(e) =>
                   setFormData({ ...formData, price: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                required
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  errors.price ? "border-red-500" : "border-gray-300"
+                }`}
               />
+              {errors.price && (
+                <p className="mt-1 text-sm text-red-600">{errors.price}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -65,9 +106,13 @@ export default function PlanModal({
                 onChange={(e) =>
                   setFormData({ ...formData, duration: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                required
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  errors.duration ? "border-red-500" : "border-gray-300"
+                }`}
               />
+              {errors.duration && (
+                <p className="mt-1 text-sm text-red-600">{errors.duration}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -78,14 +123,20 @@ export default function PlanModal({
                 onChange={(e) =>
                   setFormData({ ...formData, billing_interval: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                required
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  errors.billing_interval ? "border-red-500" : "border-gray-300"
+                }`}
               >
                 <option value="monthly">Monthly</option>
                 <option value="yearly">Yearly</option>
                 <option value="weekly">Weekly</option>
                 <option value="daily">Daily</option>
               </select>
+              {errors.billing_interval && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.billing_interval}
+                </p>
+              )}
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -97,9 +148,13 @@ export default function PlanModal({
                 onChange={(e) =>
                   setFormData({ ...formData, ads_Limit: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                required
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  errors.ads_Limit ? "border-red-500" : "border-gray-300"
+                }`}
               />
+              {errors.ads_Limit && (
+                <p className="mt-1 text-sm text-red-600">{errors.ads_Limit}</p>
+              )}
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
