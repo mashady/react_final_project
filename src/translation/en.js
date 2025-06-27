@@ -1,4 +1,4 @@
-export default {
+const en = {
   hello: "Hello",
   welcome: "Welcome to our app",
   header: "Buy or rent properties with no commission",
@@ -167,3 +167,5 @@ export default {
   registerStudentRolePlaceholder: "Student",
   registerOwnerRolePlaceholder: "Owner",
 };
+
+export default en;

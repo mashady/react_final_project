@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import OwnerReviewList from "./OwnerReviewList";
 import OwnerReviewForm from "./OwnerReviewForm";
 
-const page = () => {
+const OwnerProfilePage = () => {
   const [userProfile, setUserProfile] = useState({});
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
@@ -180,4 +180,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default OwnerProfilePage;

@@ -368,7 +368,7 @@ const PropertyList = () => {
             {!hasNextPage && properties.length > 0 && (
               <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8 bg-white rounded-lg">
                 <p className="text-lg font-medium">
-                  You've seen all {totalCount} matching properties
+                  You &apos; ve seen all {totalCount} matching properties
                 </p>
                 <p className="text-sm text-gray-400 mt-1">
                   {properties.length === totalCount

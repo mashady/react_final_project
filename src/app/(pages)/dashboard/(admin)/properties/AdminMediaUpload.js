@@ -1,6 +1,6 @@
 import React from "react";
-import { Upload, X, Image, Video } from "lucide-react";
-
+import { Upload, X, Video } from "lucide-react";
+import Image from "next/image";
 const AdminMediaUpload = ({ media, setMedia }) => {
   const handleMediaUpload = () => {
     const input = document.createElement("input");
@@ -84,7 +84,7 @@ const AdminMediaUpload = ({ media, setMedia }) => {
               >
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   {file.type?.startsWith("image/") ? (
-                    <img
+                    <Image
                       src={getImageUrl(file)}
                       alt={`Preview ${index + 1}`}
                       className="w-full h-full object-cover"
@@ -100,7 +100,7 @@ const AdminMediaUpload = ({ media, setMedia }) => {
                     </div>
                   )}
                   <div className="w-full h-full hidden items-center justify-center bg-gray-200">
-                    <Image className="w-8 h-8 text-gray-500" />
+                    <Image className="w-8 h-8 text-gray-500" alt="Video file" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -121,10 +121,10 @@ const AdminMediaUpload = ({ media, setMedia }) => {
           </div>
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <Image className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <Image className="w-12 h-12 text-gray-400 mx-auto mb-4" alt="No media files uploaded" />
             <p className="text-sm text-gray-500">No media files uploaded yet</p>
             <p className="text-xs text-gray-400 mt-1">
-              Click "Upload Media" to add images and videos
+              Click &quot;Upload Media&quot; to add images and videos
             </p>
           </div>
         )}
