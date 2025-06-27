@@ -29,6 +29,8 @@ import { useSelector } from "react-redux";
 import Toast from "./components/Toast";
 import Image from "next/image";
 const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
+  const user = useSelector((state) => state.user.data);
+
   const params = useParams();
   const propertyId = params.id;
 
@@ -194,7 +196,6 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
         { headers }
       );
       setReviewForm({ comment: "" });
-      // Refetch reviews
       const reviewsRes = await axios.get(
         `http://127.0.0.1:8000/api/ads/${propertyId}/reviews`,
         { headers }
@@ -429,6 +430,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                 ))}
               </div>
             </div>
+            <CommentSection adId={propertyId} currentUser={user} />
           </div>
 
           {/* Sidebar */}
@@ -570,6 +572,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 
 // Render ChatWindow globally, fixed to bottom, only if showChat
 import dynamic from "next/dynamic";
+import CommentSection from "./components/CommentSection";
 const DynamicChatWindow = dynamic(
   () => import("@/components/chat/ChatWindow"),
   { ssr: false }
@@ -642,7 +645,7 @@ export default function PropertyListingWrapper(props) {
         senderId={senderId}
         ownerUserId={ownerUserId}
       />
-      <CommentSection adId={propertyId} currentUser={user} />
+      {/* <CommentSection adId={propertyId} currentUser={user} /> */}
       {showChat && (
         <div
           className="fixed bottom-4 left-4 z-50 transition-all duration-300 ease-in-out"

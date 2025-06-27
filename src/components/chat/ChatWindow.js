@@ -27,7 +27,6 @@ export default function ChatWindow({
   customStyles = {},
   hideHeader = false,
 }) {
-  
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const [socketId, setSocketId] = useState(undefined);

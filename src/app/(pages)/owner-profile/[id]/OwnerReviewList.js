@@ -4,8 +4,18 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import ConfirmDialog from "@/app/(pages)/property/[id]/components/ConfirmDialog";
+import OwnerReviewForm from "./OwnerReviewForm";
 
-function OwnerReviewList({ ownerId, refreshKey }) {
+function OwnerReviewList({
+  ownerId,
+  refreshKey,
+  showReviewForm = true,
+  reviewForm,
+  setReviewForm,
+  submittingReview,
+  reviewError,
+  onSubmit,
+}) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -23,7 +33,6 @@ function OwnerReviewList({ ownerId, refreshKey }) {
       setError("");
       try {
         const token = localStorage.getItem("token");
-        // Only set headers if token exists
         const headers = token
           ? { Authorization: `Bearer ${token}` }
           : undefined;
@@ -65,7 +74,6 @@ function OwnerReviewList({ ownerId, refreshKey }) {
       );
       setEditingId(null);
       setEditContent("");
-      // Refresh reviews
       const res = await axios.get(
         `http://127.0.0.1:8000/api/owners/${ownerId}/reviews`,
         { headers }
@@ -93,7 +101,6 @@ function OwnerReviewList({ ownerId, refreshKey }) {
       await axios.delete(`http://127.0.0.1:8000/api/reviews/${reviewId}`, {
         headers,
       });
-      // Refresh reviews
       const res = await axios.get(
         `http://127.0.0.1:8000/api/owners/${ownerId}/reviews`,
         { headers }
@@ -112,7 +119,6 @@ function OwnerReviewList({ ownerId, refreshKey }) {
     }
   };
 
-  // Check if current user already has a review for this owner
   const userHasReview =
     currentUser && reviews.some((r) => r.user && r.user.id === currentUser.id);
 
@@ -122,14 +128,32 @@ function OwnerReviewList({ ownerId, refreshKey }) {
   if (error && (!reviews || reviews.length === 0)) {
     return <div className="text-red-500">{error}</div>;
   }
-  if (!reviews.length)
+
+  const showForm = showReviewForm && currentUser && !userHasReview;
+
+  // If no reviews, show the form (if eligible) and a message
+  if (!reviews.length) {
     return (
-      <div className="text-[#888] text-lg bg-[#f7f7f7] rounded-xl p-6 border border-[#ececec]">
-        No reviews yet.
-      </div>
+      <>
+        <div className="text-[#888] text-lg bg-[#f7f7f7] rounded-xl p-6 border border-[#ececec] mb-4">
+          No reviews yet.
+        </div>
+        {showForm && (
+          <OwnerReviewForm
+            reviewForm={reviewForm}
+            setReviewForm={setReviewForm}
+            submittingReview={submittingReview}
+            reviewError={reviewError}
+            onSubmit={onSubmit}
+          />
+        )}
+      </>
     );
+  }
+
+  // If there are reviews, show the form (if eligible) and the reviews
   return (
-    <div className="space-y-6">
+    <>
       {toast.visible && (
         <Toast
           message={toast.message}
@@ -143,84 +167,85 @@ function OwnerReviewList({ ownerId, refreshKey }) {
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirm({ open: false, reviewId: null })}
       />
-      {/* Only show review form if user is logged in and hasn't reviewed yet */}
-      {currentUser && !userHasReview ? (
+      {showForm && (
         <div className="mb-4">
-          {/* Place your review form here, or render children, etc. */}
-          {/* Example: <ReviewForm ... /> */}
-        </div>
-      ) : null}
-      {currentUser && userHasReview && (
-        <div className="text-blue-600 text-sm mb-2">
-          You have already submitted a review for this owner.
+          <OwnerReviewForm
+            reviewForm={reviewForm}
+            setReviewForm={setReviewForm}
+            submittingReview={submittingReview}
+            reviewError={reviewError}
+            onSubmit={onSubmit}
+          />
         </div>
       )}
-      {reviews.map((review) => {
-        const isReviewAuthor =
-          currentUser && review.user && review.user.id === currentUser.id;
-        return (
-          <div
-            key={review.id}
-            className="p-6 border border-[#ececec] rounded-xl bg-[#f7f7f7] shadow-sm"
-          >
-            <div className="font-semibold text-[#222] text-lg mb-1 flex items-center justify-between">
-              <span>{review.user?.name || "Anonymous"}</span>
-              {/* Only allow edit/delete if this is the user's own review */}
-              {isReviewAuthor && editingId !== review.id && (
-                <div className="flex gap-2 ml-2">
-                  <button
-                    className="text-xs text-blue-600 hover:underline"
-                    onClick={() => handleEdit(review)}
-                    disabled={editLoading || deletingId === review.id}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-xs text-red-600 hover:underline"
-                    onClick={() => handleDelete(review.id)}
-                    disabled={deletingId === review.id}
-                  >
-                    {deletingId === review.id ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
-              )}
-            </div>
-            {editingId === review.id ? (
-              <div>
-                <textarea
-                  className="w-full p-2 rounded border border-gray-300 mb-2"
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  disabled={editLoading}
-                  rows={3}
-                />
-                <div className="flex gap-2">
-                  <button
-                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                    onClick={() => handleSave(review.id)}
-                    disabled={editLoading || !editContent.trim()}
-                  >
-                    {editLoading ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-                    onClick={handleCancel}
-                    disabled={editLoading}
-                  >
-                    Cancel
-                  </button>
-                </div>
-                {error && (
-                  <div className="text-red-500 text-xs mt-1">{error}</div>
+
+      <div className="space-y-6">
+        {reviews.map((review) => {
+          const isReviewAuthor =
+            currentUser && review.user && review.user.id === currentUser.id;
+          return (
+            <div
+              key={review.id}
+              className="p-6 border border-[#ececec] rounded-xl bg-[#f7f7f7] shadow-sm"
+            >
+              <div className="font-semibold text-[#222] text-lg mb-1 flex items-center justify-between">
+                <span>{review.user?.name || "Anonymous"}</span>
+                {isReviewAuthor && editingId !== review.id && (
+                  <div className="flex gap-2 ml-2">
+                    <button
+                      className="text-xs text-blue-600 hover:underline"
+                      onClick={() => handleEdit(review)}
+                      disabled={editLoading || deletingId === review.id}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="text-xs text-red-600 hover:underline"
+                      onClick={() => handleDelete(review.id)}
+                      disabled={deletingId === review.id}
+                    >
+                      {deletingId === review.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
                 )}
               </div>
-            ) : (
-              <div className="text-[#666] text-base">{review.content}</div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+              {editingId === review.id ? (
+                <div>
+                  <textarea
+                    className="w-full p-2 rounded border border-gray-300 mb-2"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    disabled={editLoading}
+                    rows={3}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                      onClick={() => handleSave(review.id)}
+                      disabled={editLoading || !editContent.trim()}
+                    >
+                      {editLoading ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+                      onClick={handleCancel}
+                      disabled={editLoading}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {error && (
+                    <div className="text-red-500 text-xs mt-1">{error}</div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-[#666] text-base">{review.content}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 export default OwnerReviewList;

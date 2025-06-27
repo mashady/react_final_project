@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Star } from "lucide-react";
 import Toast from "../../property/[id]/components/Toast";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 const PricingCard = ({
   title,
   price,
@@ -13,10 +14,13 @@ const PricingCard = ({
   isDisabled = false,
   isUpgrade,
   duration = "/month*",
-  hasUsedFreePlan  
+  hasUsedFreePlan,
 }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const { data: user, token } = useSelector((state) => state.user);
+  const isLoggedIn = !!token;
+  const userRole = user?.role;
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -33,15 +37,23 @@ const PricingCard = ({
   const handleAddToCart = async () => {
     if (!planId) {
       showToast("Invalid plan selected", "error");
-
       return;
     }
 
     const token = window.localStorage?.getItem("token");
+
     if (!token) {
-    
       router.push("/login");
       console.log("Redirect to login");
+      return;
+    }
+
+    if (userRole === "admin") {
+      showToast("Not allowed for admins", "error");
+      return;
+    }
+    if (userRole === "student") {
+      showToast("Not allowed for students", "error");
       return;
     }
 
@@ -49,7 +61,6 @@ const PricingCard = ({
     setMessage("");
 
     try {
-    
       const response = await fetch(
         "http://127.0.0.1:8000/api/plans/add-to-cart",
         {
@@ -68,20 +79,19 @@ const PricingCard = ({
       if (data.message === "Plan already added to cart") {
         setToast({
           message: data.message,
-          type: "error", 
+          type: "error",
           visible: true,
         });
-        return; 
+        return;
       }
-      
+
       setToast({
         message: data.message,
-        type: "success", 
+        type: "success",
         visible: true,
       });
-      
+
       router.push("/cart");
-      
     } catch (err) {
       console.error("Add to cart error:", err);
       setToast("Error adding to cart", "error");
@@ -96,7 +106,6 @@ const PricingCard = ({
         isPopular ? "bg-blue-50 border-blue-200" : ""
       }`}
     >
-    
       {isPopular && (
         <div className="absolute -top-3 right-6">
           <div className="bg-white rounded-full p-2 shadow-sm border border-gray-200">
@@ -147,30 +156,29 @@ const PricingCard = ({
 
       {/* Button */}
       <div className="mt-auto">
-      <button
-        onClick={handleAddToCart}
-        disabled={
-          loading ||
-          (planId === 1 && hasUsedFreePlan) || // Disable Free if used before
-          isDisabled
-        }
-        className={`w-full py-3 px-6 rounded-none font-medium transition-colors cursor-pointer ${
-          isDisabled || (planId === 1 && hasUsedFreePlan)
-            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-            : "bg-yellow-500 hover:bg-yellow-600 text-black"
-        } ${loading && "opacity-50 cursor-wait"}`}
-      >
-        {loading
-          ? "Adding..."
-          : planId === 1 && hasUsedFreePlan
-          ? "Already Taken"
-          : isDisabled
-          ? "Current Plan"
-          : isUpgrade
-          ? "Upgrade"
-          : "Get Started"}
-      </button>
-
+        <button
+          onClick={handleAddToCart}
+          disabled={
+            loading ||
+            (planId === 1 && hasUsedFreePlan) || // Disable Free if used before
+            isDisabled
+          }
+          className={`w-full py-3 px-6 rounded-none font-medium transition-colors cursor-pointer ${
+            isDisabled || (planId === 1 && hasUsedFreePlan)
+              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+              : "bg-yellow-500 hover:bg-yellow-600 text-black"
+          } ${loading && "opacity-50 cursor-wait"}`}
+        >
+          {loading
+            ? "Adding..."
+            : planId === 1 && hasUsedFreePlan
+            ? "Already Taken"
+            : isDisabled
+            ? "Current Plan"
+            : isUpgrade
+            ? "Upgrade"
+            : "Get Started"}
+        </button>
 
         {/* {message && (
           <p

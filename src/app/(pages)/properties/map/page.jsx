@@ -89,14 +89,15 @@ export default function PropertySuggestion() {
 
   return (
     <div className="bg-gray-50">
-      <main className="containerpy-8 px-4">
+      <main className="container mx-auto py-8 px-4">
         <div className="mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-4 text-gray-800">
-            Student Property Finder
+          <h1
+            className="text-[45px] text-black mt-6"
+            style={{ fontWeight: 500 }}
+          >
+            Find your property on map
           </h1>
-          <p className="text-center text-gray-600 mb-8">
-            Find housing near your university
-          </p>
+          <p className="text-[#555] mb-8">Find housing near your university</p>
 
           <div className="bg-white p-6 rounded-lg shadow-md mb-8">
             <form onSubmit={handleSearch} className="space-y-4">
