@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
-
+import Image from "next/image";
 const ProfileImageUpload = ({ imagePreview, onRemove, onUpload }) => (
   <div className="space-y-3">
     {imagePreview ? (
       <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
-        <img
+        <Image
           src={imagePreview}
           alt="Profile preview"
           className="w-full h-full object-cover"
+          width={128}
+          height={128}
         />
         <button
           type="button"
