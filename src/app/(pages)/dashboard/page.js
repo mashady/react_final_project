@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import LoadingSpinner from "../properties/components/LoadingSpinner";
 import RequireAuth from "@/components/shared/RequireAuth";
 import { useTranslation } from "@/TranslationContext";
+import Image from "next/image";
 const UserProfileCardContent = () => {
   const { data: user, loading, error } = useSelector((state) => state.user);
   const { t } = useTranslation();
@@ -25,13 +26,15 @@ const UserProfileCardContent = () => {
     <div className="flex flex-col lg:flex-row bg-white mt-15 p-6 rounded-lg">
       <div className="flex-shrink-0 mb-6 lg:mb-0 lg:mx-8">
         <div className="w-64 h-64 lg:w-80 lg:h-80 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-          <img
+          <Image
             src={
               profile?.picture ||
               "https://secure.gravatar.com/avatar/placeholder?s=341&d=mm&r=g"
             }
             alt="User Avatar"
             className="w-full h-full object-cover"
+            width={341}
+            height={341}
             onError={(e) => {
               e.target.src =
                 "https://secure.gravatar.com/avatar/placeholder?s=341&d=mm&r=g";

@@ -1,6 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
-
+import Image from "next/image";
 const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
   if (!isOpen || !property) return null;
   return (
@@ -17,11 +17,14 @@ const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
         </div>
         <div className="p-6">
           {property.primary_image && (
-            <img
-              src={property.primary_image.url || property.media?.[0]?.url}
-              alt={property.title}
-              className="w-full h-64 object-cover rounded-lg mb-6"
+            <Image
+              src={property.primary_image?.url || property.media?.[0]?.url}
+              alt={property.title || "Property Image"}
+              width={800}
+              height={400}
+              className="rounded-lg mb-6 object-cover w-full h-auto"
             />
+
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -79,13 +82,15 @@ const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex items-center gap-3">
-                    <img
+                    <Image
                       src={
                         property.owner.owner_profile?.picture ||
                         "/api/placeholder/50/50"
                       }
                       alt={property.owner.name}
                       className="w-12 h-12 rounded-full object-cover"
+                      width={50}
+                      height={50}
                     />
                     <div>
                       <p className="font-medium">{property.owner.name}</p>

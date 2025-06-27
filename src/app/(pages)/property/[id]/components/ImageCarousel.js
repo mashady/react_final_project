@@ -1,6 +1,7 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
+import Image from "next/image";
 export default function ImageCarousel({
   images,
   currentImageIndex,
@@ -18,10 +19,12 @@ export default function ImageCarousel({
   if (!images.length) return null;
   return (
     <div className="relative w-full h-80 md:h-[420px] bg-[#f7f7f7] rounded-2xl overflow-hidden mb-10 shadow-lg border border-[#ececec]">
-      <img
+      <Image
         src={images[currentImageIndex]}
         alt="Property"
         className="w-full h-full object-cover rounded-2xl"
+        width={800}
+        height={420}
       />
       {images.length > 1 && (
         <>
