@@ -4,10 +4,13 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { Loader2, MessageSquare, X, Clock, Search } from "lucide-react";
 import dynamic from "next/dynamic";
+import { io } from "socket.io-client";
 
 const ChatWindow = dynamic(() => import("@/components/chat/ChatWindow"), {
   ssr: false,
 });
+
+const SOCKET_URL = "http://localhost:4000";
 
 // Helper to get user display info from inbox message
 function getUserDisplayFromMsg(msg, currentUserId, fallback) {
@@ -53,7 +56,119 @@ const Page = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [chatMinimized, setChatMinimized] = useState(false);
   const [newMessageMap, setNewMessageMap] = useState({});
+  const [socket, setSocket] = useState(null);
 
+  // Initialize Socket.IO connection for real-time updates
+  useEffect(() => {
+    if (!userId) return;
+
+    console.log("🔌 Initializing inbox socket connection");
+    const newSocket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 10000,
+    });
+
+    newSocket.on("connect", () => {
+      console.log("✅ Inbox socket connected:", newSocket.id);
+      // Join user's room to receive messages
+      newSocket.emit("join", userId.toString());
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.error("❌ Inbox socket connection error:", err);
+    });
+
+    // Listen for incoming messages to update inbox
+    newSocket.on("private_message", (messageData) => {
+      console.log("📩 Received message for inbox update:", messageData);
+
+      // Only update if this message is for the current user
+      if (parseInt(messageData.to) === userId) {
+        // Create a message object that matches the inbox format
+        const newMessage = {
+          id: `temp-${Date.now()}`,
+          sender_id: parseInt(messageData.from),
+          receiver_id: parseInt(messageData.to),
+          message: messageData.message,
+          created_at: messageData.timestamp,
+          sender_name: messageData.sender_name,
+          sender_email: messageData.sender_email,
+          receiver_name: messageData.receiver_name,
+          receiver_email: messageData.receiver_email,
+        };
+
+        // Update inbox with new message
+        setInbox((prevInbox) => {
+          // Remove any existing messages from this conversation
+          const filteredInbox = prevInbox.filter((msg) => {
+            const isFromSameConversation =
+              (msg.sender_id === newMessage.sender_id &&
+                msg.receiver_id === newMessage.receiver_id) ||
+              (msg.sender_id === newMessage.receiver_id &&
+                msg.receiver_id === newMessage.sender_id);
+            return !isFromSameConversation;
+          });
+
+          // Add the new message at the beginning (most recent)
+          return [newMessage, ...filteredInbox];
+        });
+
+        // Mark as having new message if not currently chatting with this user
+        const senderId = parseInt(messageData.from);
+        if (targetUserId !== senderId) {
+          setNewMessageMap((prev) => ({
+            ...prev,
+            [senderId]: true,
+          }));
+        }
+      }
+    });
+
+    // Also listen for sent message confirmations to update inbox
+    newSocket.on("message_sent_confirmation", (messageData) => {
+      console.log("✓ Sent message confirmation for inbox:", messageData);
+
+      if (parseInt(messageData.from) === userId) {
+        const newMessage = {
+          id: `temp-sent-${Date.now()}`,
+          sender_id: parseInt(messageData.from),
+          receiver_id: parseInt(messageData.to),
+          message: messageData.message,
+          created_at: messageData.timestamp,
+          sender_name: messageData.sender_name,
+          sender_email: messageData.sender_email,
+          receiver_name: messageData.receiver_name,
+          receiver_email: messageData.receiver_email,
+        };
+
+        // Update inbox with sent message
+        setInbox((prevInbox) => {
+          const filteredInbox = prevInbox.filter((msg) => {
+            const isFromSameConversation =
+              (msg.sender_id === newMessage.sender_id &&
+                msg.receiver_id === newMessage.receiver_id) ||
+              (msg.sender_id === newMessage.receiver_id &&
+                msg.receiver_id === newMessage.sender_id);
+            return !isFromSameConversation;
+          });
+
+          return [newMessage, ...filteredInbox];
+        });
+      }
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      console.log("🔌 Cleaning up inbox socket connection");
+      newSocket.emit("leave_room");
+      newSocket.close();
+    };
+  }, [userId, targetUserId]);
+
+  // Load initial inbox data
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
@@ -91,7 +206,9 @@ const Page = () => {
       }
     });
 
-    return Array.from(conversationMap.values());
+    return Array.from(conversationMap.values()).sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
   }, [inbox, userId]);
 
   const filteredSenders = senders.filter((msg) => {
@@ -149,7 +266,7 @@ const Page = () => {
   }, [targetUserId]);
 
   const handleUserSelect = (senderId) => {
-    console.log("User selected:", senderId); // Debug log
+    console.log("User selected:", senderId);
     setTargetUserId(senderId);
     setChatMinimized(false);
     setNewMessageMap((prevMap) => ({ ...prevMap, [senderId]: false }));
@@ -174,7 +291,7 @@ const Page = () => {
 
   const hasNewMessages = Object.values(newMessageMap).some(Boolean);
 
-  console.log("Current state:", { targetUserId, targetUserInfo }); // Debug log
+  console.log("Current state:", { targetUserId, targetUserInfo });
 
   return (
     <div className="min-h-screen bg-gray-100 text-black">
@@ -193,6 +310,11 @@ const Page = () => {
                 {filteredSenders.length > 0 && (
                   <span className="bg-black text-white text-xs px-2 py-1 rounded-md font-medium">
                     {filteredSenders.length}
+                  </span>
+                )}
+                {socket?.connected && (
+                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-md font-medium">
+                    Live
                   </span>
                 )}
               </div>
@@ -250,6 +372,12 @@ const Page = () => {
                         )}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
+                        Last Message
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
+                        Time
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -277,6 +405,16 @@ const Page = () => {
                                   title="New message"
                                 ></span>
                               )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-gray-600 text-sm truncate max-w-xs">
+                              {msg.message}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-gray-500 text-sm">
+                              {formatTime(msg.created_at)}
                             </div>
                           </td>
                           <td className="px-4 py-3">
@@ -334,7 +472,6 @@ const Page = () => {
                 <X className="w-4 h-4 text-white" />
               </button>
             </div>
-            {/* Chat Content */}
             <div className="flex-1 min-h-0">
               <ChatWindow
                 userId={userId}
