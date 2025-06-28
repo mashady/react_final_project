@@ -171,7 +171,7 @@ const PendingUsersTable = ({
         </table>
       </div>
       {confirmUserId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
               Confirm Unverify
@@ -184,13 +184,13 @@ const PendingUsersTable = ({
             <div className="flex justify-center gap-4">
               <button
                 onClick={cancelUnverify}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmUnverify}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                className="px-6 py-2 bg-red-600 cursor-pointer hover:bg-red-700 text-white rounded-lg transition-colors"
               >
                 Unverify
               </button>
