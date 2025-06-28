@@ -581,6 +581,9 @@ const en = {
   showingPage: "Showing page {current} of {total}",
   previous: "Previous",
   next: "Next",
+  reviewDeleted: "Review deleted",
+  confirmDeleteReview: "Are you sure you want to delete this review?",
+  anonymous: "Anonymous",
 };
 
 export default en;
