@@ -578,6 +578,19 @@ const ar = {
   reviewDeleted: "تم حذف التقييم",
   confirmDeleteReview: "هل أنت متأكد أنك تريد حذف هذا التقييم؟",
   anonymous: "مجهول",
+  //////////////ABDO///////////////////////
+  nameContactPlaceholder: "اسمك*",
+  emailContactPlaceholder: "بريدك الإلكتروني*",
+  messageContactPlaceholder: "رسالتك*",
+  messageRequired: "الرسالة مطلوبة",
+  messageMinLength: "يجب أن تكون الرسالة 10 أحرف على الأقل",
+  nameContactMinLength: "يجب أن يكون الاسم 2 حرفًا على الأقل",
+  messageSuccess: "تم إرسال الرسالة بنجاح!",
+  messageError: "فشل في إرسال الرسالة",
+  ContactHeader: "أرسل لنا رسالة",
+  contactDescription:"راسلنا وسيرد عليك فريق الدعم لدينا على الفور",
+  sendMessage: "إرسال رسالة",
+  sendingMessage: "جارٍ الإرسال...",
 };
 
 export default ar;

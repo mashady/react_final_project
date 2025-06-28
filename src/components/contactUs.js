@@ -1,18 +1,38 @@
 "use client";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-
+import api from "@/api/axiosConfig"
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import { useState } from "react";
+import { useTranslation } from "@/TranslationContext";
 export default function ContactPage() {
+
+  let { t } = useTranslation();
+
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
+  
   const validationSchema = Yup.object({
     name: Yup.string()
-      .required("Name is required")
-      .min(2, "Name must be at least 2 characters"),
+      .required(t("nameRequired"))
+      .min(2, t("nameContactMinLength")),
     email: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+      .email(t("emailInvalidLogin"))
+      .required(t("emailRequired")),
     message: Yup.string()
-      .required("Message is required")
-      .min(10, "Message must be at least 10 characters"),
+      .required(t("messageRequired"))
+      .min(10, t("messageMinLength")),
   });
 
   const formik = useFormik({
@@ -22,10 +42,22 @@ export default function ContactPage() {
       message: "",
     },
     validationSchema,
-    onSubmit: (values, { resetForm }) => {
-      console.log("Message sent:", values);
-      resetForm();
-    },
+    onSubmit: async (values, { resetForm, setSubmitting }) => {
+      try {
+        setSubmitting(true);
+        const response = await api.post("/contact", values);
+        showToast(t("messageSuccess"), "success");
+        resetForm();
+      } catch (err) {
+        const errorMessage =
+          err?.response?.data?.message || "Something went wrong";
+        showToast(t("messageError") + ": " + errorMessage, "error");
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
+
   });
 
   return (
@@ -40,7 +72,7 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-[#0000008a] bg-opacity-40"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl md:text-5xl font-medium text-white">
-            Contact Us
+            {t("footerContactUS")}
           </h1>
         </div>
       </section>
@@ -49,10 +81,10 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="bg-white p-8 flex flex-col justify-center">
             <h2 className="text-3xl text-black mb-2 font-medium">
-              Send Us a Message
+              {t("ContactHeader")}
             </h2>
             <p className="text-[#555] mb-6">
-              Email us and our support team will reply immediately
+              {t("contactDescription")}
             </p>
 
             <form onSubmit={formik.handleSubmit} className="space-y-6">
@@ -61,7 +93,7 @@ export default function ContactPage() {
                   type="text"
                   id="name"
                   name="name"
-                  placeholder="Your name*"
+                  placeholder={t("nameContactPlaceholder")}
                   className={`w-full px-0 py-3 text-gray-900 placeholder-gray-500 bg-transparent border-0 border-b ${
                     formik.touched.name && formik.errors.name
                       ? "border-red-500"
@@ -83,7 +115,7 @@ export default function ContactPage() {
                   type="email"
                   id="email"
                   name="email"
-                  placeholder="Your email*"
+                  placeholder={t("emailContactPlaceholder")}
                   className={`w-full px-0 py-3 text-gray-900 placeholder-gray-500 bg-transparent border-0 border-b ${
                     formik.touched.email && formik.errors.email
                       ? "border-red-500"
@@ -104,7 +136,7 @@ export default function ContactPage() {
                 <textarea
                   id="message"
                   name="message"
-                  placeholder="Message*"
+                  placeholder={t("messageContactPlaceholder")}
                   rows={6}
                   className={`w-full px-0 py-3 text-gray-900 placeholder-gray-500 bg-transparent border-0 border-b ${
                     formik.touched.message && formik.errors.message
@@ -130,13 +162,20 @@ export default function ContactPage() {
                     formik.isSubmitting ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                 >
-                  {formik.isSubmitting ? "Sending..." : "Send a message"}
+                  {formik.isSubmitting ? t("sendingMessage") : t("sendMessage")}
                 </button>
               </div>
             </form>
           </div>
         </div>
       </div>
+            {toast.visible && (
+              <Toast
+                message={toast.message}
+                type={toast.type}
+                onClose={handleCloseToast}
+              />
+            )}
     </div>
   );
 }
