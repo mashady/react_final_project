@@ -11,7 +11,7 @@ import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import the gua
 import { useIntersection } from "@/hooks/useIntersection";
 import { useTranslation } from "../../../../TranslationContext";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 3;
 
 const MyPropertiesContent = () => {
   const [properties, setProperties] = useState([]);
