@@ -575,6 +575,19 @@ const ar = {
   completed: "مكتمل",
   pending: "قيد الانتظار",
   failed: "فشل",
+  //////////////ABDO///////////////////////
+  nameContactPlaceholder: "اسمك*",
+  emailContactPlaceholder: "بريدك الإلكتروني*",
+  messageContactPlaceholder: "رسالتك*",
+  messageRequired: "الرسالة مطلوبة",
+  messageMinLength: "يجب أن تكون الرسالة 10 أحرف على الأقل",
+  nameContactMinLength: "يجب أن يكون الاسم 2 حرفًا على الأقل",
+  messageSuccess: "تم إرسال الرسالة بنجاح!",
+  messageError: "فشل في إرسال الرسالة",
+  ContactHeader: "أرسل لنا رسالة",
+  contactDescription:"راسلنا وسيرد عليك فريق الدعم لدينا على الفور",
+  sendMessage: "إرسال رسالة",
+  sendingMessage: "جارٍ الإرسال...",
 };
 
 export default ar;
