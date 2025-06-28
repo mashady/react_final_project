@@ -186,7 +186,7 @@ const PropertyManagement = () => {
             {error}
           </div>
         )}
-        <div className="bg-white overflow-hidden">
+        <div className="bg-white">
           <PropertyList
             properties={properties}
             onEdit={openModal}

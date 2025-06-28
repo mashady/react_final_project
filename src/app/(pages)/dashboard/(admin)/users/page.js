@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Search,
@@ -60,7 +60,7 @@ const Users = () => {
 
   const API_BASE_URL = "http://localhost:8000/api";
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/users`);
@@ -101,7 +101,11 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleCreateUser = async () => {
     try {
@@ -165,7 +169,7 @@ const Users = () => {
       setErrors({});
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
-      formDataToSend.append("email", formData.email); // always send email
+      formDataToSend.append("email", formData.email);
       formDataToSend.append("role", formData.role);
       formDataToSend.append(
         "verification_status",
@@ -262,8 +266,8 @@ const Users = () => {
     if (user && mode !== "view") {
       setFormData({
         name: user.name,
-        email: user.email, // allow editing email
-        password: "", // password is optional on edit
+        email: user.email,
+        password: "",
         role: user.role,
         verification_status: user.verification_status,
         verification_document: null,
@@ -354,10 +358,6 @@ const Users = () => {
 
     return pageNumbers;
   };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const getRoleColor = (role) => {
     switch (role) {
