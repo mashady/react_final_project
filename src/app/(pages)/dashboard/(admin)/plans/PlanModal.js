@@ -31,10 +31,9 @@ export default function PlanModal({
   formData,
   setFormData,
   editingPlan,
-  t,
 }) {
   const [errors, setErrors] = useState({});
-
+  let { t } = useTranslation();
   // Clear errors when modal is closed
   useEffect(() => {
     if (!isOpen) {

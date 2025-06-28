@@ -21,14 +21,13 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import axios from "axios";
-import { useTranslation } from "@/context/TranslationContext";
 
-// --- New Components ---
 import UsersHeader from "./UsersHeader";
 import UsersStats from "./UsersStats";
 import UsersSearchBar from "./UsersSearchBar";
 import UsersTable from "./UsersTable";
 import UsersModal from "./UsersModal";
+import { useTranslation } from "@/TranslationContext";
 
 const Users = () => {
   const { t, locale } = useTranslation();
