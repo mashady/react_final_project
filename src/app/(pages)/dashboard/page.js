@@ -49,7 +49,7 @@ const UserProfileCardContent = () => {
         </h2>
 
         <div className="space-y-4">
-          <ProfileField label={t("dashboardProfileEmail")} value={user.email} />
+          <ProfileField label={t("dashboardProfileName")} value={user.email} />
           {user.role === "student" && (
             <ProfileField
               label={t("dashboardProfileUniversity")}
