@@ -435,14 +435,17 @@ const Users = () => {
           </div>
         </div>
       )}
-      <div className="bg-white shadow-sm ">
+      <div className="bg-white mb-4">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-light text-slate-800 tracking-tight flex items-center gap-3">
+              <h1
+                className="text-3xl text-black tracking-tight flex items-center gap-3"
+                style={{ fontWeight: 400 }}
+              >
                 User Management
               </h1>
-              <p className="text-slate-600 mt-2 font-light">
+              <p className="text-[#555] mt-2" style={{ fontWeight: 500 }}>
                 Manage all users in the system
               </p>
             </div>

@@ -166,6 +166,7 @@ const en = {
   registerRolePlaceholder: "Select Role*",
   registerStudentRolePlaceholder: "Student",
   registerOwnerRolePlaceholder: "Owner",
+  adminPlans: "Plans",
 };
 
 export default en;

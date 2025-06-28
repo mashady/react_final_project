@@ -1,10 +1,10 @@
 import React from "react";
 import { X } from "lucide-react";
-import Image from "next/image";
+
 const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
   if (!isOpen || !property) return null;
   return (
-    <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">{property.title}</h2>
@@ -16,15 +16,6 @@ const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
           </button>
         </div>
         <div className="p-6">
-          {property.primary_image && (
-            <Image
-              src={property.primary_image?.url || property.media?.[0]?.url}
-              alt={property.title || "Property Image"}
-              width={800}
-              height={400}
-              className="rounded-lg mb-6 object-cover w-full h-auto"
-            />
-          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-semibold mb-4">Property Details</h3>
@@ -81,15 +72,13 @@ const PropertyViewModal = ({ isOpen, onClose, property, getStatusBadge }) => {
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex items-center gap-3">
-                    <Image
+                    <img
                       src={
                         property.owner.owner_profile?.picture ||
                         "/api/placeholder/50/50"
                       }
                       alt={property.owner.name}
                       className="w-12 h-12 rounded-full object-cover"
-                      width={50}
-                      height={50}
                     />
                     <div>
                       <p className="font-medium">{property.owner.name}</p>

@@ -27,12 +27,12 @@ const PendingUsersModal = ({
       <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl transform transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium text-slate-800 flex items-center gap-2">
-            <Clock size={20} className="text-amber-600" />
+            {/* <Clock size={20} className="text-amber-600" /> */}
             Pending Verification
           </h3>
           <button
             onClick={() => setShowModal(false)}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg transition-colors duration-200"
+            className="p-2 text-slate-400 cursor-pointer hover:text-slate-600 rounded-lg transition-colors duration-200"
           >
             <X size={20} />
           </button>
@@ -46,10 +46,10 @@ const PendingUsersModal = ({
           </div>
         )}
         <div className="space-y-4">
-          <div className="text-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-medium mx-auto mb-4">
+          <div className="text-center mb-12 mt-12">
+            {/* <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-medium mx-auto mb-4">
               {selectedUser.name.charAt(0)}
-            </div>
+            </div> */}
             <h4 className="text-xl font-medium text-slate-800">
               {selectedUser.name}
             </h4>

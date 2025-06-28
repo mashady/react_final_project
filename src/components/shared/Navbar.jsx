@@ -65,6 +65,7 @@ const Navbar = () => {
     { href: "/dashboard/users", label: t("navbarUsers") },
     { href: "/dashboard/properties", label: t("navbarAllProperties") },
     { href: "/dashboard/verify-pending", label: t("navbarVerifyPending") },
+    { href: "/dashboard/plans", label: t("adminPlans") },
   ];
 
   const getDropdownItems = () => {
