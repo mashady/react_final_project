@@ -222,13 +222,13 @@ const PendingUsersTable = ({
             >
               <button
                 onClick={cancelUnverify}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 {t("cancelButton")}
               </button>
               <button
                 onClick={confirmUnverify}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                className="px-6 py-2 bg-red-600 cursor-pointer hover:bg-red-700 text-white rounded-lg transition-colors"
               >
                 {t("unverifyButton")}
               </button>

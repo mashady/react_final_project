@@ -1,12 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Plus, X, Save } from "lucide-react";
 import PropertyCard from "@/components/shared/PropertyCard";
 import PropertyList from "./PropertyList";
-import PropertyModal from "./PropertyModal";
 import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
-import ConfirmDialog from "./ConfirmDialog";
 import { useTranslation } from "../../../../../TranslationContext";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 
@@ -34,7 +32,7 @@ const PropertyManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState(null);
 
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -47,11 +45,11 @@ const PropertyManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchProperties();
-  }, []);
+  }, [fetchProperties]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -201,12 +199,9 @@ const PropertyManagement = () => {
   }
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50"
-      dir={locale === "ar" ? "rtl" : "ltr"}
-    >
+    <div className="min-h-screen " dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="bg-white overflow-hidden">
+        <div className="bg-white">
           <PropertyList
             properties={properties}
             onEdit={openModal}

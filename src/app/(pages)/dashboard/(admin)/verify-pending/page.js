@@ -262,6 +262,7 @@ const PendingUsers = () => {
           {loading ? (
             <div className="p-12 text-center">
               <LoadingSpinner />
+             
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="p-12 text-center">
