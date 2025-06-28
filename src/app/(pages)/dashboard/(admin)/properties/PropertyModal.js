@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { X, Save } from "lucide-react";
 import MediaUpload from "@/components/add-property/MediaUpload";
 import FormError from "@/app/(pages)/property/[id]/components/FormError";
-import { validationSchema } from "@/validation/add-property-validation";
 import { useTranslation } from "../../../../../TranslationContext";
 
 const PropertyModal = ({

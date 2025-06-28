@@ -7,8 +7,18 @@ import PendingUsersModal from "./PendingUsersModal.js";
 import PendingUsersStats from "./PendingUsersStats.js";
 import PendingUsersPagination from "./PendingUsersPagination.js";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner.js";
+import { useTranslation } from "../../../../../TranslationContext";
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
 
 const PendingUsers = () => {
+  const { t, locale } = useTranslation();
+  const [toast, setToast] = useState({ message: "", type: "", visible: false });
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +27,6 @@ const PendingUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalMode, setModalMode] = useState("view");
   const [processing, setProcessing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
@@ -28,7 +37,6 @@ const PendingUsers = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/users`);
-      // Debug: log all users and their verification_status
       if (response.data && response.data.data) {
         console.log(
           "All users from API:",
@@ -40,7 +48,6 @@ const PendingUsers = () => {
         );
       }
       if (response.data.success) {
-        // Only include users with verification_status === 'pending'
         const pendingUsers = response.data.data.filter((user) => {
           const status = (user.verification_status || "")
             .toString()
@@ -88,22 +95,20 @@ const PendingUsers = () => {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
       if (response.data.success) {
-        setSuccessMessage(
-          `User verification status updated to ${newStatus} successfully!`
+        showToast(
+          `User verification status updated to ${t(newStatus)} successfully!`,
+          "success"
         );
         await fetchPendingUsers();
         setShowModal(false);
-        setTimeout(() => setSuccessMessage(""), 3000);
       } else {
         setErrors({ general: [response.data.message] });
+        showToast(response.data.message, "error");
       }
     } catch (error) {
-      setErrors({
-        general: [
-          error.response?.data?.message ||
-            "An error occurred while updating the user",
-        ],
-      });
+      const msg = error.response?.data?.message || t("updateError");
+      setErrors({ general: [msg] });
+      showToast(msg, "error");
     } finally {
       setProcessing(false);
     }
@@ -169,7 +174,6 @@ const PendingUsers = () => {
     fetchPendingUsers();
   }, []);
 
-  // Utility functions used by children
   const getRoleColor = (role) => {
     switch (role) {
       case "owner":
@@ -184,14 +188,17 @@ const PendingUsers = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    if (!dateString) return t("notAvailable");
+    return new Date(dateString).toLocaleDateString(
+      locale === "ar" ? "ar-EG" : "en-US",
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
   };
 
   const getTimeAgo = (dateString) => {
@@ -201,34 +208,30 @@ const PendingUsers = () => {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-    if (diffHours > 0)
-      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-    if (diffMinutes > 0)
-      return `${diffMinutes} minute${diffMinutes > 1 ? "s" : ""} ago`;
-    return "Just now";
+    if (diffDays > 0) return t("daysAgo", { count: diffDays });
+    if (diffHours > 0) return t("hoursAgo", { count: diffHours });
+    if (diffMinutes > 0) return t("minutesAgo", { count: diffMinutes });
+    return t("justNow");
   };
 
   return (
-    <div className="min-h-screen">
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
-          <CheckCircle size={20} />
-          {successMessage}
-        </div>
-      )}
-      <div className="bg-white ">
+    <div className="min-h-screen" dir={locale === "ar" ? "rtl" : "ltr"}>
+      <div className="bg-white">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
+          <div
+            className={`flex items-center justify-between ${
+              locale === "ar" ? "flex-row-reverse" : ""
+            }`}
+          >
             <div>
               <h1
                 className="text-3xl text-black tracking-tight flex items-center gap-3"
                 style={{ fontWeight: 400 }}
               >
-                Pending Verifications
+                {t("pendingVerificationsTitle")}
               </h1>
               <p className="text-[#555] mt-2">
-                Review and approve user verification requests
+                {t("pendingVerificationsSubtitle")}
               </p>
             </div>
           </div>
@@ -239,34 +242,33 @@ const PendingUsers = () => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-grey-100 mb-8">
           <div className="relative">
             <Search
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+              className={`absolute ${
+                locale === "ar" ? "right-4" : "left-4"
+              } top-1/2 transform -translate-y-1/2 text-slate-400`}
               size={20}
             />
             <input
               type="text"
-              placeholder="Search pending users by name or email..."
+              placeholder={t("searchPendingUsersPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-grey-100  outline-none transition-all duration-300"
+              className={`w-full ${
+                locale === "ar" ? "pr-12 pl-4" : "pl-12 pr-4"
+              } py-3 border border-slate-300 rounded-lg focus:ring-grey-100 outline-none transition-all duration-300`}
             />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-grey-100 overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
-              {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-grey-100 mx-auto mb-4"></div> */}
-              <p className="text-slate-600">
-                <LoadingSpinner />
-              </p>
+              <LoadingSpinner />
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="p-12 text-center">
               <h3 className="text-lg font-medium text-slate-800 mb-2">
-                No Pending Verifications
+                {t("noPendingVerifications")}
               </h3>
-              <p className="text-slate-600">
-                All users have been verified or there are no pending requests.
-              </p>
+              <p className="text-slate-600">{t("allUsersVerifiedMessage")}</p>
             </div>
           ) : (
             <>
@@ -309,6 +311,13 @@ const PendingUsers = () => {
         getTimeAgo={getTimeAgo}
         formatDate={formatDate}
       />
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleCloseToast}
+        />
+      )}
     </div>
   );
 };

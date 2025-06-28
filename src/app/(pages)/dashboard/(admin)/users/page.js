@@ -21,8 +21,8 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import axios from "axios";
-import { useTranslation } from "@/context/TranslationContext";
-
+import { useTranslation } from "../../../../../TranslationContext";
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
 // --- New Components ---
 import UsersHeader from "./UsersHeader";
 import UsersStats from "./UsersStats";
@@ -32,6 +32,14 @@ import UsersModal from "./UsersModal";
 
 const Users = () => {
   const { t, locale } = useTranslation();
+
+  const [toast, setToast] = useState({ message: "", type: "", visible: false });
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
 
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -49,7 +57,6 @@ const Users = () => {
     verification_document: null,
   });
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,12 +142,11 @@ const Users = () => {
       );
 
       if (response.data.success) {
-        setSuccessMessage("User created successfully!");
+        showToast(t("userCreatedSuccess"), "success");
         await fetchUsers();
         setTimeout(() => {
           setShowModal(false);
           resetForm();
-          setSuccessMessage("");
         }, 1500);
       } else {
         console.error("Failed to create user:", response.data.message);
@@ -192,12 +198,11 @@ const Users = () => {
       );
 
       if (response.data.success) {
-        setSuccessMessage("User updated successfully!");
+        showToast(t("userUpdatedSuccess"), "success");
         await fetchUsers();
         setTimeout(() => {
           setShowModal(false);
           resetForm();
-          setSuccessMessage("");
         }, 1500);
       } else {
         console.error("Failed to update user:", response.data.message);
@@ -230,9 +235,9 @@ const Users = () => {
         `${API_BASE_URL}/users/${userToDelete}`
       );
       if (response.data.success) {
-        setSuccessMessage("User deleted successfully!");
+        showToast(t("userDeletedSuccess"), "success");
         await fetchUsers();
-        setTimeout(() => setSuccessMessage(""), 3000);
+        setTimeout(() => setShowToast(""), 3000);
       } else {
         setErrors({ general: [response.data.message] });
       }
@@ -258,7 +263,6 @@ const Users = () => {
     setModalMode(mode);
     setSelectedUser(user);
     setErrors({});
-    setSuccessMessage("");
 
     if (user && mode !== "view") {
       setFormData({
@@ -515,7 +519,6 @@ const Users = () => {
             formData={formData}
             setFormData={setFormData}
             errors={errors}
-            successMessage={successMessage}
             handleCreateUser={handleCreateUser}
             handleUpdateUser={handleUpdateUser}
             handleFileChange={handleFileChange}
@@ -524,6 +527,14 @@ const Users = () => {
             getVerificationIcon={getVerificationIcon}
             formatDate={formatDate}
             t={t}
+          />
+        )}
+
+        {toast.visible && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={handleCloseToast}
           />
         )}
       </div>
