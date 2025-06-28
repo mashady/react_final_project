@@ -10,20 +10,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import api from "@/api/axiosConfig";
 import { useRouter } from "next/navigation";
 import { FaSpinner } from "react-icons/fa";
+import { useTranslation } from "@/TranslationContext";
 
-const handleSubmitSchema = Yup.object().shape({
-  email: Yup.string()
-    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
-    .required("Email is required"),
-});
+
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
   const[loading, setLoading] = useState(false);
   const [toast, setToast] = useState({
     message: "",
@@ -39,16 +34,28 @@ export default function ForgotPasswordPage() {
     setToast({ ...toast, visible: false });
   };
 
+  let { t } = useTranslation();
+  const handleSubmitSchema = Yup.object().shape({
+    email: Yup.string()
+      .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, t("emailInvalidLogin"))
+      .required(t("emailRequired")),
+  });
+
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
       const res = await api.post('/forgot-password', { email: values.email });
-      showToast(res.data.message, "success");
+      showToast(t("sendResetPasswordMailSuccess"), "success");
       setTimeout(() => {
         setLoading(false);
         router.push('/login');
       }, 3000);
     } catch (err) {
+      if (err.response?.status === 400 && err.response?.data?.message === "We can't find a user with that email address.") {
+        showToast(t("missingUser"), "error");
+        setLoading(false);
+        return;
+      }
       showToast('Error: ' + err.response?.data?.message || 'Something went wrong.', "error");
       setLoading(false);
     }
@@ -59,7 +66,7 @@ export default function ForgotPasswordPage() {
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <Card className="w-[300px] m-auto min-h-[300px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
                 <CardHeader>
-                    <CardTitle className="text-center text-3xl">Send Reset Password Mail</CardTitle>
+                    <CardTitle className="text-center text-3xl">{t("sendResetPasswordMail")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Formik
@@ -77,7 +84,7 @@ export default function ForgotPasswordPage() {
                                 name="email"
                                 type="text"
                                 as={Input}
-                                placeholder="Email*"
+                                placeholder={t("registerEmailPlaceholder")}
                                 className="border rounded-none p-6 md:text-1xl"
                                 />
                                 <ErrorMessage
@@ -94,9 +101,9 @@ export default function ForgotPasswordPage() {
                                 {loading ? (
                                     <>
                                         <FaSpinner className="animate-spin" />
-                                        Resending Reset Password Mail...
+                                        {t("resendingResetPasswordMail")}
                                     </>
-                                ) : "Send Reset Password Mail"}
+                                ) : t("sendResetPasswordMail")}
                             </Button>
                         </Form>
                     )}

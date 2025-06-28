@@ -371,6 +371,67 @@ const en = {
   activeSub: "Subscription Activated!",
   activeMsg: "Your payment was successful and your subscription is now active.",
   manageSub: "Manage Subscription",
+  emailRequired: "Email is required",
+  emailInvalidRegister: "Invalid email format! It must be like m@example.com",
+  emailInvalidLogin: "Invalid email format",
+  passwordMinLength: "Password must be at least 12 characters",
+  passwordMaxLength: "Password can not exceed 50 characters",
+  passwordFormat:
+    "Password must be 12-50 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+  passwordMismatch: "Passwords must match",
+  passwordRequired: "Password is required",
+  passwordComplexity:
+    "Password must be 12-50 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+  passwordForget: "Forgot Password?",
+  passwordConfirmationRequired: "Password Confirmation is required",
+  nameRequired: "Name is required",
+  nameComplexity:
+    "Invalid name! Name must be 3–70 characters and only include letters, spaces, hyphens, or apostrophes.",
+  roleRequired: "Role is required",
+  verificationDocumentRequired: "Verification document is required",
+  verificationDocumentSizeError: "File size is too large (max 5MB)",
+  verificationDocumentTypeError:
+    "Unsupported file format (only JPG, PNG, PDF, JPEG)",
+  chooseFile: "Choose File*",
+  refuseLogin: "Invalid credentials",
+  loginError: "Login Error",
+
+  sendResetPasswordMail: "Send Reset Password Mail",
+  resendingResetPasswordMail: "Resending Reset Password Mail...",
+  missingUser: "We can't find a user with that email address.",
+  sendResetPasswordMailSuccess: "We have emailed your password reset link.",
+  resetPassword: "Reset Password",
+  resetPasswordSuccess: "Your password has been reset successfully.",
+  resetPasswordError: "Failed to reset password. Please try again.",
+  newPassword: "New Password",
+  confirmNewPassword: "Confirm New Password",
+  resetting: "Resetting...",
+  emailAlreadySent: "Email Already Sent",
+  emailAlreadySentDescription:
+    "A verification email has already been sent to this address. Please check your inbox.",
+  goToLogin: "Go to Login",
+
+  emailAlreadyVerified: "Email Already Verified",
+  emailAlreadyVerifiedDescription:
+    "This email address has already been verified. You can now log in.",
+
+  verificationFailed: "Verification Failed!",
+  verificationFailedDescription:
+    "The verification link is invalid or has expired. Please request a new verification email.",
+  goToResendVerifyMail: "Go to Resend Verification Mail",
+  resendVerifyMail: "Resend Verification Email",
+  resendVerifyMailDescription:
+    "Please enter your email address to receive a new verification email.",
+  verificationEmailSent: "Verification email has been sent successfully!",
+  resending: "Resending...",
+  emailAlreadyVerified: "Email already verified",
+  verifyEmailSent: "Email Has Been Sent",
+  verifyEmailSentDescription:
+    "A verification email has been sent to this address. Please check your inbox.",
+  emailVerified: "Email Verified!",
+  emailVerifiedDescription:
+    "Your email has been successfully verified. You can now log in and enjoy full access.",
+  signWithGoogle: "Sign with Google",
 };
 
 export default en;

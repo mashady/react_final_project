@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { RegisterSchema } from "@/validation/register-validation";
+import { getRegisterSchema, RegisterSchema } from "@/validation/register-validation";
 import Toast from "../../property/[id]/components/Toast";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,6 +25,7 @@ const RegisterPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error } = useSelector((state) => state.user);
+  const [selectedFileName, setSelectedFileName] = useState("");
 
   const [toast, setToast] = useState({
     message: "",
@@ -46,7 +47,7 @@ const RegisterPage = () => {
 
       if (registerUser.fulfilled.match(resultAction)) {
         showToast(
-          "Registration successful!, Please check your email to verify your account.",
+          t("registerSuccessMsg"),
           "success"
         );
         setTimeout(() => {
@@ -56,7 +57,7 @@ const RegisterPage = () => {
         throw resultAction.payload;
       }
     } catch (error) {
-      showToast(error || "Registration failed", "error");
+      showToast(error || t("registerError"), "error");
     }
   };
 
@@ -79,7 +80,7 @@ const RegisterPage = () => {
                 role: "",
                 verification_document: null,
               }}
-              validationSchema={RegisterSchema}
+              validationSchema={getRegisterSchema(t)}
               onSubmit={(values, actions) => {
                 handleRegister(values);
                 actions.setSubmitting(false);
@@ -169,23 +170,34 @@ const RegisterPage = () => {
                   </div>
 
                   <div className="grid gap-2">
+
                     <input
+                      id="fileUpload"
                       name="verification_document"
                       type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
                       onChange={(event) => {
-                        setFieldValue(
-                          "verification_document",
-                          event.currentTarget.files[0]
-                        );
+                        const file = event.currentTarget.files[0];
+                        setFieldValue("verification_document", file);
+                        setSelectedFileName(file?.name || "");
                       }}
-                      className="border rounded-none text-muted-foreground py-4 px-1"
+                      className="hidden"
                     />
+
+                    <label
+                      htmlFor="fileUpload"
+                      className="cursor-pointer text-muted-foreground border border-gray-300 px-4 py-4 rounded w-full hover:bg-gray-100"
+                    >
+                      {selectedFileName ? selectedFileName : t("chooseFile")}
+                    </label>
+
                     <ErrorMessage
                       name="verification_document"
                       component="div"
                       className="text-red-500 text-sm"
                     />
                   </div>
+
 
                   <Button
                     type="submit"
@@ -212,7 +224,7 @@ const RegisterPage = () => {
               </Link>
             </div>
             <div>
-              <p> or </p>
+              <p> {t("or")} </p>
             </div>
             <div className="flex justify-center items-center">
               <GoogleSignInButton page="register" />
