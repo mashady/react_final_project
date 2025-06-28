@@ -1,7 +1,6 @@
 "use client";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useIntersection } from "../../../hooks/useIntersection";
 import PropertyHeader from "./components/PropertyHeader";
 import PropertyFilters from "./components/PropertyFilters";
 import PropertyGrid from "./components/PropertyGrid";
@@ -46,7 +45,8 @@ const textUtils = {
 };
 
 const propertyService = {
-  async fetchProperties({ pageParam = 1, filters = {}, pageSize = 10 }) {
+  async fetchProperties({ pageParam = 1, filters = {}, pageSize = 6 }) {
+    // Changed to consistent 6 items per page
     const params = new URLSearchParams({
       page: pageParam.toString(),
       per_page: pageSize.toString(),
@@ -100,20 +100,46 @@ const propertyService = {
   },
 };
 
-const useProperties = (filters) => {
-  const queryClient = useQueryClient();
+const useIntersection = ({ onIntersect, rootMargin }) => {
+  const ref = useRef(null);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onIntersect();
+        }
+      },
+      { rootMargin }
+    );
+
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [onIntersect, rootMargin]);
+
+  return { ref };
+};
+
+const useProperties = (filters) => {
   return useInfiniteQuery({
     queryKey: ["properties", filters],
     queryFn: ({ pageParam }) =>
       propertyService.fetchProperties({
         pageParam,
         filters,
-        pageSize: 10,
+        pageSize: 6, // Consistent with API call
       }),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage?.data || lastPage.data.length === 0) return undefined;
-      return lastPage.data.length < 10 ? undefined : allPages.length + 1;
+      return lastPage.data.length < 6 ? undefined : allPages.length + 1; // Matches pageSize
     },
     initialPageParam: 1,
     staleTime: 1 * 60 * 1000,
@@ -154,7 +180,21 @@ const PropertyList = () => {
     isError,
     error,
     refetch,
+    status,
+    isFetching,
   } = useProperties(activeFilters);
+
+  // Debugging logs
+  useEffect(() => {
+    console.log({
+      status,
+      isFetching,
+      isFetchingNextPage,
+      hasNextPage,
+      pages: data?.pages?.length,
+      lastPageLength: data?.pages?.[data.pages?.length - 1]?.data?.length,
+    });
+  }, [status, isFetching, isFetchingNextPage, hasNextPage, data]);
 
   const properties = useMemo(() => {
     if (!data?.pages) return [];
@@ -165,11 +205,12 @@ const PropertyList = () => {
 
   const { ref: sentinelRef } = useIntersection({
     onIntersect: () => {
-      if (hasNextPage && !isFetchingNextPage) {
+      if (hasNextPage && !isFetchingNextPage && !isFetching) {
+        console.log("Fetching next page...");
         fetchNextPage();
       }
     },
-    rootMargin: "200px",
+    rootMargin: "400px", // Increased from 200px
   });
 
   const handleFilterChange = useCallback((key, value) => {
@@ -349,28 +390,30 @@ const PropertyList = () => {
               formatPrice={formatPrice}
             />
 
-            {hasNextPage && (
-              <div
-                ref={sentinelRef}
-                className="h-20 flex items-center justify-center mt-8"
-              >
-                {isFetchingNextPage ? (
-                  <div className="flex items-center space-x-2">
-                    <LoadingSpinner />
-                    <span className="text-gray-500">
-                      Loading more properties...
-                    </span>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="animate-pulse h-2 w-32 bg-gray-200 rounded mb-2"></div>
-                    <span className="text-gray-400 text-sm">
-                      Scroll for more properties
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
+            <div
+              ref={sentinelRef}
+              className="h-20 flex items-center justify-center mt-8"
+            >
+              {isFetchingNextPage ? (
+                <div className="flex items-center space-x-2">
+                  <LoadingSpinner />
+                  <span className="text-gray-500">
+                    Loading more properties...
+                  </span>
+                </div>
+              ) : hasNextPage ? (
+                <div className="text-center">
+                  <div className="animate-pulse h-2 w-32 bg-gray-200 rounded mb-2"></div>
+                  <span className="text-gray-400 text-sm">
+                    Scroll for more properties
+                  </span>
+                </div>
+              ) : (
+                <div className="text-gray-400 text-sm">
+                  No more properties to load
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <EmptyState

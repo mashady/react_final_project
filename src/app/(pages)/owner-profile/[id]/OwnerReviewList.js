@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import ConfirmDialog from "@/app/(pages)/property/[id]/components/ConfirmDialog";
 import OwnerReviewForm from "./OwnerReviewForm";
+import LoadingSpinner from "../../properties/components/LoadingSpinner";
+import { useTranslation } from "@/TranslationContext";
 
 function OwnerReviewList({
   ownerId,
@@ -26,7 +28,7 @@ function OwnerReviewList({
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [confirm, setConfirm] = useState({ open: false, reviewId: null });
   const currentUser = useSelector((state) => state.user.data);
-
+  let { t } = useTranslation();
   useEffect(() => {
     const fetchReviews = async () => {
       setLoading(true);
@@ -42,7 +44,7 @@ function OwnerReviewList({
         );
         setReviews(res.data.data || []);
       } catch (err) {
-        setError("Failed to load reviews");
+        setError(t("failedToLoadReviews"));
         setReviews([]);
       } finally {
         setLoading(false);
@@ -80,7 +82,7 @@ function OwnerReviewList({
       );
       setReviews(res.data.data || []);
     } catch (err) {
-      setError("Failed to update review");
+      setError(t("failedToUpdateReview"));
     } finally {
       setEditLoading(false);
     }
@@ -108,9 +110,9 @@ function OwnerReviewList({
       setReviews(res.data.data || []);
       setToast({ message: "Review deleted.", type: "success", visible: true });
     } catch (err) {
-      setError("Failed to delete review");
+      setError(t("reviewDeleted"));
       setToast({
-        message: "Failed to delete review",
+        message: t("reviewDeletedError"),
         type: "error",
         visible: true,
       });
@@ -122,8 +124,11 @@ function OwnerReviewList({
   const userHasReview =
     currentUser && reviews.some((r) => r.user && r.user.id === currentUser.id);
 
+  const isOwnProfile = currentUser && currentUser.id === Number(ownerId);
+  console.log(isOwnProfile);
+
   if (loading) {
-    return <div className="text-gray-500">Loading reviews...</div>;
+    return <LoadingSpinner />;
   }
   if (error && (!reviews || reviews.length === 0)) {
     return <div className="text-red-500">{error}</div>;
@@ -136,9 +141,9 @@ function OwnerReviewList({
     return (
       <>
         <div className="text-[#888] text-lg bg-[#f7f7f7] rounded-xl p-6 border border-[#ececec] mb-4">
-          No reviews yet.
+          {t("noReviewsYet")}
         </div>
-        {showForm && (
+        {showForm && !isOwnProfile && (
           <OwnerReviewForm
             reviewForm={reviewForm}
             setReviewForm={setReviewForm}
@@ -197,14 +202,16 @@ function OwnerReviewList({
                       onClick={() => handleEdit(review)}
                       disabled={editLoading || deletingId === review.id}
                     >
-                      Edit
+                      {t("reviewEdit")}
                     </button>
                     <button
                       className="text-xs text-red-600 hover:underline"
                       onClick={() => handleDelete(review.id)}
                       disabled={deletingId === review.id}
                     >
-                      {deletingId === review.id ? "Deleting..." : "Delete"}
+                      {deletingId === review.id
+                        ? t("reviewDeleting")
+                        : t("reviewDelete")}
                     </button>
                   </div>
                 )}
@@ -224,14 +231,14 @@ function OwnerReviewList({
                       onClick={() => handleSave(review.id)}
                       disabled={editLoading || !editContent.trim()}
                     >
-                      {editLoading ? "Saving..." : "Save"}
+                      {editLoading ? t("reviewSaving") : t("reviewSave")}
                     </button>
                     <button
                       className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
                       onClick={handleCancel}
                       disabled={editLoading}
                     >
-                      Cancel
+                      {t("reviewCancel")}
                     </button>
                   </div>
                   {error && (

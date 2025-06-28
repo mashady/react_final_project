@@ -7,12 +7,13 @@ import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
 import RequireAuth from "@/components/shared/RequireAuth";
+import { useTranslation } from "@/TranslationContext";
 
 const AddPropertyContent = () => {
   const [loading, setLoading] = useState(true);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [error, setError] = useState(null);
-
+  let { t } = useTranslation();
   useEffect(() => {
     const checkSubscription = async () => {
       try {
@@ -64,8 +65,8 @@ const AddPropertyContent = () => {
   if (!hasSubscription) {
     return (
       <DashboardEmptyMsg
-        msg="You don’t have an active subscription"
-        btn="Explore Plans"
+        msg={t("noActiveSubscription")}
+        btn={t("explorePlans")}
         link="/plans"
       />
     );

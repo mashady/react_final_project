@@ -14,18 +14,12 @@ import Link from "next/link";
 import Toast from "../../property/[id]/components/Toast";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, fetchUser } from "@/features/user/userSlice";
+import { loginUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/TranslationContext";
 import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
 
-const LoginSchema = Yup.object().shape({
-  email: Yup.string()
-    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
-    .required("Email is required"),
-  password: Yup.string()
-    .required("Password is required"),
-});
+
 
 const LoginPage = () => {
   let { t } = useTranslation();
@@ -47,12 +41,20 @@ const LoginPage = () => {
     setToast({ ...toast, visible: false });
   };
 
+  const LoginSchema = Yup.object().shape({
+    email: Yup.string()
+      .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, t("emailInvalidLogin"))
+      .required(t("emailRequired")),
+    password: Yup.string()
+      .required(t("passwordRequired")),
+  });
+
   const handleLogin = async (values) => {
     try {
       const resultAction = await dispatch(loginUser(values));
 
       if (loginUser.fulfilled.match(resultAction)) {
-        showToast("Login successful!", "success");
+        showToast(t("Login successful!"), "success");
 
         setTimeout(() => {
           router.push("/");
@@ -64,7 +66,7 @@ const LoginPage = () => {
           status === 403 &&
           message === "Please verify your email before logging in."
         ) {
-          showToast("Please verify your email first.", "warning");
+          showToast(t("Please verify your email first."), "warning");
             // Redirect to verification sent page
             setTimeout(() => {
               router.push("/verify/sent");
@@ -72,10 +74,16 @@ const LoginPage = () => {
             }, 3000);
         }
 
+        // Handle if Invalid credentials
+        if(status === 401 && message === "Invalid credentials.") {
+          showToast(t("refuseLogin"), "error");
+          return;
+        }
+
         throw message;
       }
     } catch (error) {
-      showToast(error || "Login failed", "error");
+      showToast(error || t("loginError"), "error");
     }
   };
 
@@ -143,7 +151,7 @@ const LoginPage = () => {
                       href="/forgot-password"
                       className="text-gray-600  hover:underline"
                     >
-                      {t("Forgot Password?")}
+                      {t("passwordForget")}
                     </Link>
                   </div>
                   <Button
@@ -169,10 +177,10 @@ const LoginPage = () => {
               </Link>
             </div>
             <div>
-              <p> or </p>
+              <p> {t("or")} </p>
             </div>
             <div className="flex justify-center items-center">
-              <GoogleSignInButton page="login" />
+              <GoogleSignInButton />
             </div>
           </CardFooter>
         </Card>

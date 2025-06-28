@@ -2,8 +2,9 @@
 import { Button } from "@/components/ui/button";
 import api from "@/api/axiosConfig";
 import { FcGoogle } from "react-icons/fc";
-
+import { useTranslation } from "@/TranslationContext";
 const GoogleSignInButton = ({page}) => {
+  const { t } = useTranslation();
   const handleGoogleSignIn = async () => {
     try {
       const response = await api.get("/auth/google/redirect");
@@ -18,7 +19,7 @@ const GoogleSignInButton = ({page}) => {
       onClick={handleGoogleSignIn}
       className="bg-black text-white py-3 rounded hover:bg-gray-800 hover:cursor-pointer transition-colors duration-300 w-full"
     >
-      Sign {page === "register" ? "up" : "in"} with Google <FcGoogle className="inline ml-2" />
+      {t("signWithGoogle")} <FcGoogle className="inline ml-2" />
     </Button>
   );
 };

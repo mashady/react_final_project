@@ -9,6 +9,7 @@ import api from "../../../../api/axiosConfig";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import the guard
 import { useIntersection } from "@/hooks/useIntersection";
+import { useTranslation } from "../../../../TranslationContext";
 
 const PAGE_SIZE = 3;
 
@@ -19,6 +20,7 @@ const MyPropertiesContent = () => {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const hasNextPage = properties.length > visibleCount;
   const isLoadingMore = useRef(false);
+  const { t, locale } = useTranslation();
 
   // Intersection observer for lazy loading
   const { ref: sentinelRef } = useIntersection({
@@ -43,7 +45,7 @@ const MyPropertiesContent = () => {
         const propertiesArray = Array.isArray(data) ? data : [data];
         setProperties(propertiesArray);
       } catch (err) {
-        setError(err.message || "Failed to fetch your properties");
+        setError(err.message || t("failedToFetchProperties"));
         console.error("Error fetching properties:", err);
       } finally {
         setLoading(false);
@@ -78,7 +80,7 @@ const MyPropertiesContent = () => {
           onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
         >
-          Retry
+          {t("retryButton")}
         </button>
       </div>
     );
@@ -89,8 +91,8 @@ const MyPropertiesContent = () => {
       {visibleProperties.length > 0 ? (
         <>
           <DashboardPageHeader
-            title="My Properties"
-            description="This page displays all the properties you have listed. Manage your properties, view details, and update your listings here."
+            title={t("dashboardMyPropertiesHeader")}
+            description={t("dashboardMyPropertiesDescription")}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {visibleProperties.map((property, index) => (
@@ -111,14 +113,23 @@ const MyPropertiesContent = () => {
             <div ref={sentinelRef} className="flex justify-center mt-10">
               <div className="flex items-center space-x-2">
                 <LoadingSpinner />
+                <span className="text-gray-500">{t("loadingMore")}</span>
               </div>
+            </div>
+          )}
+          {/* End message */}
+          {!hasNextPage && properties.length > 0 && (
+            <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8 bg-white rounded-lg">
+              <p className="text-sm text-gray-400 mt-1">
+                {t("showingAllProperties", { count: properties.length })}
+              </p>
             </div>
           )}
         </>
       ) : (
         <DashboardEmptyMsg
-          msg="You haven't added any property yet."
-          btn="Add Property"
+          msg={t("noPropertiesAdded")}
+          btn={t("addPropertyButton")}
           link="/dashboard/add-property"
         />
       )}

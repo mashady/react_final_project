@@ -3,8 +3,10 @@ import React from "react";
 import { Upload, X, Image, Video } from "lucide-react";
 import { useFormikContext } from "formik";
 import axios from "axios";
+import { useTranslation } from "@/TranslationContext";
 
 const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
+  let { t } = useTranslation();
   const { values, setFieldValue, errors, touched } = useFormikContext();
   const { media } = values;
   const hasError = touched.media && errors.media;
@@ -26,7 +28,9 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
           file.type.startsWith("image/") || file.type.startsWith("video/");
 
         if (!isValidSize) {
-          console.warn(`File ${file.name} is too large (${fileSizeMB.toFixed(2)}MB)`);
+          console.warn(
+            `File ${file.name} is too large (${fileSizeMB.toFixed(2)}MB)`
+          );
         }
 
         if (!isValidType) {
@@ -37,7 +41,10 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
       });
 
       if (validFiles.length !== files.length) {
-        showToast("Some files were skipped. Only images/videos under 20MB are allowed.", "warning");
+        showToast(
+          "Some files were skipped. Only images/videos under 20MB are allowed.",
+          "warning"
+        );
       }
 
       const newGallery = [...media, ...validFiles];
@@ -53,11 +60,14 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
 
     try {
       if (fileToRemove?.id) {
-        await axios.delete(`http://127.0.0.1:8000/api/media/${fileToRemove.id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        await axios.delete(
+          `http://127.0.0.1:8000/api/media/${fileToRemove.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
       } else if (fileToRemove instanceof File) {
         URL.revokeObjectURL(fileToRemove);
       }
@@ -86,20 +96,19 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
     return "";
   };
 
-
   return (
     <div className="bg-white overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-200">
-        <h2 className="text-sm font-medium text-black">Media</h2>
+        <h2 className="text-sm font-medium text-black">{t("media")}</h2>
       </div>
 
       <div className="p-6">
         <label className="block text-xs font-medium text-black mb-2">
-          Upload media files (images/videos):
+          {t("uploadMediaFiles")}
         </label>
 
         <p className="text-xs text-blue-500 mb-4">
-          Upload images and videos (max 20MB each). First image appears in lists.
+          {t("uploadMediaFilesDescription")}
         </p>
 
         <div className="flex gap-2 mb-4">
@@ -109,7 +118,7 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
             className="flex items-center gap-1 px-3 py-2 text-xs text-blue-600 bg-white border border-blue-600 rounded hover:bg-blue-50 transition-colors"
           >
             <Upload className="w-3 h-3" />
-            Upload Media
+            {t("uploadMedia")}
           </button>
 
           {media.length > 0 && (
@@ -118,21 +127,25 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
               onClick={handleRemoveAllMedia}
               className="flex items-center gap-1 px-3 py-2 text-xs text-red-600 bg-white border border-red-600 rounded hover:bg-red-50 transition-colors"
             >
-              Remove All
+              {t("removeAllMedia")}
             </button>
           )}
         </div>
 
-        {hasError && <p className="text-xs text-red-500 mb-4">{errors.media}</p>}
+        {hasError && (
+          <p className="text-xs text-red-500 mb-4">{errors.media}</p>
+        )}
 
         {media.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {media.map((file, index) => {
               const isFile = file instanceof File;
               const isImage =
-                file?.media_type === "image" || (isFile && file.type?.startsWith("image/"));
+                file?.media_type === "image" ||
+                (isFile && file.type?.startsWith("image/"));
               const isVideo =
-                file?.media_type === "video" || (isFile && file.type?.startsWith("video/"));
+                file?.media_type === "video" ||
+                (isFile && file.type?.startsWith("video/"));
               const imageUrl = getImageUrl(file);
 
               return (
@@ -180,7 +193,7 @@ const MediaUpload = ({ onRemoveAllMedia, propertyId, showToast }) => {
             <Image className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-sm text-gray-500">No media files uploaded yet</p>
             <p className="text-xs text-gray-400 mt-1">
-              Click "Upload Media" to add images and videos
+              {t("uploadInstructions")}
             </p>
           </div>
         )}

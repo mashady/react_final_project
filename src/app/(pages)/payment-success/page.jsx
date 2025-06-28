@@ -5,8 +5,10 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import LoadingSpinner from "../properties/components/LoadingSpinner";
+import { useTranslation } from "@/TranslationContext";
 
 export default function PaymentSuccessPage() {
+  let { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -91,7 +93,7 @@ export default function PaymentSuccessPage() {
     if (sessionId && planId) {
       processPaymentSuccess();
     } else {
-      setError("Missing payment verification details");
+      setError(t("missingDetails"));
       setLoading(false);
     }
   }, [sessionId, planId]);
@@ -104,7 +106,7 @@ export default function PaymentSuccessPage() {
         ) : error ? (
           <div>
             <h1 className="text-2xl font-semibold text-black mb-2">
-              Processing Error
+              {t("processError")}
             </h1>
             <p className="text-gray-600 mb-4">{error}</p>
             <p className="text-sm text-gray-500 mb-6">
@@ -115,24 +117,22 @@ export default function PaymentSuccessPage() {
                 href="/plans"
                 className="px-6 py-2 bg-yellow-500 text-black rounded-none hover:bg-yellow-600 transition"
               >
-                View Plans
+                {t("viewPlans")}
               </Link>
             </div>
           </div>
         ) : (
           <>
             <h1 className="text-2xl font-semibold text-black mb-2">
-              Subscription Activated!
+              {t("activeSub")}
             </h1>
-            <p className="text-gray-600 mb-6">
-              Your payment was successful and your subscription is now active.
-            </p>
+            <p className="text-gray-600 mb-6">{t("activeMsg")}</p>
             <div className="flex justify-center space-x-4">
               <Link
                 href="/dashboard/my-packages"
                 className="px-6 py-2 bg-yellow-500 text-black rounded-none hover:bg-yellow-600 transition"
               >
-                Manage Subscription
+                {t("manageSub")}
               </Link>
             </div>
           </>
