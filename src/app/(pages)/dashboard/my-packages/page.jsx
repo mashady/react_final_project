@@ -8,12 +8,14 @@ import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import DashboardEmptyMsg from "@/components/dashboard/DashboardEmptyMsg";
 import RequireAuth from "@/components/shared/RequireAuth";
+import { useTranslation } from "../../../../TranslationContext";
 
 const MyPackagesContent = () => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasNoPlan, setHasNoPlan] = useState(false);
+  const { t, locale } = useTranslation();
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -39,8 +41,8 @@ const MyPackagesContent = () => {
             ? `${data?.plan?.name} Package`
             : "Basic Package",
           expirationDate: data.ends_at
-            ? new Date(data.ends_at).toLocaleDateString("en-GB")
-            : "N/A",
+            ? new Date(data.ends_at).toLocaleDateString(locale)
+            : t("notAvailable"),
           itemsIncluded: data.plan?.ads_Limit ?? 0,
           itemsRemaining:
             data.ads_remain !== undefined && data.plan?.ads_Limit !== undefined
@@ -96,8 +98,8 @@ const MyPackagesContent = () => {
     return (
       <div className="max-w-7xl mx-auto">
         <DashboardPageHeader
-          title="My Packages"
-          description="This is a list of all your packages."
+          title={t("dashboardMyPackagesHeader")}
+          description={t("dashboardMyPackagesDescription")}
         />
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
           <div className="flex">
@@ -116,7 +118,7 @@ const MyPackagesContent = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700">
-                {error}. Showing default package information.
+                {error}. {t("showingDefaultPackageInfo")}
               </p>
             </div>
           </div>
@@ -129,38 +131,39 @@ const MyPackagesContent = () => {
     <div className="max-w-7xl mx-auto">
       {hasNoPlan ? (
         <DashboardEmptyMsg
-          msg="You haven't added any plan yet."
-          btn="Explore plans"
+          msg={t("noPlanAddedMessage")}
+          btn={t("explorePlansButton")}
           link="/plans"
         />
       ) : (
         <>
           <DashboardPageHeader
-            title="My Packages"
-            description="This is a list of all your packages."
+            title={t("dashboardMyPackagesHeader")}
+            description={t("dashboardMyPackagesDescription")}
           />
+
           <div className="bg-white border border-gray-200 overflow-hidden mb-6">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                      Package
+                      {t("packageHeader")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                      Expiration Date
+                      {t("expirationDateHeader")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                      Items Included
+                      {t("itemsIncludedHeader")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                      Items Remaining
+                      {t("itemsRemainingHeader")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                      Status
+                      {t("statusHeader")}
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                      Price
+                      {t("priceHeader")}
                     </th>
                   </tr>
                 </thead>
@@ -187,7 +190,9 @@ const MyPackagesContent = () => {
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {pkg.status}
+                          {pkg.status === "Active"
+                            ? t("activeStatus")
+                            : t("expiredStatus")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 font-medium">
@@ -203,7 +208,7 @@ const MyPackagesContent = () => {
           <div className="flex justify-start">
             <Link href="/plans">
               <Button className="text-black bg-yellow-500 hover:bg-yellow-600 cursor-pointer rounded-none">
-                Upgrade Package
+                {t("upgradePackageButton")}
               </Button>
             </Link>
           </div>
