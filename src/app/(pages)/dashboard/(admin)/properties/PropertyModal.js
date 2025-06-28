@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { X, Save } from "lucide-react";
 import MediaUpload from "@/components/add-property/MediaUpload";
-import AdminMediaUpload from "./AdminMediaUpload";
 import FormError from "@/app/(pages)/property/[id]/components/FormError";
 import { validationSchema } from "@/validation/add-property-validation";
 
@@ -258,10 +257,7 @@ const PropertyModal = ({
               <p className="mt-1 text-sm text-red-600">{errors.description}</p>
             )}
           </div>
-          <AdminMediaUpload
-            media={formData.media || []}
-            setMedia={(media) => setFormData({ ...formData, media })}
-          />
+
           <div className="flex gap-4">
             <button
               type="button"

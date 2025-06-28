@@ -201,15 +201,7 @@ const PropertyManagement = () => {
             onDelete={handleDelete}
           />
         </div>
-        <PropertyModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          onSubmit={handleSubmit}
-          formData={formData}
-          setFormData={setFormData}
-          editingProperty={editingProperty}
-        />
-        {/* Removed PropertyViewModal to disable property details modal */}
+       
         <ConfirmDialog
           open={showDeleteModal}
           message="Are you sure you want to delete this property? This action cannot be undone."
