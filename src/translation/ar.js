@@ -44,6 +44,7 @@ const ar = {
   navbarLinkOne: "الرئيسية",
   navbarLinkTwo: "العقارات",
   navbarLinkThree: "الخطط",
+  navbarLinkFour: "تواصل معنا",
   navbarAddProperty: "إضافة عقار",
   navbarLogin: "تسجيل الدخول",
   navbarRegister: "تسجيل",
@@ -432,6 +433,26 @@ const ar = {
   emailVerifiedDescription:
     "تم التحقق من بريدك الإلكتروني بنجاح. يمكنك الآن تسجيل الدخول والاستمتاع بالوصول الكامل.",
   signWithGoogle: "التسجيل باستخدام جوجل",
+  adminPlans: "خطط ",
+
+  adminPayment: "الدفع",
+  paymentHistoryHeader: "سجل الدفع",
+  paymentHistoryDescription: " كل تفاصيل المدفوعات",
+  paymentHistoryHeader: "سجل الدفع",
+  paymentHistoryDescription: "عرض جميع معاملات الدفع",
+  userHeader: "المستخدم",
+  transactionIdHeader: "رقم المعاملة",
+  dateHeader: "التاريخ",
+  planHeader: "الباقة",
+  amountHeader: "المبلغ",
+  statusHeader: "الحالة",
+  paymentMethodHeader: "طريقة الدفع",
+  detailsHeader: "التفاصيل",
+  noPaymentsMessage: "لا توجد مدفوعات",
+  explorePlansButton: "استكشاف الباقات",
+  completed: "مكتمل",
+  pending: "قيد الانتظار",
+  failed: "فشل",
 };
 
 export default ar;
