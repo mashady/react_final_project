@@ -13,6 +13,7 @@ import {
   ChevronsRight,
   Clock,
 } from "lucide-react";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 
 export default function UsersTable({
   loading,
@@ -40,8 +41,10 @@ export default function UsersTable({
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       {loading ? (
         <div className="p-12 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading users...</p>
+          {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div> */}
+          <p className="text-slate-600">
+            <LoadingSpinner />
+          </p>
         </div>
       ) : (
         <>
@@ -78,14 +81,16 @@ export default function UsersTable({
                     >
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-medium">
+                          {/* <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-medium">
                             {user.name.charAt(0)}
-                          </div>
+                          </div> */}
                           <div>
                             <p className="font-medium text-slate-800">
                               {user.name}
                             </p>
-                            <p className="text-sm text-slate-600">{user.email}</p>
+                            <p className="text-sm text-slate-600">
+                              {user.email}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -135,19 +140,19 @@ export default function UsersTable({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => openModal("view", user)}
-                            className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors duration-200"
+                            className="p-2 cursor-pointer text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors duration-200"
                           >
                             <Eye size={16} />
                           </button>
                           <button
                             onClick={() => openModal("edit", user)}
-                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                            className="p-2 cursor-pointer text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                           >
                             <Edit size={16} />
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user.id)}
-                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            className="p-2 cursor-pointer text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -158,7 +163,10 @@ export default function UsersTable({
                 ) : (
                   <tr>
                     <td colSpan="6" className="py-12 text-center">
-                      <Clock size={48} className="text-amber-400 mx-auto mb-4" />
+                      <Clock
+                        size={48}
+                        className="text-amber-400 mx-auto mb-4"
+                      />
                       <h3 className="text-lg font-medium text-slate-800 mb-2">
                         No users found
                       </h3>

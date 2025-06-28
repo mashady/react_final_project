@@ -9,7 +9,7 @@ export default function PlanTable({
   getBillingIntervalBadge,
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+    <div className="bg-white rounded shadow-sm border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
@@ -88,21 +88,21 @@ export default function PlanTable({
                     <div className="flex items-center justify-center space-x-2">
                       <button
                         onClick={() => onView(plan)}
-                        className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                        className="p-2 text-black cursor-pointer hover:bg-yellow-50 rounded-lg transition-colors"
                         title="View Plan"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onEdit(plan)}
-                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        className="p-2 text-blue-500 cursor-pointer hover:bg-amber-50 rounded-lg transition-colors"
                         title="Edit Plan"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onDelete(plan.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-red-600 cursor-pointer hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete Plan"
                       >
                         <Trash2 className="w-4 h-4" />

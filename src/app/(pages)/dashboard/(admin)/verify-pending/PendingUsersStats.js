@@ -3,7 +3,7 @@ import { Clock, User, FileText } from "lucide-react";
 
 const PendingUsersStats = ({ filteredUsers }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-amber-200">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-grey-100">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-slate-600 text-sm font-medium">Total Pending</p>
@@ -11,12 +11,12 @@ const PendingUsersStats = ({ filteredUsers }) => (
             {filteredUsers.length}
           </p>
         </div>
-        <div className="bg-amber-100 p-3 rounded-lg">
-          <Clock size={24} className="text-amber-600" />
+        <div className="bg-yellow-100 p-3 rounded-lg">
+          <Clock size={24} className="text-yellow-600" />
         </div>
       </div>
     </div>
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-amber-200">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-grey-100">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-slate-600 text-sm font-medium">Students</p>
@@ -29,7 +29,7 @@ const PendingUsersStats = ({ filteredUsers }) => (
         </div>
       </div>
     </div>
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-amber-200">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-grey-100">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-slate-600 text-sm font-medium">With Documents</p>

@@ -9,7 +9,7 @@ export default function ViewPlanModal({
 }) {
   if (!plan) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-semibold text-gray-900">Plan Details</h2>
@@ -31,7 +31,7 @@ export default function ViewPlanModal({
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Price</h3>
               <p className="text-lg font-semibold text-green-600 flex items-center">
-                <DollarSign className="w-5 h-5 mr-1" />
+                {/* <DollarSign className="w-5 h-5 mr-1" /> */}
                 {plan.price}
               </p>
             </div>
@@ -40,7 +40,7 @@ export default function ViewPlanModal({
                 Duration
               </h3>
               <p className="text-lg text-gray-900 flex items-center">
-                <Clock className="w-5 h-5 mr-2 text-yellow-500" />
+                {/* <Clock className="w-5 h-5 mr-2 text-yellow-500" /> */}
                 {plan.duration} days
               </p>
             </div>
@@ -56,7 +56,7 @@ export default function ViewPlanModal({
               <h3 className="text-sm font-medium text-gray-500 mb-2">
                 Ads Limit
               </h3>
-              <p className="text-lg font-semibold text-yellow-600">
+              <p className="text-lg font-semibold text-black">
                 {plan.ads_Limit}
               </p>
             </div>
@@ -74,14 +74,14 @@ export default function ViewPlanModal({
           <div className="flex items-center justify-end pt-6 border-t space-x-4">
             <button
               onClick={() => onEdit(plan)}
-              className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              className="px-6 py-3 cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg transition-colors flex items-center gap-2"
             >
-              <Edit className="w-5 h-5" />
+              {/* <Edit className="w-5 h-5" /> */}
               Edit Plan
             </button>
             <button
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Close
             </button>

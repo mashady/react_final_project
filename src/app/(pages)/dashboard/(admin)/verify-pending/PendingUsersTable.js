@@ -19,7 +19,7 @@ const PendingUsersTable = ({
 }) => (
   <div className="overflow-x-auto">
     <table className="w-full">
-      <thead className="bg-amber-50 border-b border-amber-200">
+      <thead className="bg-white border-b border-grey-100">
         <tr>
           <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
             User
@@ -56,9 +56,9 @@ const PendingUsersTable = ({
             >
               <td className="py-4 px-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white font-medium">
+                  {/* <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium">
                     {user.name.charAt(0)}
-                  </div>
+                  </div> */}
                   <div>
                     <p className="font-medium text-slate-800 flex items-center gap-2">
                       {user.name}
@@ -122,14 +122,14 @@ const PendingUsersTable = ({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openModal("view", user)}
-                    className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors duration-200"
+                    className="p-2 text-slate-600 cursor-pointer hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors duration-200"
                     title="View Details"
                   >
                     <Eye size={16} />
                   </button>
                   <button
                     onClick={() => handleStatusUpdate(user.id, "verified")}
-                    className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                    className="p-2 text-green-600 cursor-pointer hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors duration-200"
                     disabled={processing}
                     title="Approve"
                   >
@@ -137,7 +137,7 @@ const PendingUsersTable = ({
                   </button>
                   <button
                     onClick={() => handleStatusUpdate(user.id, "unverified")}
-                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    className="p-2 text-red-600 cursor-pointer hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
                     disabled={processing}
                     title="Reject"
                   >

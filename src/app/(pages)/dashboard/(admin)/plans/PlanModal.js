@@ -53,10 +53,10 @@ export default function PlanModal({
   // Clear specific error when user starts typing/correcting
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    
+
     // Clear the error for this field if it exists
     if (errors[field]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -70,7 +70,7 @@ export default function PlanModal({
   };
 
   return (
-    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#000000e0]  bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-semibold text-gray-900">
@@ -78,7 +78,7 @@ export default function PlanModal({
           </h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -92,7 +92,7 @@ export default function PlanModal({
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                onChange={(e) => handleInputChange("name", e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.name ? "border-red-500" : "border-gray-300"
                 }`}
@@ -109,7 +109,7 @@ export default function PlanModal({
                 type="number"
                 min="0"
                 value={formData.price}
-                onChange={(e) => handleInputChange('price', e.target.value)}
+                onChange={(e) => handleInputChange("price", e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.price ? "border-red-500" : "border-gray-300"
                 }`}
@@ -126,7 +126,7 @@ export default function PlanModal({
                 type="number"
                 min="1"
                 value={formData.duration}
-                onChange={(e) => handleInputChange('duration', e.target.value)}
+                onChange={(e) => handleInputChange("duration", e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.duration ? "border-red-500" : "border-gray-300"
                 }`}
@@ -141,7 +141,9 @@ export default function PlanModal({
               </label>
               <select
                 value={formData.billing_interval}
-                onChange={(e) => handleInputChange('billing_interval', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("billing_interval", e.target.value)
+                }
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.billing_interval ? "border-red-500" : "border-gray-300"
                 }`}
@@ -166,7 +168,7 @@ export default function PlanModal({
                 type="number"
                 min="0"
                 value={formData.ads_Limit}
-                onChange={(e) => handleInputChange('ads_Limit', e.target.value)}
+                onChange={(e) => handleInputChange("ads_Limit", e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.ads_Limit ? "border-red-500" : "border-gray-300"
                 }`}
@@ -181,7 +183,7 @@ export default function PlanModal({
               </label>
               <textarea
                 value={formData.features}
-                onChange={(e) => handleInputChange('features', e.target.value)}
+                onChange={(e) => handleInputChange("features", e.target.value)}
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="List the plan features and benefits..."
@@ -192,15 +194,15 @@ export default function PlanModal({
             <button
               type="button"
               onClick={handleClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              className="px-6 py-3 cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg transition-colors flex items-center gap-2"
             >
-              <Save className="w-5 h-5" />
+              {/* <Save className="w-5 h-5" /> */}
               {editingPlan ? "Update Plan" : "Create Plan"}
             </button>
           </div>

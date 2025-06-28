@@ -6,6 +6,7 @@ import PendingUsersTable from "./PendingUsersTable.js";
 import PendingUsersModal from "./PendingUsersModal.js";
 import PendingUsersStats from "./PendingUsersStats.js";
 import PendingUsersPagination from "./PendingUsersPagination.js";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner.js";
 
 const PendingUsers = () => {
   const [users, setUsers] = useState([]);
@@ -216,29 +217,26 @@ const PendingUsers = () => {
           {successMessage}
         </div>
       )}
-      <div className="bg-white shadow-sm border-b border-orange-200">
+      <div className="bg-white ">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-light text-slate-800 tracking-tight flex items-center gap-3">
+              <h1
+                className="text-3xl text-black tracking-tight flex items-center gap-3"
+                style={{ fontWeight: 400 }}
+              >
                 Pending Verifications
               </h1>
-              <p className="text-slate-600 mt-2 font-light">
+              <p className="text-[#555] mt-2">
                 Review and approve user verification requests
               </p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-light text-amber-600">
-                {filteredUsers.length}
-              </div>
-              <div className="text-sm text-slate-600">Pending Reviews</div>
             </div>
           </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-6 py-8">
         <PendingUsersStats filteredUsers={filteredUsers} />
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-amber-200 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-grey-100 mb-8">
           <div className="relative">
             <Search
               className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
@@ -249,19 +247,20 @@ const PendingUsers = () => {
               placeholder="Search pending users by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all duration-300"
+              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-grey-100  outline-none transition-all duration-300"
             />
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-amber-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-grey-100 overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
-              <p className="text-slate-600">Loading pending users...</p>
+              {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-grey-100 mx-auto mb-4"></div> */}
+              <p className="text-slate-600">
+                <LoadingSpinner />
+              </p>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="p-12 text-center">
-              <Clock size={48} className="text-amber-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-slate-800 mb-2">
                 No Pending Verifications
               </h3>

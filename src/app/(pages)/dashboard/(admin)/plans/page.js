@@ -6,6 +6,7 @@ import PlanTable from "./PlanTable";
 import PlanModal from "./PlanModal";
 import ViewPlanModal from "./ViewPlanModal";
 import DeletePlanModal from "./DeletePlanModal";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 
 const PlanManagement = () => {
   const [plans, setPlans] = useState([]);
@@ -148,32 +149,37 @@ const PlanManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading plans...</p>
+          {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div> */}
+          <p className="mt-4 text-gray-600">
+            <LoadingSpinner />
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-indigo-50">
-      <div className="bg-white shadow-sm">
+    <div className="min-h-screen">
+      <div className="bg-white">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-light text-slate-800 tracking-tight flex items-center gap-3">
-                <Target className="w-8 h-8 text-yellow-600" />
+              <h1
+                className="text-3xl text-black tracking-tight flex items-center gap-3"
+                style={{ fontWeight: 400 }}
+              >
+                {/* <Target className="w-8 h-8 text-yellow-600" /> */}
                 Plans Management
               </h1>
-              <p className="text-slate-600 mt-2 font-light">
+              <p className="text-[#555] mt-2 font-light">
                 Manage subscription plans and pricing
               </p>
             </div>
             <div className="text-right">
               <button
-                className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 shadow-lg"
+                className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-black px-6 py-3 transition-all duration-300 flex items-center gap-2"
                 onClick={() => openModal()}
               >
                 <Plus className="w-5 h-5" /> Add Plan
@@ -185,7 +191,7 @@ const PlanManagement = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6 border border-red-200">
+          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6 ">
             {error}
           </div>
         )}
