@@ -11,7 +11,6 @@ import Toast from "../../property/[id]/components/Toast";
 import { Map , Marker} from 'react-map-gl';
 import { WebMercatorViewport } from "viewport-mercator-project";
 
-
 export default function PropertySuggestion() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,11 +23,11 @@ export default function PropertySuggestion() {
     zoom: 5,
   });
 
-    const [toast, setToast] = useState({
-      message: "",
-      type: "",
-      visible: false,
-    });
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
   const router = useRouter();
 
   const showToast = (message, type) => {
@@ -38,6 +37,7 @@ export default function PropertySuggestion() {
   const handleCloseToast = () => {
     setToast({ ...toast, visible: false });
   };
+
   const handleSearch = async (e) => {
     e.preventDefault();
     if (searchTerm.length < 3) {
@@ -65,6 +65,7 @@ export default function PropertySuggestion() {
       }
 
       setResults(data);
+      showToast(`Found ${data.properties.length} properties near "${data.university?.name || searchTerm}"`, "success");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -72,58 +73,69 @@ export default function PropertySuggestion() {
     }
   };
 
-useEffect(() => {
-  if (results?.properties?.length > 0) {
-    const bounds = results.properties.reduce(
-      (acc, property) => {
-        return {
-          minLng: Math.min(acc.minLng, Number(property.longitude)),
-          minLat: Math.min(acc.minLat, Number(property.latitude)),
-          maxLng: Math.max(acc.maxLng, Number(property.longitude)),
-          maxLat: Math.max(acc.maxLat, Number(property.latitude)),
-        };
-      },
-      {
-        minLng: Number(results.properties[0].longitude),
-        minLat: Number(results.properties[0].latitude),
-        maxLng: Number(results.properties[0].longitude),
-        maxLat: Number(results.properties[0].latitude),
+  // Enhanced useEffect to focus map on searched properties
+  useEffect(() => {
+    if (results?.properties?.length > 0) {
+      
+      let centerLat, centerLng;
+      
+      if (results.university) {
+        centerLat = Number(results.university.latitude);
+        centerLng = Number(results.university.longitude);
+        console.log('Centering on university:', centerLat, centerLng);
+      } else {
+        centerLat = Number(results.properties[0].latitude);
+        centerLng = Number(results.properties[0].longitude);
+        console.log('Centering on first property:', centerLat, centerLng);
       }
-    );
 
-    const { longitude, latitude, zoom } = new WebMercatorViewport({
-      width: window.innerWidth,
-      height: 500, // same height as your map div
-    }).fitBounds(
-      [
-        [bounds.minLng, bounds.minLat],
-        [bounds.maxLng, bounds.maxLat],
-      ],
-      { padding: 60 }
-    );
+      // Calculate the spread of all locations for zoom level
+      const allLocations = [...results.properties];
+      if (results.university) {
+        allLocations.push({
+          latitude: results.university.latitude,
+          longitude: results.university.longitude
+        });
+      }
 
-    setViewState({
-      longitude,
-      latitude,
-      zoom,
-    });
+      const latitudes = allLocations.map(loc => Number(loc.latitude));
+      const longitudes = allLocations.map(loc => Number(loc.longitude));
+      
+      const latSpread = Math.max(...latitudes) - Math.min(...latitudes);
+      const lngSpread = Math.max(...longitudes) - Math.min(...longitudes);
+      const maxSpread = Math.max(latSpread, lngSpread);
 
-    setSelectedProperty(results.properties[0]); // Optional popup
-  }
-}, [results]);
+      let zoomLevel = 13; // Good default for city-level view
+      if (maxSpread > 0.5) zoomLevel = 10;
+      else if (maxSpread > 0.1) zoomLevel = 12;
+      else if (maxSpread > 0.05) zoomLevel = 13;
+      else if (maxSpread > 0.01) zoomLevel = 14;
+      else zoomLevel = 15; // Very close properties
 
-  
+
+      setViewState({
+        latitude: centerLat,
+        longitude: centerLng,
+        zoom: zoomLevel,
+        transitionDuration: 2000, // Longer transition to make it more visible
+        transitionInterpolator: 'flyTo',
+      });
+
+      // Set the first property as selected
+      setSelectedProperty(results.properties[0]);
+    }
+  }, [results]);
 
   return (
     <div className="bg-gray-50">
       <main className="container mx-auto py-8 px-4">
-              {toast.visible && (
-                <Toast
-                  message={toast.message}
-                  type={toast.type}
-                  onClose={handleCloseToast}
-                />
-              )}
+        {toast.visible && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={handleCloseToast}
+          />
+        )}
         <div className="mx-auto">
           <h1
             className="text-[45px] text-black mt-6"
@@ -149,6 +161,25 @@ useEffect(() => {
                 >
                   {loading ? "Searching..." : "Find Properties"}
                 </Button>
+                {results && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setResults(null);
+                      setSelectedProperty(null);
+                      setSearchTerm("");
+                      setViewState({
+                        latitude: 27.178312,
+                        longitude: 31.185926,
+                        zoom: 5,
+                        transitionDuration: 1000,
+                      });
+                    }}
+                  >
+                    Reset
+                  </Button>
+                )}
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
             </form>
