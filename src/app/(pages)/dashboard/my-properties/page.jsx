@@ -10,7 +10,7 @@ import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import RequireAuth from "@/components/shared/RequireAuth"; // ✅ import the guard
 import { useIntersection } from "@/hooks/useIntersection";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 3;
 
 const MyPropertiesContent = () => {
   const [properties, setProperties] = useState([]);
@@ -111,16 +111,7 @@ const MyPropertiesContent = () => {
             <div ref={sentinelRef} className="flex justify-center mt-10">
               <div className="flex items-center space-x-2">
                 <LoadingSpinner />
-                <span className="text-gray-500">Loading more...</span>
               </div>
-            </div>
-          )}
-          {/* End message */}
-          {!hasNextPage && properties.length > 0 && (
-            <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8 bg-white rounded-lg">
-              <p className="text-sm text-gray-400 mt-1">
-                Showing all {properties.length} of your properties
-              </p>
             </div>
           )}
         </>
