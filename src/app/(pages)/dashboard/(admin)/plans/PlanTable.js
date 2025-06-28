@@ -1,6 +1,6 @@
 import React from "react";
 import { DollarSign, Clock, Eye, Edit, Trash2 } from "lucide-react";
-
+import { useTranslation } from "../../../../../TranslationContext";
 export default function PlanTable({
   plans,
   onView,
@@ -8,6 +8,8 @@ export default function PlanTable({
   onDelete,
   getBillingIntervalBadge,
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-white rounded shadow-sm border overflow-hidden">
       <div className="overflow-x-auto">
@@ -15,25 +17,25 @@ export default function PlanTable({
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">
-                Plan Name
+                {t("planNameHeader")}
               </th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">
-                Price
+                {t("priceHeader")}
               </th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">
-                Duration
+                {t("durationHeader")}
               </th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">
-                Billing
+                {t("billingHeader")}
               </th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">
-                Ads Limit
+                {t("adsLimitHeader")}
               </th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">
-                Features
+                {t("featuresHeader")}
               </th>
               <th className="px-6 py-4 text-center text-sm font-medium text-gray-600">
-                Actions
+                {t("actionsHeader")}
               </th>
             </tr>
           </thead>
@@ -44,10 +46,10 @@ export default function PlanTable({
                   colSpan="7"
                   className="px-6 py-12 text-center text-gray-500"
                 >
-                  <span className="text-lg font-medium">No plans found</span>
-                  <p className="text-sm">
-                    Create your first subscription plan to get started
-                  </p>
+                  <span className="text-lg font-medium">
+                    {t("noPlansFound")}
+                  </span>
+                  <p className="text-sm">{t("createFirstPlanPrompt")}</p>
                 </td>
               </tr>
             ) : (
@@ -68,7 +70,7 @@ export default function PlanTable({
                   <td className="px-6 py-4">
                     <div className="flex items-center text-gray-600">
                       <Clock className="w-4 h-4 mr-1" />
-                      {plan.duration} days
+                      {plan.duration} {t("days")}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -89,21 +91,21 @@ export default function PlanTable({
                       <button
                         onClick={() => onView(plan)}
                         className="p-2 text-black cursor-pointer hover:bg-yellow-50 rounded-lg transition-colors"
-                        title="View Plan"
+                        title={t("viewPlanTooltip")}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onEdit(plan)}
                         className="p-2 text-blue-500 cursor-pointer hover:bg-amber-50 rounded-lg transition-colors"
-                        title="Edit Plan"
+                        title={t("editPlanTooltip")}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onDelete(plan.id)}
                         className="p-2 text-red-600 cursor-pointer hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete Plan"
+                        title={t("deletePlanTooltip")}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

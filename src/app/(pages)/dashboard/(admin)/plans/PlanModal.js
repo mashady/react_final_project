@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
+import { useTranslation } from "../../../../../TranslationContext";
 
-const validate = (formData) => {
+const validate = (formData, t) => {
   const errors = {};
-  if (!formData.name.trim()) errors.name = "Plan name is required";
+  if (!formData.name.trim()) errors.name = t("planNameRequired");
   if (!formData.price || isNaN(formData.price) || Number(formData.price) < 0)
-    errors.price = "Valid price is required";
+    errors.price = t("validPriceRequired");
   if (
     !formData.duration ||
     isNaN(formData.duration) ||
     Number(formData.duration) <= 0
   )
-    errors.duration = "Duration must be a positive number";
+    errors.duration = t("positiveDurationRequired");
   if (!formData.billing_interval)
-    errors.billing_interval = "Billing interval is required";
+    errors.billing_interval = t("billingIntervalRequired");
   if (
     !formData.ads_Limit ||
     isNaN(formData.ads_Limit) ||
     Number(formData.ads_Limit) < 0
   )
-    errors.ads_Limit = "Valid ads limit is required";
+    errors.ads_Limit = t("validAdsLimitRequired");
   return errors;
 };
 
@@ -30,6 +31,7 @@ export default function PlanModal({
   formData,
   setFormData,
   editingPlan,
+  t,
 }) {
   const [errors, setErrors] = useState({});
 
@@ -44,7 +46,7 @@ export default function PlanModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const validationErrors = validate(formData);
+    const validationErrors = validate(formData, t);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
     onSubmit(e);
@@ -74,8 +76,9 @@ export default function PlanModal({
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-semibold text-gray-900">
-            {editingPlan ? "Edit Plan" : "Create New Plan"}
+            {editingPlan ? t("editPlanTitle") : t("createPlanTitle")}
           </h2>
+
           <button
             onClick={handleClose}
             className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
@@ -87,7 +90,7 @@ export default function PlanModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Plan Name *
+                {t("planNameLabel")} *
               </label>
               <input
                 type="text"
@@ -103,7 +106,7 @@ export default function PlanModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price *
+                {t("priceLabel")} *
               </label>
               <input
                 type="number"
@@ -120,8 +123,9 @@ export default function PlanModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duration (days) *
+                {t("durationLabel")} *
               </label>
+
               <input
                 type="number"
                 min="1"
@@ -137,7 +141,7 @@ export default function PlanModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Billing Interval *
+                {t("billingIntervalLabel")} *
               </label>
               <select
                 value={formData.billing_interval}
@@ -148,11 +152,11 @@ export default function PlanModal({
                   errors.billing_interval ? "border-red-500" : "border-gray-300"
                 }`}
               >
-                <option value="">Select billing interval</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-                <option value="weekly">Weekly</option>
-                <option value="daily">Daily</option>
+                <option value="">{t("selectBillingInterval")}</option>
+                <option value="monthly">{t("monthly")}</option>
+                <option value="yearly">{t("yearly")}</option>
+                <option value="weekly">{t("weekly")}</option>
+                <option value="daily">{t("daily")}</option>
               </select>
               {errors.billing_interval && (
                 <p className="mt-1 text-sm text-red-600">
@@ -162,8 +166,9 @@ export default function PlanModal({
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ads Limit *
+                {t("adsLimitLabel")} *
               </label>
+
               <input
                 type="number"
                 min="0"
@@ -186,7 +191,7 @@ export default function PlanModal({
                 onChange={(e) => handleInputChange("features", e.target.value)}
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                placeholder="List the plan features and benefits..."
+                placeholder={t("featuresPlaceholder")}
               />
             </div>
           </div>
@@ -196,14 +201,14 @@ export default function PlanModal({
               onClick={handleClose}
               className="px-6 py-3 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              {t("cancelButton")}{" "}
             </button>
             <button
               type="submit"
               className="px-6 py-3 cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg transition-colors flex items-center gap-2"
             >
               {/* <Save className="w-5 h-5" /> */}
-              {editingPlan ? "Update Plan" : "Create Plan"}
+              {editingPlan ? t("updatePlanButton") : t("createPlanButton")}
             </button>
           </div>
         </form>

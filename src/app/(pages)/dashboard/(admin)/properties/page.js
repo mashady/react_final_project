@@ -7,8 +7,10 @@ import PropertyModal from "./PropertyModal";
 import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import ConfirmDialog from "./ConfirmDialog";
+import { useTranslation } from "../../../../../TranslationContext";
 
 const PropertyManagement = () => {
+  const { t, locale } = useTranslation();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,12 +27,11 @@ const PropertyManagement = () => {
     number_of_beds: 1,
     number_of_bathrooms: 1,
     space: "",
-    media: [], // <-- ensure media is present for image upload
+    media: [],
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState(null);
 
-  // Fetch properties from API
   const fetchProperties = async () => {
     try {
       setLoading(true);
@@ -40,7 +41,7 @@ const PropertyManagement = () => {
       });
       setProperties(response.data.data || []);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || t("fetchPropertiesError"));
     } finally {
       setLoading(false);
     }
@@ -50,7 +51,6 @@ const PropertyManagement = () => {
     fetchProperties();
   }, []);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -59,7 +59,7 @@ const PropertyManagement = () => {
         : "http://127.0.0.1:8000/api/ads";
       const method = editingProperty ? "put" : "post";
       const token = localStorage.getItem("token");
-      // Use FormData for file uploads
+
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "media" && Array.isArray(value)) {
@@ -72,19 +72,20 @@ const PropertyManagement = () => {
           form.append(key, value);
         }
       });
-      const response = await axios({
+
+      await axios({
         url,
         method,
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          // Let browser set Content-Type for FormData
         },
         data: form,
       });
+
       await fetchProperties();
       closeModal();
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.response?.data?.message || err.message || t("submitError"));
     }
   };
 
@@ -97,15 +98,12 @@ const PropertyManagement = () => {
     if (!propertyToDelete) return;
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/ads/${propertyToDelete}`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
-      if (response.status === 200 || response.status === 204) {
-        await fetchProperties();
-      }
+      await axios.delete(`http://127.0.0.1:8000/api/ads/${propertyToDelete}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      await fetchProperties();
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.response?.data?.message || err.message || t("deleteError"));
     } finally {
       setShowDeleteModal(false);
       setPropertyToDelete(null);
@@ -117,22 +115,12 @@ const PropertyManagement = () => {
     setPropertyToDelete(null);
   };
 
-  // Open modal for editing/creating
   const openModal = (property = null) => {
     setEditingProperty(property);
     setFormData(
       property
         ? {
-            title: property.title,
-            type: property.type,
-            description: property.description,
-            price: property.price,
-            street: property.street,
-            area: property.area,
-            block: property.block,
-            number_of_beds: property.number_of_beds,
-            number_of_bathrooms: property.number_of_bathrooms,
-            space: property.space,
+            ...property,
             media: [],
           }
         : {
@@ -158,6 +146,12 @@ const PropertyManagement = () => {
   };
 
   const getStatusBadge = (status) => {
+    const statusText = {
+      pending: t("pendingStatus"),
+      published: t("publishedStatus"),
+      rejected: t("rejectedStatus"),
+    };
+
     const statusStyles = {
       pending: "bg-yellow-100 text-yellow-800",
       published: "bg-green-100 text-green-800",
@@ -170,7 +164,7 @@ const PropertyManagement = () => {
           statusStyles[status] || statusStyles.pending
         }`}
       >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {statusText[status] || status}
       </span>
     );
   };
@@ -180,13 +174,17 @@ const PropertyManagement = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
+          <span className="sr-only">{t("loadingProperties")}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
+    <div
+      className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50"
+      dir={locale === "ar" ? "rtl" : "ltr"}
+    >
       <div className="max-w-7xl mx-auto px-6 py-8">
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-6">
@@ -197,16 +195,28 @@ const PropertyManagement = () => {
           <PropertyList
             properties={properties}
             onEdit={openModal}
-            // Removed onView to disable details modal on card click
             onDelete={handleDelete}
+            getStatusBadge={getStatusBadge}
+            t={t}
           />
         </div>
-       
+
+        <PropertyModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onSubmit={handleSubmit}
+          formData={formData}
+          setFormData={setFormData}
+          editingProperty={editingProperty}
+          t={t}
+        />
+
         <ConfirmDialog
           open={showDeleteModal}
-          message="Are you sure you want to delete this property? This action cannot be undone."
+          message={t("confirmDeletePropertyMessage")}
           onConfirm={confirmDelete}
           onCancel={cancelDelete}
+          t={t}
         />
       </div>
     </div>
