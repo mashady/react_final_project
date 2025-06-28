@@ -282,7 +282,6 @@ export default function UsersModal({
                 className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors duration-200 flex items-center justify-center gap-2"
                 disabled={!!successMessage}
               >
-                Save
                 {modalMode === "create" ? "Create User" : "Update User"}
               </button>
             </div>

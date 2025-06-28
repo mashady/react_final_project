@@ -5,21 +5,25 @@ import { Formik, Form } from "formik";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-import { formSections, initialValues } from "../../validation/formSections";
-import { validationSchema } from "../../validation/add-property-validation";
+import { getFormSections, initialValues } from "../../validation/formSections";
+import { useValidationSchema } from "../../validation/add-property-validation";
 import FormSection from "../add-property/FormSection";
 import MediaUpload from "./MediaUpload";
 import SubmitStatus from "../add-property/SubmitStatus";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import { useTranslation } from "@/TranslationContext";
 
 const EditPropertyForm = ({ propertyId }) => {
+  let { t } = useTranslation();
+  const formSections = getFormSections(t);
+  const validationSchema = useValidationSchema();
+
   const [formValues, setFormValues] = useState(initialValues);
   const [loading, setLoading] = useState(true);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const router = useRouter();
   const [mediaDeleted, setMediaDeleted] = useState(false);
-
 
   useEffect(() => {
     if (propertyId) {
@@ -30,23 +34,23 @@ const EditPropertyForm = ({ propertyId }) => {
           setFormValues({
             ...initialValues,
             ...data,
-            media: data.media?.map((m) => ({
-              id: m.id,
-              url: m.url, // ✅ نستخدم الرابط المباشر
-              media_type: m.media_type, // مهم علشان نعرف هل هو صورة ولا فيديو
-            })) || [],
+            media:
+              data.media?.map((m) => ({
+                id: m.id,
+                url: m.url, // ✅ نستخدم الرابط المباشر
+                media_type: m.media_type, // مهم علشان نعرف هل هو صورة ولا فيديو
+              })) || [],
           });
+          showToast(t("propertyUpdatedSuccessfully"), "success");
           setLoading(false);
         })
         .catch((err) => {
-          console.error("Failed to fetch property data:", err);
+          console.error(t("propertyUpdatedNotSuccessfully"), err);
           showToast("Failed to load property data", "error");
           setLoading(false);
         });
     }
   }, [propertyId]);
-
-
 
   const showToast = (message, type) => {
     setToast({ message, type, visible: true });
@@ -64,12 +68,15 @@ const EditPropertyForm = ({ propertyId }) => {
 
       // Append all non-media fields
       Object.keys(values).forEach((key) => {
-        if (key !== 'media' && values[key] !== null && values[key] !== undefined) {
+        if (
+          key !== "media" &&
+          values[key] !== null &&
+          values[key] !== undefined
+        ) {
           submitData.append(key, values[key]);
         }
       });
 
-      
       const existingMediaIds = values.media
         .filter((file) => file?.id)
         .map((file) => file.id);
@@ -78,7 +85,7 @@ const EditPropertyForm = ({ propertyId }) => {
 
       // Validate that at least one media file is present
       if (existingMediaIds.length + newMediaFiles.length === 0) {
-        showToast("You must upload at least one media file.", "error");
+        showToast(t("mediaMust"), "error");
         setSubmitting(false);
         return;
       }
@@ -109,7 +116,10 @@ const EditPropertyForm = ({ propertyId }) => {
       router.push("/dashboard/my-properties");
     } catch (error) {
       console.error("Submission error:", error);
-      showToast(error.response?.data?.message || "Failed to update property", "error");
+      showToast(
+        error.response?.data?.message || "Failed to update property",
+        "error"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -122,32 +132,34 @@ const EditPropertyForm = ({ propertyId }) => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       setFormValues((prev) => ({
         ...prev,
         media: [],
       }));
-  
-      showToast("All media deleted successfully.", "success");
+
+      showToast(t("allMediaRemoved"), "success");
     } catch (err) {
       console.error("Failed to delete media:", err);
       showToast("Failed to delete media.", "error");
     }
   };
-  
 
   return (
     <div className="p-4 md:p-6 min-h-screen">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-semibold text-black mb-2">
-          Edit Property
+          {t("updateProperty")}
         </h1>
         <p className="text-sm text-gray-600">
-          Update your property information below.
+          {t("updatePropertyDescription")}
         </p>
       </div>
 
-      <SubmitStatus status={submitStatus} onDismiss={() => setSubmitStatus(null)} />
+      <SubmitStatus
+        status={submitStatus}
+        onDismiss={() => setSubmitStatus(null)}
+      />
 
       {loading ? (
         <div className="text-center py-10 text-gray-500">Loading...</div>
@@ -164,13 +176,11 @@ const EditPropertyForm = ({ propertyId }) => {
                 <FormSection key={index} section={section} />
               ))}
 
-            <MediaUpload
-              onRemoveAllMedia={handleRemoveAllMedia}
-              propertyId={propertyId}
-              showToast={showToast}
-            />
-
-
+              <MediaUpload
+                onRemoveAllMedia={handleRemoveAllMedia}
+                propertyId={propertyId}
+                showToast={showToast}
+              />
 
               <div className="flex justify-end gap-3 pt-6">
                 <button
@@ -200,10 +210,10 @@ const EditPropertyForm = ({ propertyId }) => {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Updating...
+                      {t("updating")}
                     </span>
                   ) : (
-                    "Update Property"
+                    t("updateBtn")
                   )}
                 </button>
               </div>
@@ -213,7 +223,11 @@ const EditPropertyForm = ({ propertyId }) => {
       )}
 
       {toast.visible && (
-        <Toast message={toast.message} type={toast.type} onClose={handleCloseToast} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleCloseToast}
+        />
       )}
     </div>
   );
