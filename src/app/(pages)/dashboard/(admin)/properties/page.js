@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Plus, X, Save } from "lucide-react";
 import PropertyCard from "@/components/shared/PropertyCard";
 import PropertyList from "./PropertyList";
@@ -30,7 +30,7 @@ const PropertyManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState(null);
 
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -43,11 +43,11 @@ const PropertyManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchProperties();
-  }, []);
+  }, [fetchProperties]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
