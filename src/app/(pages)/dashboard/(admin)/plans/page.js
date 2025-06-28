@@ -7,8 +7,10 @@ import PlanModal from "./PlanModal";
 import ViewPlanModal from "./ViewPlanModal";
 import DeletePlanModal from "./DeletePlanModal";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
+import { useTranslation } from "../../../../../TranslationContext";
 
 const PlanManagement = () => {
+  const { t, locale } = useTranslation();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -154,6 +156,7 @@ const PlanManagement = () => {
           {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div> */}
           <p className="mt-4 text-gray-600">
             <LoadingSpinner />
+            <span className="sr-only">{t("loadingPlans")}</span>
           </p>
         </div>
       </div>
@@ -170,11 +173,10 @@ const PlanManagement = () => {
                 className="text-3xl text-black tracking-tight flex items-center gap-3"
                 style={{ fontWeight: 400 }}
               >
-                {/* <Target className="w-8 h-8 text-yellow-600" /> */}
-                Plans Management
+                {t("plansManagementTitle")}
               </h1>
               <p className="text-[#555] mt-2 font-light">
-                Manage subscription plans and pricing
+                {t("plansManagementDescription")}
               </p>
             </div>
             <div className="text-right">
@@ -182,7 +184,7 @@ const PlanManagement = () => {
                 className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-black px-6 py-3 transition-all duration-300 flex items-center gap-2"
                 onClick={() => openModal()}
               >
-                <Plus className="w-5 h-5" /> Add Plan
+                <Plus className="w-5 h-5" /> {t("addPlanButton")}
               </button>
             </div>
           </div>
