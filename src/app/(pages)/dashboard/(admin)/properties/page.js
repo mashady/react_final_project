@@ -107,7 +107,10 @@ const PropertyManagement = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       await fetchProperties();
-      showToast(t("propertyDeletedSuccess"), "success");
+      showToast(
+        t("propertyDeletedSuccess") + " The property was deleted successfully!",
+        "success"
+      );
     } catch (err) {
       setError(err.response?.data?.message || err.message || t("deleteError"));
       showToast(
@@ -210,24 +213,6 @@ const PropertyManagement = () => {
             t={t}
           />
         </div>
-
-        <PropertyModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          onSubmit={handleSubmit}
-          formData={formData}
-          setFormData={setFormData}
-          editingProperty={editingProperty}
-          t={t}
-        />
-
-        <ConfirmDialog
-          open={showDeleteModal}
-          message={t("confirmDeletePropertyMessage")}
-          onConfirm={confirmDelete}
-          onCancel={cancelDelete}
-          t={t}
-        />
 
         {toast.visible && (
           <Toast

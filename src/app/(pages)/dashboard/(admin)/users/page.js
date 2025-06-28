@@ -30,7 +30,6 @@ import UsersStats from "./UsersStats";
 import UsersSearchBar from "./UsersSearchBar";
 import UsersTable from "./UsersTable";
 import UsersModal from "./UsersModal";
-import { useTranslation } from "@/TranslationContext";
 
 const Users = () => {
   const { t, locale } = useTranslation();

@@ -709,9 +709,15 @@ const ar = {
   messageSuccess: "تم إرسال الرسالة بنجاح!",
   messageError: "فشل في إرسال الرسالة",
   ContactHeader: "أرسل لنا رسالة",
-  contactDescription:"راسلنا وسيرد عليك فريق الدعم لدينا على الفور",
+  contactDescription: "راسلنا وسيرد عليك فريق الدعم لدينا على الفور",
   sendMessage: "إرسال رسالة",
   sendingMessage: "جارٍ الإرسال...",
+  userUpdatedSuccess: "تم تحديث بيانات المستخدم بنجاح!",
+  ؤ: " تم حذف المستخدم بنجاح!",
+  propertyDeletedSuccess: "تم حذف العقار بنجاح!",
+  propertyDeletedSuccess: "تم حذف العقار بنجاح!",
+  userVerificationStatusUpdated:
+    "تم تحديث حالة التحقق للمستخدم بنجاح!",
 };
 
 export default ar;

@@ -713,9 +713,12 @@ const en = {
   messageSuccess: "Message sent successfully!",
   messageError: "Failed to send message",
   ContactHeader: "Send Us a Message",
-  contactDescription:"Email us and our support team will reply immediately",
+  contactDescription: "Email us and our support team will reply immediately",
   sendMessage: "Send a message",
   sendingMessage: "Sending...",
+  userDeletedSuccess: " User deleted successfully",
+  userVerificationStatusUpdated:
+    "User verification status has been updated successfully!",
 };
 
 export default en;
