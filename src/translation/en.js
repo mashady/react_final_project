@@ -581,6 +581,22 @@ const en = {
   showingPage: "Showing page {current} of {total}",
   previous: "Previous",
   next: "Next",
+  reviewDeleted: "Review deleted",
+  confirmDeleteReview: "Are you sure you want to delete this review?",
+  anonymous: "Anonymous",
+  ///////////////ABDO/////////////////////
+  nameContactPlaceholder: "Your name*",
+  emailContactPlaceholder: "Your email*",
+  messageContactPlaceholder: "Your message*",
+  messageRequired: "Message is required",
+  messageMinLength: "Message must be at least 10 characters",
+  nameContactMinLength: "Name must be at least 2 characters",
+  messageSuccess: "Message sent successfully!",
+  messageError: "Failed to send message",
+  ContactHeader: "Send Us a Message",
+  contactDescription:"Email us and our support team will reply immediately",
+  sendMessage: "Send a message",
+  sendingMessage: "Sending...",
 };
 
 export default en;
