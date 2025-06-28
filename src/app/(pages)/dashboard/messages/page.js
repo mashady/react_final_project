@@ -5,6 +5,7 @@ import axios from "axios";
 import { Loader2, MessageSquare, X, Clock, Search } from "lucide-react";
 import dynamic from "next/dynamic";
 import { io } from "socket.io-client";
+import { useTranslation } from "../../../../TranslationContext";
 
 const ChatWindow = dynamic(() => import("@/components/chat/ChatWindow"), {
   ssr: false,
@@ -47,7 +48,7 @@ const Page = () => {
   const userId = user?.id;
   const token =
     useSelector((state) => state.user.token) || localStorage.getItem("token");
-
+  const { t, locale } = useTranslation();
   const [inbox, setInbox] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -278,17 +279,16 @@ const Page = () => {
     const diffInHours = (now - date) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return date.toLocaleTimeString([], {
+      return date.toLocaleTimeString(locale, {
         hour: "2-digit",
         minute: "2-digit",
       });
     } else if (diffInHours < 48) {
-      return "Yesterday";
+      return t("yesterday");
     } else {
-      return date.toLocaleDateString();
+      return date.toLocaleDateString(locale);
     }
   };
-
   const hasNewMessages = Object.values(newMessageMap).some(Boolean);
 
   console.log("Current state:", { targetUserId, targetUserInfo });
@@ -297,7 +297,9 @@ const Page = () => {
     <div className="min-h-screen bg-gray-100 text-black">
       <div className="max-w-3xl mx-auto p-4">
         <div className="flex items-center justify-center mb-6">
-          <h1 className="text-2xl font-bold text-black mb-6">Messages</h1>
+          <h1 className="text-2xl font-bold text-black mb-6">
+            {t("messagesTitle")}
+          </h1>
         </div>
 
         {userId ? (
@@ -305,7 +307,7 @@ const Page = () => {
             <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white">
               <div className="flex items-center gap-3">
                 <h2 className="text-lg font-semibold text-black">
-                  Conversations
+                  {t("conversations")}
                 </h2>
                 {filteredSenders.length > 0 && (
                   <span className="bg-black text-white text-xs px-2 py-1 rounded-md font-medium">
@@ -322,7 +324,7 @@ const Page = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder={t("searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all duration-200 w-full sm:w-64 text-black"
@@ -335,7 +337,7 @@ const Page = () => {
                 <div className="flex items-center justify-center py-16">
                   <div className="text-center">
                     <Loader2 className="animate-spin w-8 h-8 text-black mx-auto mb-3" />
-                    <p className="text-gray-700">Loading conversations...</p>
+                    <p className="text-gray-700">{t("loadingConversations")}</p>
                   </div>
                 </div>
               ) : error ? (
@@ -349,13 +351,13 @@ const Page = () => {
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-black text-lg font-semibold">
                     {searchTerm
-                      ? "No matching conversations"
-                      : "No messages yet"}
+                      ? t("noMatchingConversations")
+                      : t("noMessagesYet")}
                   </p>
                   <p className="text-gray-500 text-sm mt-1">
                     {searchTerm
-                      ? "Try a different search term"
-                      : "Start a conversation to see it here"}
+                      ? t("tryDifferentSearch")
+                      : t("startConversationHint")}
                   </p>
                 </div>
               ) : (
@@ -363,22 +365,17 @@ const Page = () => {
                   <thead className="bg-white border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
-                        Contact
-                        {hasNewMessages && (
-                          <span
-                            className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"
-                            title="New message"
-                          ></span>
-                        )}
+                        {t("contactHeader")}
+                        {/* ... */}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
-                        Last Message
+                        {t("lastMessageHeader")}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
-                        Time
+                        {t("timeHeader")}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">
-                        Actions
+                        {t("actionsHeader")}
                       </th>
                     </tr>
                   </thead>
@@ -426,7 +423,7 @@ const Page = () => {
                               className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white rounded-md hover:bg-gray-900 transition-colors duration-200 text-sm font-medium"
                             >
                               <MessageSquare className="w-4 h-4" />
-                              Chat
+                              {t("chatButton")}
                             </button>
                           </td>
                         </tr>
@@ -444,11 +441,9 @@ const Page = () => {
                 <MessageSquare className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-black mb-2">
-                Sign in required
+                {t("signInRequired")}
               </h3>
-              <p className="text-gray-700">
-                Please log in to access your messages and start chatting
-              </p>
+              <p className="text-gray-700">{t("loginToAccessMessages")}</p>
             </div>
           </div>
         )}

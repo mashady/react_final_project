@@ -14,11 +14,13 @@ import { fetchWishlist } from "@/features/wishlist/wishlistThunks";
 import Link from "next/link";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import useIntersection from "@/hooks/useIntersection";
+import { useTranslation } from "../../../../TranslationContext";
 
 const PAGE_SIZE = 9;
 
 const WishlistContent = () => {
   const dispatch = useDispatch();
+  const { t, locale } = useTranslation();
   const wishlistState = useSelector((state) => state.wishlist || {});
   const { items: wishlist = [], loading = false, error = null } = wishlistState;
 
@@ -76,7 +78,7 @@ const WishlistContent = () => {
           onClick={handleRetry}
           className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
         >
-          Retry
+          {t("retry") || "Retry"}{" "}
         </button>
       </div>
     );
@@ -85,8 +87,8 @@ const WishlistContent = () => {
   return (
     <div>
       <DashboardPageHeader
-        title="My Wishlist"
-        description='This page contains all the items you have added to your personal wishlist. Add items to your wishlist by clicking the "heart" icon while logged in to your account.'
+        title={t("navbarDropMyWishlist")}
+        description={t("wishlistDescription")}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -100,12 +102,14 @@ const WishlistContent = () => {
           ))
         ) : (
           <div className="col-span-full text-center">
-            <p className="text-[#555] text-lg mb-4">Your wishlist is empty</p>
+            <p className="text-[#555] text-lg mb-4">
+              {t("wishlistEmptyMessage")}
+            </p>
             <Link
               href="/properties"
               className="inline-block px-6 py-2 bg-yellow-500 text-black rounded-none hover:bg-primary-dark transition-colors"
             >
-              Browse Properties
+              {t("browseProperties")}
             </Link>
           </div>
         )}
@@ -116,7 +120,7 @@ const WishlistContent = () => {
         <div ref={sentinelRef} className="flex justify-center mt-10">
           <div className="flex items-center space-x-2">
             <LoadingSpinner />
-            <span className="text-gray-500">Loading more...</span>
+            <span className="text-gray-500">{t("loadingMore")}</span>
           </div>
         </div>
       )}
