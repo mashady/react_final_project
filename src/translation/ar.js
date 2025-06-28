@@ -575,6 +575,9 @@ const ar = {
   completed: "مكتمل",
   pending: "قيد الانتظار",
   failed: "فشل",
+  reviewDeleted: "تم حذف التقييم",
+  confirmDeleteReview: "هل أنت متأكد أنك تريد حذف هذا التقييم؟",
+  anonymous: "مجهول",
   //////////////ABDO///////////////////////
   nameContactPlaceholder: "اسمك*",
   emailContactPlaceholder: "بريدك الإلكتروني*",

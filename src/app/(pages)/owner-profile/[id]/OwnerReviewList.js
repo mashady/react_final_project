@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
@@ -28,30 +28,30 @@ function OwnerReviewList({
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [confirm, setConfirm] = useState({ open: false, reviewId: null });
   const currentUser = useSelector((state) => state.user.data);
-  let { t } = useTranslation();
+  const { t } = useTranslation();
+
+  const fetchReviews = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const res = await axios.get(
+        `http://127.0.0.1:8000/api/owners/${ownerId}/reviews`,
+        headers ? { headers } : undefined
+      );
+      setReviews(res.data.data || []);
+    } catch (err) {
+      setError(t("failedToLoadReviews"));
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [ownerId, t]);
+
   useEffect(() => {
-    const fetchReviews = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const token = localStorage.getItem("token");
-        const headers = token
-          ? { Authorization: `Bearer ${token}` }
-          : undefined;
-        const res = await axios.get(
-          `http://127.0.0.1:8000/api/owners/${ownerId}/reviews`,
-          headers ? { headers } : undefined
-        );
-        setReviews(res.data.data || []);
-      } catch (err) {
-        setError(t("failedToLoadReviews"));
-        setReviews([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     if (ownerId) fetchReviews();
-  }, [ownerId, refreshKey]);
+  }, [ownerId, refreshKey, fetchReviews]);
 
   const handleEdit = (review) => {
     setEditingId(review.id);
@@ -108,9 +108,9 @@ function OwnerReviewList({
         { headers }
       );
       setReviews(res.data.data || []);
-      setToast({ message: "Review deleted.", type: "success", visible: true });
+      setToast({ message: t("reviewDeleted"), type: "success", visible: true });
     } catch (err) {
-      setError(t("reviewDeleted"));
+      setError(t("reviewDeletedError"));
       setToast({
         message: t("reviewDeletedError"),
         type: "error",
@@ -125,7 +125,6 @@ function OwnerReviewList({
     currentUser && reviews.some((r) => r.user && r.user.id === currentUser.id);
 
   const isOwnProfile = currentUser && currentUser.id === Number(ownerId);
-  console.log(isOwnProfile);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -168,7 +167,7 @@ function OwnerReviewList({
       )}
       <ConfirmDialog
         open={confirm.open}
-        message="Are you sure you want to delete this review?"
+        message={t("confirmDeleteReview")}
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirm({ open: false, reviewId: null })}
       />
@@ -194,7 +193,7 @@ function OwnerReviewList({
               className="p-6 border border-[#ececec] rounded-xl bg-[#f7f7f7] shadow-sm"
             >
               <div className="font-semibold text-[#222] text-lg mb-1 flex items-center justify-between">
-                <span>{review.user?.name || "Anonymous"}</span>
+                <span>{review.user?.name || t("anonymous")}</span>
                 {isReviewAuthor && editingId !== review.id && (
                   <div className="flex gap-2 ml-2">
                     <button
@@ -255,4 +254,5 @@ function OwnerReviewList({
     </>
   );
 }
+
 export default OwnerReviewList;

@@ -1,10 +1,12 @@
+"use client";
 import React from "react";
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "../../../../../TranslationContext";
 
 export default function DeletePlanModal({ open, onCancel, onConfirm }) {
-  if (!open) return null;
   const { t, locale } = useTranslation();
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center z-50 p-4">

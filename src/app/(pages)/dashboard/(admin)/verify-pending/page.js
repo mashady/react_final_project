@@ -255,9 +255,7 @@ const PendingUsers = () => {
           {loading ? (
             <div className="p-12 text-center">
               {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-grey-100 mx-auto mb-4"></div> */}
-              <p className="text-slate-600">
-                <LoadingSpinner />
-              </p>
+              <LoadingSpinner />
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="p-12 text-center">
