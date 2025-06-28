@@ -4,9 +4,9 @@ import { Plus, X, Save } from "lucide-react";
 import PropertyCard from "@/components/shared/PropertyCard";
 import PropertyList from "./PropertyList";
 import PropertyModal from "./PropertyModal";
-import PropertyViewModal from "./PropertyViewModal";
 import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
+import ConfirmDialog from "./ConfirmDialog";
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState([]);
@@ -14,7 +14,6 @@ const PropertyManagement = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
-  const [viewingProperty, setViewingProperty] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     type: "apartment",
@@ -28,6 +27,8 @@ const PropertyManagement = () => {
     space: "",
     media: [], // <-- ensure media is present for image upload
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
 
   // Fetch properties from API
   const fetchProperties = async () => {
@@ -87,20 +88,33 @@ const PropertyManagement = () => {
     }
   };
 
-  // Handle delete
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this property?"))
-      return;
+  const handleDelete = (id) => {
+    setPropertyToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!propertyToDelete) return;
     try {
       const token = localStorage.getItem("token");
       const response = await axios.delete(
-        `http://127.0.0.1:8000/api/ads/${id}`,
+        `http://127.0.0.1:8000/api/ads/${propertyToDelete}`,
         { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
-      await fetchProperties();
+      if (response.status === 200 || response.status === 204) {
+        await fetchProperties();
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setShowDeleteModal(false);
+      setPropertyToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setPropertyToDelete(null);
   };
 
   // Open modal for editing/creating
@@ -141,7 +155,6 @@ const PropertyManagement = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProperty(null);
-    setViewingProperty(null);
   };
 
   const getStatusBadge = (status) => {
@@ -184,23 +197,16 @@ const PropertyManagement = () => {
           <PropertyList
             properties={properties}
             onEdit={openModal}
-            onView={setViewingProperty}
+            // Removed onView to disable details modal on card click
             onDelete={handleDelete}
           />
         </div>
-        <PropertyModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          onSubmit={handleSubmit}
-          formData={formData}
-          setFormData={setFormData}
-          editingProperty={editingProperty}
-        />
-        <PropertyViewModal
-          isOpen={!!viewingProperty}
-          onClose={closeModal}
-          property={viewingProperty}
-          getStatusBadge={getStatusBadge}
+       
+        <ConfirmDialog
+          open={showDeleteModal}
+          message="Are you sure you want to delete this property? This action cannot be undone."
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
         />
       </div>
     </div>

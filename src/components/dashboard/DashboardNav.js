@@ -79,6 +79,11 @@ const DashboardNav = () => {
       label: t("navbarVerifyPending"),
       icon: FilePlus,
     },
+    {
+      href: "/dashboard/plans",
+      label: t("adminPlans"),
+      icon: Archive,
+    },
   ];
 
   const getNavLinks = () => {

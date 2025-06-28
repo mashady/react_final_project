@@ -432,6 +432,7 @@ const en = {
   emailVerifiedDescription:
     "Your email has been successfully verified. You can now log in and enjoy full access.",
   signWithGoogle: "Sign with Google",
+  adminPlans: "Plans",
 };
 
 export default en;

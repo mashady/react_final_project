@@ -8,7 +8,6 @@ const PropertyList = ({ properties, onEdit, onView, onDelete }) => (
         key={property.id}
         property={property}
         isDashboard={true}
-        onClick={() => onView(property)}
         className="hover:shadow-lg transition-shadow duration-300"
       >
         <div className="flex gap-2 mt-4">
@@ -35,5 +34,4 @@ const PropertyList = ({ properties, onEdit, onView, onDelete }) => (
     ))}
   </div>
 );
-
 export default PropertyList;
