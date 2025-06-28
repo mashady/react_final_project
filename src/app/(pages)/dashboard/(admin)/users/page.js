@@ -21,6 +21,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import axios from "axios";
+import { useTranslation } from "@/context/TranslationContext";
 
 // --- New Components ---
 import UsersHeader from "./UsersHeader";
@@ -30,6 +31,8 @@ import UsersTable from "./UsersTable";
 import UsersModal from "./UsersModal";
 
 const Users = () => {
+  const { t, locale } = useTranslation();
+
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,19 +69,19 @@ const Users = () => {
         setUsers(response.data.data);
         setFilteredUsers(response.data.data);
       } else {
-        console.error("Failed to fetch users:", response.data.message);
+        console.error(t("fetchUsersError"), response.data.message);
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error(t("fetchUsersError"), error);
       // Fallback to mock data for development
       const mockUsers = Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
         name:
           i < 5
-            ? `Owner ${i + 1}`
+            ? `${t("owner")} ${i + 1}`
             : i < 15
-            ? `Student ${i + 1}`
-            : `Admin ${i + 1}`,
+            ? `${t("student")} ${i + 1}`
+            : `${t("admin")} ${i + 1}`,
         email:
           i < 5
             ? `owner${i + 1}@example.com`
@@ -406,63 +409,78 @@ const Users = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" dir={locale === "ar" ? "rtl" : "ltr"}>
       {/* Custom Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000e0] bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              Confirm Delete
+              {t("confirmDeleteTitle")}
             </h2>
             <p className="mb-6 text-gray-600">
-              Are you sure you want to delete this user? This action cannot be
-              undone.
+              {t("confirmDeleteUserMessage")}
             </p>
-            <div className="flex justify-end gap-3">
+            <div
+              className={`flex justify-end gap-3 ${
+                locale === "ar" ? "flex-row-reverse" : ""
+              }`}
+            >
               <button
                 className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
                 onClick={cancelDeleteUser}
               >
-                Cancel
+                {t("cancelButton")}
               </button>
               <button
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
                 onClick={confirmDeleteUser}
               >
-                Delete
+                {t("deleteButton")}
               </button>
             </div>
           </div>
         </div>
       )}
-      <div className="bg-white shadow-sm ">
+
+      <div className="bg-white mb-4">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
+          <div
+            className={`flex items-center justify-between ${
+              locale === "ar" ? "flex-row-reverse" : ""
+            }`}
+          >
             <div>
-              <h1 className="text-4xl font-light text-slate-800 tracking-tight flex items-center gap-3">
-                User Management
+              <h1
+                className="text-3xl text-black tracking-tight flex items-center gap-3"
+                style={{ fontWeight: 400 }}
+              >
+                {t("userManagementTitle")}
               </h1>
-              <p className="text-slate-600 mt-2 font-light">
-                Manage all users in the system
+              <p className="text-[#555] mt-2" style={{ fontWeight: 500 }}>
+                {t("userManagementDescription")}
               </p>
             </div>
-            <div className="text-right">
+            <div>
               <button
                 className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-black px-6 py-3 transition-all duration-300 flex items-center gap-2"
                 onClick={() => openModal("create")}
-                style={{
-                  fontWeight: 500,
-                }}
+                style={{ fontWeight: 500 }}
               >
-                <Plus className="w-5 h-5" /> Add User
+                <Plus className="w-5 h-5" /> {t("addUserButton")}
               </button>
             </div>
           </div>
         </div>
       </div>
+
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <UsersStats filteredUsers={filteredUsers} />
-        <UsersSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <UsersStats filteredUsers={filteredUsers} t={t} />
+        <UsersSearchBar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          t={t}
+        />
+
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <UsersTable
             loading={loading}
@@ -485,8 +503,10 @@ const Users = () => {
             indexOfLastUser={indexOfLastUser}
             filteredUsers={filteredUsers}
             usersPerPage={usersPerPage}
+            t={t}
           />
         </div>
+
         {showModal && (
           <UsersModal
             modalMode={modalMode}
@@ -503,6 +523,7 @@ const Users = () => {
             getVerificationStatusColor={getVerificationStatusColor}
             getVerificationIcon={getVerificationIcon}
             formatDate={formatDate}
+            t={t}
           />
         )}
       </div>

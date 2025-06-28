@@ -10,6 +10,7 @@ import {
   LogOut,
   Archive,
   MessageSquareDot,
+  WalletCards,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -78,6 +79,16 @@ const DashboardNav = () => {
       href: "/dashboard/verify-pending",
       label: t("navbarVerifyPending"),
       icon: FilePlus,
+    },
+    {
+      href: "/dashboard/plans",
+      label: t("adminPlans"),
+      icon: Archive,
+    },
+    {
+      href: "/dashboard/payments",
+      label: t("adminPayment"),
+      icon: WalletCards,
     },
   ];
 

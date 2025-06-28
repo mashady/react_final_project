@@ -14,12 +14,8 @@ import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { useState, useEffect } from "react";
 import api from "@/api/axiosConfig";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/TranslationContext";
 
-const ResendVerifyMailSchema = Yup.object().shape({
-  email: Yup.string()
-    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
-    .required("Email is required"),
-});
 
 const ResendVerifyMailPage = () => {
   
@@ -38,8 +34,17 @@ const ResendVerifyMailPage = () => {
     setToast({ ...toast, visible: false });
   };
 
+  let { t } = useTranslation();
+
+  const ResendVerifyMailSchema = Yup.object().shape({
+    email: Yup.string()
+      .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, t("emailInvalidLogin"))
+      .required(t("emailRequired")),
+  });
+
   const handleResendVerification = async (values) => {
     try {
+      setLoading(true);
         const response = await api.post("/email/verification-notification-guest", {
           email: values.email,
         }, {
@@ -48,16 +53,15 @@ const ResendVerifyMailPage = () => {
           },
         });
         
-        showToast("Verification email sent successfully!", "success");
-        setLoading(false);
+        showToast(t("verificationEmailSent"), "success");
         setTimeout(() => {
           router.push("/verify/sent");
         }, 3000);
     } catch (error) {
-      showToast(error.message || "Failed to resend verification email", "error");
+      showToast(error.message || t("failedToResendVerificationEmail"), "error");
         setLoading(false);
         if (error.response && error.response.data && error.response.data.message === "Email already verified.") {
-            showToast("Email already verified.", "info");
+            showToast(t("emailAlreadyVerified"), "info");
             setTimeout(() => {
                 router.push("/verify/already-verified");
             }, 3000);
@@ -72,7 +76,7 @@ const ResendVerifyMailPage = () => {
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <Card className="w-[300px] m-auto min-h-[300px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
                 <CardHeader>
-                    <CardTitle className="text-center text-3xl">Resend Verification Email</CardTitle>
+                    <CardTitle className="text-center text-3xl">{t("resendVerifyMail")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Formik
@@ -90,7 +94,7 @@ const ResendVerifyMailPage = () => {
                                 name="email"
                                 type="text"
                                 as={Input}
-                                placeholder="Email*"
+                                placeholder={t("loginEmailPlaceholder")}
                                 className="border rounded-none p-6 md:text-1xl"
                                 />
                                 <ErrorMessage
@@ -104,7 +108,7 @@ const ResendVerifyMailPage = () => {
                                 disabled={loading}
                                 className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
                             >
-                                {loading ? "Resending..." : "Resend Verification Email"}
+                                {loading ? t("resending") : t("resendVerifyMail")}
                             </Button>
                         </Form>
                     )}

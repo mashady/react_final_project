@@ -4,17 +4,18 @@ import { Plus, X, Save } from "lucide-react";
 import PropertyCard from "@/components/shared/PropertyCard";
 import PropertyList from "./PropertyList";
 import PropertyModal from "./PropertyModal";
-import PropertyViewModal from "./PropertyViewModal";
 import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
+import ConfirmDialog from "./ConfirmDialog";
+import { useTranslation } from "../../../../../TranslationContext";
 
 const PropertyManagement = () => {
+  const { t, locale } = useTranslation();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
-  const [viewingProperty, setViewingProperty] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     type: "apartment",
@@ -26,10 +27,11 @@ const PropertyManagement = () => {
     number_of_beds: 1,
     number_of_bathrooms: 1,
     space: "",
-    media: [], // <-- ensure media is present for image upload
+    media: [],
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
 
-  // Fetch properties from API
   const fetchProperties = async () => {
     try {
       setLoading(true);
@@ -39,7 +41,7 @@ const PropertyManagement = () => {
       });
       setProperties(response.data.data || []);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || t("fetchPropertiesError"));
     } finally {
       setLoading(false);
     }
@@ -49,7 +51,6 @@ const PropertyManagement = () => {
     fetchProperties();
   }, []);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -58,7 +59,7 @@ const PropertyManagement = () => {
         : "http://127.0.0.1:8000/api/ads";
       const method = editingProperty ? "put" : "post";
       const token = localStorage.getItem("token");
-      // Use FormData for file uploads
+
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "media" && Array.isArray(value)) {
@@ -71,54 +72,55 @@ const PropertyManagement = () => {
           form.append(key, value);
         }
       });
-      const response = await axios({
+
+      await axios({
         url,
         method,
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          // Let browser set Content-Type for FormData
         },
         data: form,
       });
+
       await fetchProperties();
       closeModal();
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.response?.data?.message || err.message || t("submitError"));
     }
   };
 
-  // Handle delete
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this property?"))
-      return;
+  const handleDelete = (id) => {
+    setPropertyToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!propertyToDelete) return;
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/ads/${id}`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
+      await axios.delete(`http://127.0.0.1:8000/api/ads/${propertyToDelete}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       await fetchProperties();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || t("deleteError"));
+    } finally {
+      setShowDeleteModal(false);
+      setPropertyToDelete(null);
     }
   };
 
-  // Open modal for editing/creating
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setPropertyToDelete(null);
+  };
+
   const openModal = (property = null) => {
     setEditingProperty(property);
     setFormData(
       property
         ? {
-            title: property.title,
-            type: property.type,
-            description: property.description,
-            price: property.price,
-            street: property.street,
-            area: property.area,
-            block: property.block,
-            number_of_beds: property.number_of_beds,
-            number_of_bathrooms: property.number_of_bathrooms,
-            space: property.space,
+            ...property,
             media: [],
           }
         : {
@@ -141,10 +143,15 @@ const PropertyManagement = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProperty(null);
-    setViewingProperty(null);
   };
 
   const getStatusBadge = (status) => {
+    const statusText = {
+      pending: t("pendingStatus"),
+      published: t("publishedStatus"),
+      rejected: t("rejectedStatus"),
+    };
+
     const statusStyles = {
       pending: "bg-yellow-100 text-yellow-800",
       published: "bg-green-100 text-green-800",
@@ -157,7 +164,7 @@ const PropertyManagement = () => {
           statusStyles[status] || statusStyles.pending
         }`}
       >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {statusText[status] || status}
       </span>
     );
   };
@@ -167,13 +174,17 @@ const PropertyManagement = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
+          <span className="sr-only">{t("loadingProperties")}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
+    <div
+      className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50"
+      dir={locale === "ar" ? "rtl" : "ltr"}
+    >
       <div className="max-w-7xl mx-auto px-6 py-8">
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-6">
@@ -184,10 +195,12 @@ const PropertyManagement = () => {
           <PropertyList
             properties={properties}
             onEdit={openModal}
-            onView={setViewingProperty}
             onDelete={handleDelete}
+            getStatusBadge={getStatusBadge}
+            t={t}
           />
         </div>
+
         <PropertyModal
           isOpen={isModalOpen}
           onClose={closeModal}
@@ -195,12 +208,15 @@ const PropertyManagement = () => {
           formData={formData}
           setFormData={setFormData}
           editingProperty={editingProperty}
+          t={t}
         />
-        <PropertyViewModal
-          isOpen={!!viewingProperty}
-          onClose={closeModal}
-          property={viewingProperty}
-          getStatusBadge={getStatusBadge}
+
+        <ConfirmDialog
+          open={showDeleteModal}
+          message={t("confirmDeletePropertyMessage")}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          t={t}
         />
       </div>
     </div>

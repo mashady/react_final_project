@@ -1,15 +1,19 @@
 "use client";
 import React, { useState } from "react";
 import { Formik, Form } from "formik";
-import { formSections, initialValues } from "../../validation/formSections";
-import { validationSchema } from "../../validation/add-property-validation";
+import { getFormSections, initialValues } from "../../validation/formSections";
+import { useValidationSchema } from "../../validation/add-property-validation";
 import FormSection from "./FormSection";
 import MediaUpload from "./MediaUpload";
 import SubmitStatus from "./SubmitStatus";
 import axios from "axios";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/TranslationContext";
 const PropertyForm = () => {
+  let { t } = useTranslation();
+  const formSections = getFormSections(t);
+  const validationSchema = useValidationSchema();
   const [submitStatus, setSubmitStatus] = useState(null);
   const [toast, setToast] = useState({
     message: "",
@@ -69,7 +73,7 @@ const PropertyForm = () => {
           //   message: "Property listing created successfully!",
           //   details: `Property ID: ${response.data.data.id}`
           // });
-          showToast("Property listing created successfully!", "success");
+          showToast(t("propertyAddedSuccessfully"), "success");
           router.push("/dashboard/my-properties");
 
           console.log("Property created successfully:", response.data);
@@ -97,7 +101,7 @@ const PropertyForm = () => {
       //   message: "Failed to create property",
       //   details: error.message
       // });
-      showToast("Failed to create property!", "error");
+      showToast(t("propertyAddedNotSuccessfully"), "error");
     } finally {
       setSubmitting(false);
     }
@@ -112,10 +116,10 @@ const PropertyForm = () => {
     <div className="p-4 md:p-6 min-h-screen">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-semibold text-black mb-2">
-          Add New Property
+          {t("addNewProperty")}
         </h1>
         <p className="text-sm text-gray-600">
-          Create new properties by filling out the fields below.
+          {t("createPropertyDescription")}
         </p>
       </div>
 
@@ -145,7 +149,7 @@ const PropertyForm = () => {
                 disabled={isSubmitting}
                 className="px-4 cursor-pointer py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Reset Form
+                {t("resetForm")}
               </button>
 
               <button
@@ -175,10 +179,10 @@ const PropertyForm = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Submitting...
+                    {t("submitting")}
                   </span>
                 ) : (
-                  "Submit Property"
+                  t("submitForm")
                 )}
               </button>
             </div>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Trash2, Pencil, Reply, X } from "lucide-react";
 import { useSelector } from "react-redux";
+import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
+import { useTranslation } from "@/TranslationContext";
 
 export default function CommentSection({ adId, currentUser }) {
   const { data: user, token } = useSelector((state) => state.user);
@@ -18,7 +20,7 @@ export default function CommentSection({ adId, currentUser }) {
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingContent, setEditingContent] = useState("");
-
+  let { t } = useTranslation();
   useEffect(() => {
     fetchComments();
   }, [adId]);
@@ -104,15 +106,15 @@ export default function CommentSection({ adId, currentUser }) {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
-      <h2 className="text-xl font-semibold">Comments</h2>
-      {loading && <p>Loading comments…</p>}
+      <h2 className="text-xl font-semibold">{t("propertyComments")}</h2>
+      {loading && <LoadingSpinner />}
 
       {currentUser && (
         <div className="flex flex-col space-y-2">
           <textarea
             className="w-full p-2 border rounded"
             rows={3}
-            placeholder="Write a comment..."
+            placeholder={t("propertyCommentPlaceholder")}
             value={formContent}
             onChange={(e) => setFormContent(e.target.value)}
           />
@@ -120,7 +122,7 @@ export default function CommentSection({ adId, currentUser }) {
             className="bg-yellow-500 text-black py-2 px-4 cursor-pointer hover:bg-yellow-600 transition duration-300 ease-in-out w-50"
             onClick={() => handleSubmit(null)}
           >
-            Add Comment
+            {t("addComment")}
           </button>
         </div>
       )}
@@ -150,7 +152,7 @@ export default function CommentSection({ adId, currentUser }) {
                       setEditingContent("");
                     }}
                   >
-                    Save
+                    {t("saveComment")}
                   </button>
                   <button
                     className="bg-gray-300 text-gray-800 px-4 py-1 rounded"
@@ -159,7 +161,7 @@ export default function CommentSection({ adId, currentUser }) {
                       setEditingContent("");
                     }}
                   >
-                    Cancel
+                    {t("cancelComment")}
                   </button>
                 </div>
               </div>
@@ -186,7 +188,7 @@ export default function CommentSection({ adId, currentUser }) {
                           setEditingContent(comment.content);
                         }}
                       >
-                        Edit
+                        {t("editComment")}
                       </button>
                     )}
 
@@ -194,7 +196,7 @@ export default function CommentSection({ adId, currentUser }) {
                     className="text-red-600 cursor-pointer"
                     onClick={() => promptDelete(comment.id)}
                   >
-                    Delete
+                    {t("deleteComment")}
                   </button>
                 </>
               )}
@@ -206,7 +208,7 @@ export default function CommentSection({ adId, currentUser }) {
               <textarea
                 className="w-[90%] m-2 p-2 border rounded"
                 rows={2}
-                placeholder="Write a reply..."
+                placeholder={t("writeReply")}
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
               />
@@ -215,7 +217,7 @@ export default function CommentSection({ adId, currentUser }) {
                   className="flex items-center gap-1 bg-yellow-500 text-black cursor-pointer py-1 px-4 rounded"
                   onClick={() => handleSubmit(comment.id)}
                 >
-                  <span className="text-sm">Save</span>
+                  <span className="text-sm">{t("saveReply")}</span>
                   {/* <Reply className="w-4 h-4" /> */}
                 </button>
                 <button
@@ -226,7 +228,7 @@ export default function CommentSection({ adId, currentUser }) {
                   }}
                 >
                   {/* <X className="w-4 h-4" /> */}
-                  <span className="text-sm">Cancel</span>
+                  <span className="text-sm">{t("cancelReply")}</span>
                 </button>
               </div>
             </div>
@@ -259,7 +261,7 @@ export default function CommentSection({ adId, currentUser }) {
                         setEditingContent("");
                       }}
                     >
-                      Save
+                      {t("saveReply")}
                     </button>
                     <button
                       className="bg-gray-300 text-gray-800 px-4 py-1 rounded"
@@ -268,7 +270,7 @@ export default function CommentSection({ adId, currentUser }) {
                         setEditingContent("");
                       }}
                     >
-                      Cancel
+                      {t("cancelReply")}
                     </button>
                   </div>
                 </div>
@@ -286,13 +288,13 @@ export default function CommentSection({ adId, currentUser }) {
                             setEditingContent(reply.content);
                           }}
                         >
-                          <span>Edit</span>
+                          <span>{t("editComment")}</span>
                           {/* <Pencil className="w-4 h-4" /> */}
                         </button>
                       )}
                     <button onClick={() => promptDelete(reply.id)}>
                       <span className="text-red-600 cursor-pointer">
-                        Delete
+                        {t("deleteComment")}
                       </span>
                       {/* <Trash2 className="w-4 h-4 text-red-600" /> */}
                     </button>
@@ -313,12 +315,9 @@ export default function CommentSection({ adId, currentUser }) {
 
           <div className="relative transform transition-all duration-300 ease-out animate-fadeInUp bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl">
             <h2 className="text-xl font-bold mb-4 text-gray-800">
-              Delete Comment
+              {t("deleteAlert")}
             </h2>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this comment? This action cannot
-              be undone.
-            </p>
+            <p className="text-gray-600 mb-6">{t("deleteAlertMessage")}</p>
 
             <div className="flex justify-end space-x-3">
               <button
@@ -326,14 +325,14 @@ export default function CommentSection({ adId, currentUser }) {
                 className="px-4 py-2 cursor-pointer bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 
                   transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
-                Cancel
+                {t("cancelComment")}
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 
                   transition-colors cursor-pointer duration-200 focus:outline-none focus:ring-2 focus:ring-red-400"
               >
-                Delete
+                {t("deleteComment")}
               </button>
             </div>
           </div>
