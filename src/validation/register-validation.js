@@ -1,42 +1,48 @@
 import * as Yup from "yup";
 
-export const RegisterSchema = Yup.object().shape({
-  name: Yup.string()
-    .matches(
-      /^[A-Za-zÀ-ÿ' -]{3,70}$/,
-      "Invalid name! Name must be 3–70 characters and only include letters, spaces, hyphens, or apostrophes."
-    )
-    .required("Name is required"),
+export const getRegisterSchema = (t) =>
+  Yup.object().shape({
+    name: Yup.string()
+      .matches(
+        /^[A-Za-zÀ-ÿ' -]{3,70}$/,
+        t("nameComplexity")
+      )
+      .required(t("nameRequired")),
 
-  email: Yup.string()
-    .matches(
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      "Invalid email format! It must be like m@example.com"
-    )
-    .required("Email is required"),
+    email: Yup.string()
+      .matches(
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        t("emailInvalidRegister")
+      )
+      .required(t("emailRequired")),
 
-  password: Yup.string()
-    .min(12, "Password must be at least 12 characters")
-    .max(50, "Password can not exceed 50 characters")
-    .required("Password is required")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,50}$/,
-      "Password must be 12-50 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
-    ),
+    password: Yup.string()
+      .min(12, t("passwordMinLength"))
+      .max(50, t("passwordMaxLength"))
+      .required(t("passwordRequired"))
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,50}$/,
+        t("passwordComplexity")
+      ),
 
-  password_confirmation: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required("Password confirmation is required"),
+    password_confirmation: Yup.string()
+      .oneOf([Yup.ref("password"), null], t("passwordMismatch"))
+      .required(t("passwordConfirmationRequired")),
 
-  role: Yup.string()
-    .required("Role is required"),
+    role: Yup.string().required(t("roleRequired")),
 
-  verification_document: Yup.mixed()
-    .required("Verification document is required")
-    .test("fileSize", "File size is too large", value => {
-      return value && value.size <= 5242880; // 5MB limit
-    })
-    .test("fileType", "Unsupported file format", value => {
-      return value && ["image/jpeg", "image/png", "application/pdf"].includes(value.type);
-    }),
-});
+    verification_document: Yup.mixed()
+      .required(t("verificationDocumentRequired"))
+      .test(
+        "fileSize",
+        t("File size is too large (max 5MB)"),
+        (value) => value && value.size <= 5242880
+      )
+      .test(
+        "fileType",
+        t("Unsupported file format (only JPG, PNG, PDF, JPEG)"),
+        (value) =>
+          value &&
+          ["image/jpeg", "image/png", "application/pdf"].includes(value.type)
+      ),
+  });

@@ -14,19 +14,8 @@ import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/api/axiosConfig";
+import { useTranslation } from "@/TranslationContext";
 
-const ResetPasswordSchema = Yup.object().shape({
-  password: Yup.string()
-    .min(12, "Password must be at least 12 characters")
-    .max(50, "Password can not exceed 50 characters")
-    .required("Password is required").matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,50}$/,
-      "Password must be 12-50 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
-    ),
-  password_confirmation: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Passwords must match")
-    .required("Password confirmation is required"),
-});
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -50,6 +39,22 @@ export default function ResetPasswordPage() {
     setToast({ ...toast, visible: false });
   };
 
+  let { t } = useTranslation();
+
+  const ResetPasswordSchema = Yup.object().shape({
+    password: Yup.string()
+      .min(12, t("passwordMinLength"))
+      .max(50, t("passwordMaxLength"))
+      .required(t("passwordRequired"))
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,50}$/,
+        t("passwordComplexity")
+      ),
+    password_confirmation: Yup.string()
+      .oneOf([Yup.ref("password"), null], t("passwordMismatch"))
+      .required(t("passwordConfirmationRequired")),
+  });
+
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
@@ -59,13 +64,13 @@ export default function ResetPasswordPage() {
         password: values.password,
         password_confirmation: values.password_confirmation,
       });
-      showToast(res.data.message, "success");
+      showToast(t("resetPasswordSuccess"), "success");
       setTimeout(() => {
-        router.push("/login"); // تعديل حسب مسار صفحة تسجيل الدخول
+        router.push("/login");
       }, 3000);
     } catch (err) {
       showToast(
-        err.response?.data?.message || "Something went wrong.",
+        err.response?.data?.message || t("resetPasswordError"),
         "error"
       );
     } finally {
@@ -79,7 +84,7 @@ export default function ResetPasswordPage() {
         <Card className="w-[300px] m-auto min-h-[300px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
           <CardHeader>
             <CardTitle className="text-center text-3xl">
-              Reset Password
+              {t("resetPassword")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -101,7 +106,7 @@ export default function ResetPasswordPage() {
                       name="password"
                       type="password"
                       as={Input}
-                      placeholder="New Password"
+                      placeholder={t("newPassword")}
                       className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
@@ -115,7 +120,7 @@ export default function ResetPasswordPage() {
                       name="password_confirmation"
                       type="password"
                       as={Input}
-                      placeholder="Confirm Password"
+                      placeholder={t("confirmNewPassword")}
                       className="border rounded-none p-6 md:text-1xl"
                     />
                     <ErrorMessage
@@ -129,7 +134,7 @@ export default function ResetPasswordPage() {
                     disabled={loading}
                     className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
                   >
-                    {loading ? "Resetting..." : "Reset Password"}
+                    {loading ? t("resetting") : t("resetPassword")}
                   </Button>
                 </Form>
               )}

@@ -163,6 +163,61 @@ const ar = {
   registerRolePlaceholder: "اختر الدور*",
   registerStudentRolePlaceholder: "طالب",
   registerOwnerRolePlaceholder: "مالك",
+
+  emailRequired: "البريد الإلكتروني مطلوب",
+  emailInvalidRegister: "تنسيق البريد الإلكتروني غير صالح! يجب أن يكون مثل m@example.com",
+  emailInvalidLogin: "تنسيق البريد الإلكتروني غير صالح",
+  passwordMinLength: "يجب أن تكون كلمة المرور 12 حرفًا على الأقل",
+  passwordMaxLength: "يجب ألا تتجاوز كلمة المرور 50 حرفًا",
+  passwordFormat: "يجب أن تتراوح كلمة المرور بين 12 و50 حرفًا، وأن تحتوي على حرف كبير، وحرف صغير، ورقم، وحرف خاص واحد على الأقل",
+  passwordMismatch: "يجب أن تتطابق كلمتا المرور",
+  passwordRequired: "كلمة المرور مطلوبة",
+  passwordComplexity: "يجب أن تتراوح كلمة المرور بين 12 و50 حرفًا، وأن تحتوي على حرف كبير، وحرف صغير، ورقم، وحرف خاص واحد على الأقل.",
+  passwordForget: "هل نسيت كلمة المرور؟",
+  passwordConfirmationRequired: "تأكيد كلمة المرور مطلوب",
+  nameRequired: "الاسم مطلوب",
+  nameComplexity: "اسم غير صالح! يجب أن يتكون الاسم من 3 إلى 70 حرفًا ويشمل فقط الحروف والمسافات والشرطات أو علامات الاقتباس.",
+  roleRequired: "الدور مطلوب",
+  verificationDocumentRequired: "مستند التحقق مطلوب",
+  verificationDocumentSizeError: "حجم الملف كبير جدًا (الحد الأقصى 5 ميجابايت)",
+  verificationDocumentTypeError: "تنسيق الملف غير مدعوم (فقط JPG، PNG، PDF، JPEG)",
+  chooseFile: "اختر ملفًا*",
+  refuseLogin: "بيانات الاعتماد غير صالحة",
+  loginError: "خطأ في تسجيل الدخول",
+
+  sendResetPasswordMail: "إرسال بريد إعادة تعيين كلمة المرور",
+  resendingResetPasswordMail: "جارٍ إعادة إرسال بريد إعادة تعيين كلمة المرور...",
+  missingUser: "لا يمكننا العثور على مستخدم بهذا البريد الإلكتروني.",
+  sendResetPasswordMailSuccess: "تم إرسال بريد إعادة تعيين كلمة المرور بنجاح",
+
+  resetPassword: "إعادة تعيين كلمة المرور",
+  resetPasswordSuccess: "تم إعادة تعيين كلمة المرور بنجاح.",
+  resetPasswordError: "فشل في إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.",
+  newPassword: "كلمة مرور جديدة",
+  confirmNewPassword: "تأكيد كلمة المرور الجديدة",
+  resetting: "جارٍ إعادة تعيين كلمة المرور...",
+
+  emailAlreadySent: "تم إرسال البريد الإلكتروني بالفعل",
+  emailAlreadySentDescription: "تم إرسال بريد التحقق بالفعل إلى هذا العنوان. يرجى التحقق من صندوق الوارد الخاص بك.",
+  goToLogin: "الذهاب إلى تسجيل الدخول",
+  emailAlreadyVerified: "تم التحقق من البريد الإلكتروني بالفعل",
+  emailAlreadyVerifiedDescription: "تم التحقق من هذا العنوان البريدي بالفعل. يمكنك الآن تسجيل الدخول.",
+
+  verificationFailed: "فشل التحقق",
+  verificationFailedDescription: "رابط التحقق غير صالح أو منتهي الصلاحية. يرجى طلب بريد تحقق جديد.",
+  goToResendVerifyMail: "الذهاب إلى إعادة إرسال بريد التحقق",
+  resendVerifyMail: "إعادة إرسال بريد التحقق",
+  resendVerifyMailDescription: "أدخل بريدك الإلكتروني لإعادة إرسال رابط التحقق.",
+  verificationEmailSent: "تم إرسال بريد التحقق بنجاح",
+  resending: "جارٍ إعادة الإرسال...",
+  emailAlreadyVerified: "البريد الإلكتروني تم التحقق منه بالفعل",
+  verifyEmailSent: "تم إرسال البريد الإلكتروني",
+  verifyEmailSentDescription: "تم إرسال بريد التحقق إلى هذا العنوان. يرجى التحقق من صندوق الوارد الخاص بك.",
+  emailVerified: "تم التحقق من البريد الإلكتروني",
+  emailVerifiedDescription: "تم التحقق من بريدك الإلكتروني بنجاح. يمكنك الآن تسجيل الدخول والاستمتاع بالوصول الكامل.",
+  signWithGoogle: "التسجيل باستخدام جوجل"
+
+
 };
 
 
