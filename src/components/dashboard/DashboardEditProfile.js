@@ -14,7 +14,7 @@ import { userProfileSchema } from "@/validation/userProfile";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { useTranslation } from "@/TranslationContext";
-
+import Image from "next/image";
 const ProfileImageUpload = ({
   imagePreview,
   onRemove,
@@ -49,7 +49,9 @@ const ProfileImageUpload = ({
     <div className="flex items-center gap-4">
       <div className="relative w-24 h-24 rounded overflow-hidden bg-gray-200">
         {displayPreview ? (
-          <img
+          <Image
+            width={96}
+            height={96}
             src={displayPreview}
             alt="Profile preview"
             className="w-full h-full object-cover"

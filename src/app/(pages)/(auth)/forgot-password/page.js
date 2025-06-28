@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -14,6 +13,7 @@ import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { useState, useEffect } from "react";
 import api from "@/api/axiosConfig";
 import { useRouter } from "next/navigation";
+import { FaSpinner } from "react-icons/fa";
 
 const handleSubmitSchema = Yup.object().shape({
   email: Yup.string()
@@ -40,11 +40,17 @@ export default function ForgotPasswordPage() {
   };
 
   const handleSubmit = async (values) => {
+    setLoading(true);
     try {
       const res = await api.post('/forgot-password', { email: values.email });
       showToast(res.data.message, "success");
+      setTimeout(() => {
+        setLoading(false);
+        router.push('/login');
+      }, 3000);
     } catch (err) {
       showToast('Error: ' + err.response?.data?.message || 'Something went wrong.', "error");
+      setLoading(false);
     }
   };
 
@@ -53,7 +59,7 @@ export default function ForgotPasswordPage() {
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <Card className="w-[300px] m-auto min-h-[300px] border-1 rounded-1xl shadow-lg py-16 md:w-[450px]">
                 <CardHeader>
-                    <CardTitle className="text-center text-3xl">Resend Verification Email</CardTitle>
+                    <CardTitle className="text-center text-3xl">Send Reset Password Mail</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Formik
@@ -85,7 +91,12 @@ export default function ForgotPasswordPage() {
                                 disabled={loading}
                                 className="bg-[#ffcc41] text-black text-1xl p-6 rounded-none hover:bg-amber-400"
                             >
-                                {loading ? "Resending..." : "Resend Verification Email"}
+                                {loading ? (
+                                    <>
+                                        <FaSpinner className="animate-spin" />
+                                        Resending Reset Password Mail...
+                                    </>
+                                ) : "Send Reset Password Mail"}
                             </Button>
                         </Form>
                     )}

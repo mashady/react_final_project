@@ -4,7 +4,6 @@ import { Plus, X, Save } from "lucide-react";
 import PropertyCard from "@/components/shared/PropertyCard";
 import PropertyList from "./PropertyList";
 import PropertyModal from "./PropertyModal";
-import PropertyViewModal from "./PropertyViewModal";
 import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import ConfirmDialog from "./ConfirmDialog";
@@ -15,7 +14,6 @@ const PropertyManagement = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
-  const [viewingProperty, setViewingProperty] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     type: "apartment",
@@ -157,9 +155,6 @@ const PropertyManagement = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProperty(null);
-    if (viewingProperty) {
-      setViewingProperty(null);
-    }
   };
 
   const getStatusBadge = (status) => {
@@ -202,7 +197,7 @@ const PropertyManagement = () => {
           <PropertyList
             properties={properties}
             onEdit={openModal}
-            onView={setViewingProperty}
+            // Removed onView to disable details modal on card click
             onDelete={handleDelete}
           />
         </div>
@@ -214,12 +209,7 @@ const PropertyManagement = () => {
           setFormData={setFormData}
           editingProperty={editingProperty}
         />
-        <PropertyViewModal
-          isOpen={!!viewingProperty}
-          onClose={closeModal}
-          property={viewingProperty}
-          getStatusBadge={getStatusBadge}
-        />
+        {/* Removed PropertyViewModal to disable property details modal */}
         <ConfirmDialog
           open={showDeleteModal}
           message="Are you sure you want to delete this property? This action cannot be undone."

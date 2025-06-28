@@ -31,13 +31,15 @@ export const loginUser = createAsyncThunk(
 
       return response.data;
     } catch (err) {
-      return rejectWithValue(
+      const status = err.response?.status;
+      const message =
         err.response?.data?.message ||
-          err.response?.data?.error ||
-          err.message ||
-          "Login failed"
-      );
-    }
+        err.response?.data?.error ||
+        err.message ||
+        "Login failed";
+
+      return rejectWithValue({ status, message });
+      }
   }
 );
 

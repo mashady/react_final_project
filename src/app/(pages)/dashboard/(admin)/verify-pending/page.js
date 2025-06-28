@@ -39,13 +39,13 @@ const PendingUsers = () => {
         );
       }
       if (response.data.success) {
-        // More robust filter: case-insensitive, trims, handles null/undefined
+        // Only include users with verification_status === 'pending'
         const pendingUsers = response.data.data.filter((user) => {
           const status = (user.verification_status || "")
             .toString()
             .trim()
             .toLowerCase();
-          return status === "pending" || status === "unverified";
+          return status === "pending";
         });
         setUsers(pendingUsers);
         setFilteredUsers(pendingUsers);

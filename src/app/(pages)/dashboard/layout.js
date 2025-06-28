@@ -3,7 +3,7 @@ import DashboardNav from "@/components/dashboard/DashboardNav";
 import Header from "@/components/shared/Header";
 import { useTranslation } from "@/TranslationContext";
 import React from "react";
-const layout = ({ children }) => {
+const LayoutPage = ({ children }) => {
   let { t } = useTranslation();
   return (
     <div className="min-h-screen">
@@ -14,4 +14,4 @@ const layout = ({ children }) => {
   );
 };
 
-export default layout;
+export default LayoutPage;

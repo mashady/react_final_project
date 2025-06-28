@@ -10,8 +10,9 @@ import Header from "@/components/shared/Header";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { setLoading } from "@/features/wishlist/wishlistSlice";
 import { useTranslation } from "@/TranslationContext";
+import RequireAuth from "@/components/shared/RequireAuth";
 
-export default function CartPage() {
+const CartPageContent = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const [cartItems, setCartItems] = useState([]);
@@ -248,7 +249,7 @@ export default function CartPage() {
               isLoading={isLoading}
             />
 
-            <CouponSection
+            {/* <CouponSection
               couponCode={couponCode}
               setCouponCode={setCouponCode}
               applyCoupon={applyCoupon}
@@ -256,7 +257,7 @@ export default function CartPage() {
               isLoading={isLoading}
               couponMessage={couponMessage}
               couponStatus={couponStatus}
-            />
+            /> */}
 
             <CartTotals
               subtotal={cartItems}
@@ -280,4 +281,12 @@ export default function CartPage() {
       </div>
     </div>
   );
-}
+};
+
+const CartPage = () => (
+  <RequireAuth allowedRoles={["owner"]}>
+    <CartPageContent />
+  </RequireAuth>
+);
+
+export default CartPage;

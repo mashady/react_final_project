@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
 
 const validate = (formData) => {
@@ -33,6 +33,13 @@ export default function PlanModal({
 }) {
   const [errors, setErrors] = useState({});
 
+  // Clear errors when modal is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setErrors({});
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
@@ -43,6 +50,25 @@ export default function PlanModal({
     onSubmit(e);
   };
 
+  // Clear specific error when user starts typing/correcting
+  const handleInputChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+    
+    // Clear the error for this field if it exists
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleClose = () => {
+    setErrors({});
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -51,7 +77,7 @@ export default function PlanModal({
             {editingPlan ? "Edit Plan" : "Create New Plan"}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <X className="w-6 h-6" />
@@ -66,9 +92,7 @@ export default function PlanModal({
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.name ? "border-red-500" : "border-gray-300"
                 }`}
@@ -83,11 +107,9 @@ export default function PlanModal({
               </label>
               <input
                 type="number"
-                step="0.01"
+                min="0"
                 value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
+                onChange={(e) => handleInputChange('price', e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.price ? "border-red-500" : "border-gray-300"
                 }`}
@@ -102,10 +124,9 @@ export default function PlanModal({
               </label>
               <input
                 type="number"
+                min="1"
                 value={formData.duration}
-                onChange={(e) =>
-                  setFormData({ ...formData, duration: e.target.value })
-                }
+                onChange={(e) => handleInputChange('duration', e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.duration ? "border-red-500" : "border-gray-300"
                 }`}
@@ -120,13 +141,12 @@ export default function PlanModal({
               </label>
               <select
                 value={formData.billing_interval}
-                onChange={(e) =>
-                  setFormData({ ...formData, billing_interval: e.target.value })
-                }
+                onChange={(e) => handleInputChange('billing_interval', e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.billing_interval ? "border-red-500" : "border-gray-300"
                 }`}
               >
+                <option value="">Select billing interval</option>
                 <option value="monthly">Monthly</option>
                 <option value="yearly">Yearly</option>
                 <option value="weekly">Weekly</option>
@@ -144,10 +164,9 @@ export default function PlanModal({
               </label>
               <input
                 type="number"
+                min="0"
                 value={formData.ads_Limit}
-                onChange={(e) =>
-                  setFormData({ ...formData, ads_Limit: e.target.value })
-                }
+                onChange={(e) => handleInputChange('ads_Limit', e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                   errors.ads_Limit ? "border-red-500" : "border-gray-300"
                 }`}
@@ -162,9 +181,7 @@ export default function PlanModal({
               </label>
               <textarea
                 value={formData.features}
-                onChange={(e) =>
-                  setFormData({ ...formData, features: e.target.value })
-                }
+                onChange={(e) => handleInputChange('features', e.target.value)}
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="List the plan features and benefits..."
@@ -174,7 +191,7 @@ export default function PlanModal({
           <div className="flex items-center justify-end space-x-4 pt-6 border-t">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
