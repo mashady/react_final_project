@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Menu, X, Plus, User, Globe } from "lucide-react"; // Added Globe icon
+import { Menu, X, Plus, User, Globe, WalletCards } from "lucide-react"; // Added Globe icon
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -34,6 +34,7 @@ const Navbar = () => {
   const NAV_LINKS = [
     { label: t("navbarLinkOne"), href: "/" },
     { label: t("navbarLinkTwo"), href: "/properties" },
+    { label: t("navbarLinkFour"), href: "/contact-us" },
     ...(userRole !== "student" && userRole !== "admin"
       ? [{ label: t("navbarLinkThree"), href: "/plans" }]
       : []),
@@ -66,6 +67,7 @@ const Navbar = () => {
     { href: "/dashboard/properties", label: t("navbarAllProperties") },
     { href: "/dashboard/verify-pending", label: t("navbarVerifyPending") },
     { href: "/dashboard/plans", label: t("adminPlans") },
+    { href: "/dashboard/payments", label: t("adminPayment") },
   ];
 
   const getDropdownItems = () => {

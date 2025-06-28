@@ -45,6 +45,7 @@ const en = {
   footerText: "© 2025 ITI Minia, All Rights Reserved",
   navbarLinkOne: "Home",
   navbarLinkTwo: "Properties",
+  navbarLinkFour: "Contact Us",
   navbarLinkThree: "Plans",
   navbarAddProperty: "Add Property",
   navbarLogin: "Login",
@@ -556,6 +557,30 @@ const en = {
   confirmDeleteUserMessage:
     "Are you sure you want to delete this user? This action cannot be undone.",
   //////////heba////////////
+  adminPayment: "Payment",
+  paymentHistoryHeader: "Payment History",
+  paymentHistoryDescription: "View all payment history for this user.",
+  paymentHistoryHeader: "Payment History",
+  paymentHistoryDescription: "View all payment transactions",
+  userHeader: "User",
+  transactionIdHeader: "Transaction ID",
+  dateHeader: "Date",
+  planHeader: "Plan",
+  amountHeader: "Amount",
+  statusHeader: "Status",
+  paymentMethodHeader: "Payment Method",
+  detailsHeader: "Details",
+  noPaymentsMessage: "No payments found",
+  explorePlansButton: "Explore Plans",
+  completed: "Completed",
+  pending: "Pending",
+  failed: "Failed",
+  totalTransactions: "Total Transactions",
+  completedPayments: "Completed Payments",
+  totalRevenue: "Total Revenue",
+  showingPage: "Showing page {current} of {total}",
+  previous: "Previous",
+  next: "Next",
 };
 
 export default en;
