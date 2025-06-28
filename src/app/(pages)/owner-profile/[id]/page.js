@@ -9,6 +9,7 @@ import { User } from "lucide-react";
 import LoadingSpinner from "../../properties/components/LoadingSpinner";
 import { useSelector } from "react-redux";
 import OwnerReviewList from "./OwnerReviewList";
+import { useTranslation } from "@/TranslationContext";
 
 const OwnerProfilePage = () => {
   const [userProfile, setUserProfile] = useState({});
@@ -17,7 +18,7 @@ const OwnerProfilePage = () => {
   const user = useSelector((state) => state.user.data);
   const token =
     useSelector((state) => state.user.token) || localStorage.getItem("token");
-
+  let { t } = useTranslation();
   // Review state and logic
   const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
   const [reviewForm, setReviewForm] = useState({ comment: "" });
@@ -67,14 +68,17 @@ const OwnerProfilePage = () => {
       .then((res) => {
         setUserProfile({
           ads: res.data.data.ads || [],
-          name: res.data.data.name || "No Name",
-          bio: res.data.data.owner_profile.bio || "No Bio",
+          name: res.data.data.name || t("onwerPnoName"),
+          bio: res.data.data.owner_profile.bio || t("onwerPnoBio"),
           image: res.data.data.owner_profile.picture,
-          email: res.data.data.email || "No Email",
-          phone: res.data.data.owner_profile.phone_number || "No Phone Number",
+          email: res.data.data.email || t("onwerPnoEmail"),
+          phone:
+            res.data.data.owner_profile.phone_number ||
+            t("onwerPnoPhoneNumber"),
           whatsapp:
-            res.data.data.owner_profile.whatsapp_number || "No WhatsApp Number",
-          address: res.data.data.owner_profile.address || "No Address",
+            res.data.data.owner_profile.whatsapp_number ||
+            t("onwerPnoWhatsappNumber"),
+          address: res.data.data.owner_profile.address || t("onwerPnoAddress"),
         });
       })
       .catch((err) => {
@@ -120,19 +124,19 @@ const OwnerProfilePage = () => {
             </section>
             <section id="ownerInfo" className="my-6 space-y-3 w-full">
               <div className="flex justify-between border-b-1 border-gray-200 py-2">
-                <p className="text-gray-600"> Address:</p>
-                <p> {userProfile.address} </p>
+                <p className="text-gray-600">{t("ownerProfileAdress")}:</p>
+                <p> {userProfile.address || t("onwerPnoAddress")} </p>
               </div>
               <div className="flex justify-between border-b-1 border-gray-200 py-2">
-                <p className="text-gray-600"> Phone:</p>
-                <p> {userProfile.phone || "NO Phone Number"} </p>
+                <p className="text-gray-600"> {t("ownerProfilePNumber")}:</p>
+                <p> {userProfile.phone || t("onwerPnoPhoneNumber")} </p>
               </div>
               <div className="flex justify-between border-b-1 border-gray-200 py-2">
-                <p className="text-gray-600"> WhatsApp:</p>
-                <p> {userProfile.whatsapp || "NO WhatsApp Number"} </p>
+                <p className="text-gray-600"> {t("ownerProfileWhatsapp")}:</p>
+                <p> {userProfile.whatsapp || t("onwerPnoWhatsappNumber")} </p>
               </div>
               <div className="flex justify-between py-2">
-                <p className="text-gray-600"> Email:</p>
+                <p className="text-gray-600"> {t("ownerProfileEmail")}:</p>
                 <p> {userProfile.email} </p>
               </div>
             </section>
@@ -150,7 +154,10 @@ const OwnerProfilePage = () => {
             id="ownerProperties"
             className="w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm mt-5"
           >
-            <h3 className="text-3xl font-medium mb-8"> Our Listing </h3>
+            <h3 className="text-3xl font-medium mb-8">
+              {" "}
+              {t("ownerProfileListing")}{" "}
+            </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {userProfile?.ads?.map((property, i) => (
                 <PropertyCard key={i} property={property} />
@@ -159,7 +166,9 @@ const OwnerProfilePage = () => {
           </article>
           {/* Owner Reviews Section under My Listing */}
           <article className="w-full bg-white px-5 py-6 rounded-sm mt-5 mb-5">
-            <h3 className="text-2xl font-semibold mb-4">Owner Reviews</h3>
+            <h3 className="text-2xl mb-4" style={{ fontWeight: 500 }}>
+              {t("ownerReviews")}
+            </h3>
             <OwnerReviewList
               ownerId={id}
               refreshKey={reviewRefreshKey}

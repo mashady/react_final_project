@@ -17,7 +17,7 @@ export default function OwnerReviewForm({
       }}
     >
       <textarea
-        className="w-full p-3 rounded-lg border border-[#ececec] focus:border-[#eab308] focus:ring-2 focus:ring-[#eab308] text-lg text-[#222] bg-white min-h-[80px] resize-none"
+        className="w-full h-[105px] p-3 rounded-lg border border-[#ececec]  text-lg text-[#222] bg-white min-h-[80px] resize-none"
         placeholder="Write your review..."
         value={reviewForm.comment}
         onChange={(e) =>
@@ -30,7 +30,8 @@ export default function OwnerReviewForm({
       )}
       <button
         type="submit"
-        className="self-end bg-black text-white px-6 py-2 rounded font-semibold hover:bg-[#c59d0b] transition-colors text-base"
+        style={{ fontWeight: 500 }}
+        className="self-end bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-black px-6 py-2 rounded transition-colors text-base"
         disabled={submittingReview}
       >
         {submittingReview ? "Submitting..." : "Submit Review"}

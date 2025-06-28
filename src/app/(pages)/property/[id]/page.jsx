@@ -53,7 +53,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
-
+  let { t } = useTranslation();
   // Fetch property data
   useEffect(() => {
     const fetchProperty = async () => {
@@ -86,7 +86,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
     [];
 
   const agent = {
-    name: property?.owner?.name || "Property Owner",
+    name: property?.owner?.name || t("propertyOwner"),
 
     address: `${property?.street || ""}, ${property?.area || ""}, ${
       property?.block || ""
@@ -102,28 +102,32 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   // Map API data to features
   const features = property
     ? [
-        { icon: Ruler, label: "Size:", value: `${property.space}m²` },
+        { icon: Ruler, label: t("featureSize"), value: `${property.space}m²` },
         {
           icon: Home,
-          label: "Bedrooms:",
+          label: t("featureBedrooms"),
           value: property.number_of_beds?.toString() || "N/A",
         },
         {
           icon: Bath,
-          label: "Bathrooms:",
+          label: t("featureBathrooms"),
           value: property.number_of_bathrooms?.toString() || "N/A",
         },
-        { icon: MapPin, label: "Area:", value: property.area || "N/A" },
+        {
+          icon: MapPin,
+          label: t("featureArea"),
+          value: property.area || "N/A",
+        },
         {
           icon: Building,
-          label: "Type:",
+          label: t("featureType"),
           value:
             property.type?.charAt(0).toUpperCase() + property.type?.slice(1) ||
             "N/A",
         },
         {
           icon: Calendar,
-          label: "Listed:",
+          label: t("featureListed"),
           value: property.created_at_human || "N/A",
         },
       ]
@@ -202,7 +206,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
       );
       setReviews(reviewsRes.data.data || []);
     } catch (err) {
-      setReviewError("Failed to submit review");
+      setReviewError(t("failedToSubmitReview"));
     } finally {
       setSubmittingReview(false);
     }
@@ -355,7 +359,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-300">
-            <span className="text-gray-500">No images available</span>
+            <span className="text-gray-500">{t("noIMageAvailable")}</span>
           </div>
         )}
       </div>
@@ -401,7 +405,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   fontWeight: 500,
                 }}
               >
-                Description
+                {t("propertyDescription")}
               </h2>
               <p className="text-[#555] text-[15px] leading-relaxed">
                 {property.description}
@@ -416,7 +420,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   fontWeight: 500,
                 }}
               >
-                Property details
+                {t("propertyDetails")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {features.map((feature, index) => (
@@ -439,7 +443,9 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <div className="text-sm text-gray-600 mb-1">Price:</div>
+                  <div className="text-sm text-gray-600 mb-1">
+                    {t("propertyPrice")}:
+                  </div>
                   <div className="flex items-baseline">
                     <span
                       className="text-[26px] text-black"
@@ -472,7 +478,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                     />
                     <div>
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Property Owner
+                        {t("propertyOwner")}
                       </div>
                       <h3 className="font-bold text-gray-900">
                         {ownerDetails.user?.name}
@@ -487,7 +493,9 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   <div className="space-y-2 text-sm">
                     {ownerDetails.phone_number && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Phone:</span>
+                        <span className="text-gray-600">
+                          {t("ownerPhone")}:
+                        </span>
                         <span className="font-medium">
                           {ownerDetails.phone_number}
                         </span>
@@ -495,14 +503,16 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                     )}
                     {ownerDetails.whatsapp_number && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Whatsapp:</span>
+                        <span className="text-gray-600">
+                          {t("ownerWhatsapp")}:
+                        </span>
                         <span className="font-medium">
                           {ownerDetails.whatsapp_number}
                         </span>
                       </div>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Email:</span>
+                      <span className="text-gray-600">{t("ownerEmail")}:</span>
                       <span className="font-medium text-blue-600">
                         {ownerDetails.user?.email}
                       </span>
@@ -516,7 +526,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                         fontWeight: 500,
                       }}
                     >
-                      View my profile
+                      {t("viewMyProfile")}
                     </a>
                   )}
                   {/* Chat with Owner Button - always visible */}
@@ -533,7 +543,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                       }
                       if (senderId === ownerDetails.user_id) {
                         setToast({
-                          message: "You cannot chat with yourself.",
+                          message: t("donotCallYourSelf"),
                           type: "warning",
                           visible: true,
                         });
@@ -543,13 +553,13 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                     }}
                     title={
                       !senderId
-                        ? "You should login first"
+                        ? t("loginFirst")
                         : senderId === ownerDetails.user_id
-                        ? "You cannot chat with yourself."
+                        ? t("donotCallYourSelf")
                         : ""
                     }
                   >
-                    <span>{showChat ? "Hide Chat" : "Chat with Owner"}</span>
+                    <span>{showChat ? t("hideChat") : t("chatWithOwner")}</span>
                     {showChat ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -573,6 +583,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 // Render ChatWindow globally, fixed to bottom, only if showChat
 import dynamic from "next/dynamic";
 import CommentSection from "./components/CommentSection";
+import { useTranslation } from "@/TranslationContext";
 const DynamicChatWindow = dynamic(
   () => import("@/components/chat/ChatWindow"),
   { ssr: false }
