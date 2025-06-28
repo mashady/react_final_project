@@ -215,6 +215,7 @@ const en = {
   addPropertyButton: "Add Property",
   failedToFetchProperties: "Failed to fetch your properties",
   ////////////////////maged//////////////
+  adminPlans: "Plans",
 };
 
 export default en;

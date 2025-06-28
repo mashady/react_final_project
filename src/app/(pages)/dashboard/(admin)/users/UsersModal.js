@@ -27,8 +27,8 @@ export default function UsersModal({
   formatDate,
 }) {
   return (
-    <div className="fixed inset-0 bg-[#000000e0] bg-opacity-40 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl transform transition-all duration-300 border">
+    <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl transform transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium text-slate-800">
             {modalMode === "create"
@@ -39,7 +39,7 @@ export default function UsersModal({
           </h3>
           <button
             onClick={() => setShowModal(false)}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg transition-colors duration-200"
+            className="p-2 text-slate-400 cursor-pointer hover:text-slate-600 rounded-lg transition-colors duration-200"
           >
             <X size={20} />
           </button>
@@ -54,10 +54,10 @@ export default function UsersModal({
         )}
         {modalMode === "view" ? (
           <div className="space-y-4">
-            <div className="text-center mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white text-2xl font-medium mx-auto mb-4">
+            <div className="text-center mb-6 mt-6">
+              {/* <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white text-2xl font-medium mx-auto mb-4">
                 {selectedUser?.name.charAt(0)}
-              </div>
+              </div> */}
               <h4 className="text-xl font-medium text-slate-800">
                 {selectedUser?.name}
               </h4>
