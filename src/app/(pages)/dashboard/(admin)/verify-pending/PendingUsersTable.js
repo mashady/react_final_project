@@ -7,6 +7,7 @@ import {
   Calendar,
   AlertCircle,
 } from "lucide-react";
+import { useTranslation } from "../../../../../TranslationContext";
 
 const PendingUsersTable = ({
   currentUsers,
@@ -17,6 +18,7 @@ const PendingUsersTable = ({
   handleStatusUpdate,
   processing,
 }) => {
+  const { t, locale } = useTranslation();
   const [confirmUserId, setConfirmUserId] = useState(null);
 
   const handleUnverifyClick = (userId) => {
@@ -37,26 +39,50 @@ const PendingUsersTable = ({
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" dir={locale === "ar" ? "rtl" : "ltr"}>
           <thead className="bg-white border-b border-grey-100">
             <tr>
-              <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                User
+              <th
+                className={`text-${
+                  locale === "ar" ? "right" : "left"
+                } py-4 px-6 text-sm font-medium text-slate-600`}
+              >
+                {t("userColumn")}
               </th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                Role
+              <th
+                className={`text-${
+                  locale === "ar" ? "right" : "left"
+                } py-4 px-6 text-sm font-medium text-slate-600`}
+              >
+                {t("roleColumn")}
               </th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                Document
+              <th
+                className={`text-${
+                  locale === "ar" ? "right" : "left"
+                } py-4 px-6 text-sm font-medium text-slate-600`}
+              >
+                {t("documentColumn")}
               </th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                Email Status
+              <th
+                className={`text-${
+                  locale === "ar" ? "right" : "left"
+                } py-4 px-6 text-sm font-medium text-slate-600`}
+              >
+                {t("emailStatusColumn")}
               </th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                Pending Since
+              <th
+                className={`text-${
+                  locale === "ar" ? "right" : "left"
+                } py-4 px-6 text-sm font-medium text-slate-600`}
+              >
+                {t("pendingSinceColumn")}
               </th>
-              <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                Actions
+              <th
+                className={`text-${
+                  locale === "ar" ? "right" : "left"
+                } py-4 px-6 text-sm font-medium text-slate-600`}
+              >
+                {t("actionsColumn")}
               </th>
             </tr>
           </thead>
@@ -69,15 +95,12 @@ const PendingUsersTable = ({
               return (
                 <tr
                   key={user.id}
-                  className={`hover:bg-amber-50 transition-colors duration-200 ${
+                  className={`hover:bg-white-50 transition-colors duration-200 ${
                     isUrgent ? "bg-red-50 border-l-4 border-red-400" : ""
                   }`}
                 >
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      {/* <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium">
-                    {user.name.charAt(0)}
-                  </div> */}
                       <div>
                         <p className="font-medium text-slate-800 flex items-center gap-2">
                           {user.name}
@@ -95,19 +118,23 @@ const PendingUsersTable = ({
                         user.role
                       )}`}
                     >
-                      {user.role}
+                      {t(user.role)}
                     </span>
                   </td>
                   <td className="py-4 px-6">
                     {user.verification_document ? (
                       <div className="flex items-center gap-2">
                         <FileText size={16} className="text-blue-600" />
-                        <span className="text-sm text-blue-600">Available</span>
+                        <span className="text-sm text-blue-600">
+                          {t("available")}
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <XCircle size={16} className="text-red-500" />
-                        <span className="text-sm text-red-600">Missing</span>
+                        <span className="text-sm text-red-600">
+                          {t("missing")}
+                        </span>
                       </div>
                     )}
                   </td>
@@ -116,33 +143,33 @@ const PendingUsersTable = ({
                       {user.email_verified_at ? (
                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
                           <CheckCircle size={12} />
-                          Verified
+                          {t("verified")}
                         </span>
                       ) : (
                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1">
                           <XCircle size={12} />
-                          Unverified
+                          {t("unverified")}
                         </span>
                       )}
                     </div>
                   </td>
                   <td className="py-4 px-6">
                     <div className="text-sm text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={14} />
-                        {getTimeAgo(user.created_at)}
-                      </div>
                       <div className="text-xs text-slate-500 mt-1">
                         {formatDate(user.created_at)}
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
+                    <div
+                      className={`flex items-center gap-2 ${
+                        locale === "ar" ? "flex-row-reverse" : ""
+                      }`}
+                    >
                       <button
                         onClick={() => openModal("view", user)}
                         className="p-2 text-slate-600 cursor-pointer hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors duration-200"
-                        title="View Details"
+                        title={t("viewDetailsTooltip")}
                       >
                         <Eye size={16} />
                       </button>
@@ -150,7 +177,7 @@ const PendingUsersTable = ({
                         onClick={() => handleStatusUpdate(user.id, "verified")}
                         className="p-2 text-green-600 cursor-pointer hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors duration-200"
                         disabled={processing}
-                        title="Approve"
+                        title={t("approveTooltip")}
                       >
                         <CheckCircle size={16} />
                       </button>
@@ -158,7 +185,7 @@ const PendingUsersTable = ({
                         onClick={() => handleUnverifyClick(user.id)}
                         className="p-2 text-red-600 cursor-pointer hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
                         disabled={processing}
-                        title="Reject"
+                        title={t("rejectTooltip")}
                       >
                         <XCircle size={16} />
                       </button>
@@ -171,28 +198,39 @@ const PendingUsersTable = ({
         </table>
       </div>
       {confirmUserId && (
-        <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-[000000e0] bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6"
+            dir={locale === "ar" ? "rtl" : "ltr"}
+          >
             <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-              Confirm Unverify
+              {t("confirmUnverifyTitle")}
             </h3>
             <p className="text-gray-700 text-center mb-6">
-              Are you sure you want to mark this user as{" "}
-              <span className="font-semibold text-red-600">Unverified</span>?
-              This action cannot be undone.
+              {t("confirmUnverifyMessage", {
+                status: (
+                  <span className="font-semibold text-red-600">
+                    {t("unverified")}
+                  </span>
+                ),
+              })}
             </p>
-            <div className="flex justify-center gap-4">
+            <div
+              className={`flex justify-center gap-4 ${
+                locale === "ar" ? "flex-row-reverse" : ""
+              }`}
+            >
               <button
                 onClick={cancelUnverify}
                 className="px-6 py-2 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                {t("cancelButton")}
               </button>
               <button
                 onClick={confirmUnverify}
                 className="px-6 py-2 bg-red-600 cursor-pointer hover:bg-red-700 text-white rounded-lg transition-colors"
               >
-                Unverify
+                {t("unverifyButton")}
               </button>
             </div>
           </div>

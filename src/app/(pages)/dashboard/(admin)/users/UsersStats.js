@@ -1,15 +1,25 @@
 // UsersStats.js
 import React from "react";
 import { User, Shield, CheckCircle, Clock } from "lucide-react";
+import { useTranslation } from "../../../../../TranslationContext"; 
 
 export default function UsersStats({ filteredUsers }) {
+  const { t, locale } = useTranslation();
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+    <div
+      className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8"
+      dir={locale === "ar" ? "rtl" : "ltr"}
+    >
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between">
+        <div
+          className={`flex items-center justify-between ${
+            locale === "ar" ? "flex-row-reverse" : ""
+          }`}
+        >
           <div>
             <p className="text-[#555] text-sm" style={{ fontWeight: 500 }}>
-              Total Users
+              {t("totalUsers")}
             </p>
             <p className="text-3xl font-light text-slate-800 mt-1">
               {filteredUsers.length}
@@ -21,10 +31,14 @@ export default function UsersStats({ filteredUsers }) {
         </div>
       </div>
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between">
+        <div
+          className={`flex items-center justify-between ${
+            locale === "ar" ? "flex-row-reverse" : ""
+          }`}
+        >
           <div>
             <p className="text-[#555] text-sm" style={{ fontWeight: 500 }}>
-              Owners
+              {t("owners")}
             </p>
             <p className="text-3xl font-light text-slate-800 mt-1">
               {filteredUsers.filter((u) => u.role === "owner").length}
@@ -36,10 +50,14 @@ export default function UsersStats({ filteredUsers }) {
         </div>
       </div>
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between">
+        <div
+          className={`flex items-center justify-between ${
+            locale === "ar" ? "flex-row-reverse" : ""
+          }`}
+        >
           <div>
             <p className="text-[#555] text-sm" style={{ fontWeight: 500 }}>
-              Students
+              {t("students")}
             </p>
             <p className="text-3xl font-light text-slate-800 mt-1">
               {filteredUsers.filter((u) => u.role === "student").length}
@@ -51,10 +69,14 @@ export default function UsersStats({ filteredUsers }) {
         </div>
       </div>
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between">
+        <div
+          className={`flex items-center justify-between ${
+            locale === "ar" ? "flex-row-reverse" : ""
+          }`}
+        >
           <div>
             <p className="text-[#555] text-sm" style={{ fontWeight: 500 }}>
-              Verified
+              {t("verified")}
             </p>
             <p className="text-3xl font-light text-slate-800 mt-1">
               {
@@ -70,10 +92,14 @@ export default function UsersStats({ filteredUsers }) {
         </div>
       </div>
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between">
+        <div
+          className={`flex items-center justify-between ${
+            locale === "ar" ? "flex-row-reverse" : ""
+          }`}
+        >
           <div>
             <p className="text-[#555] text-sm" style={{ fontWeight: 500 }}>
-              Pending
+              {t("pending")}
             </p>
             <p className="text-3xl font-light text-slate-800 mt-1">
               {

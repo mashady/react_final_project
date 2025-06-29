@@ -89,8 +89,10 @@ const PlanManagement = () => {
 
       await fetchPlans();
       closeModal();
+      showToast(t("planActionSuccess"), "success");
     } catch (err) {
       setError(err.response?.data?.message || err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -121,6 +123,7 @@ const PlanManagement = () => {
       }
     } finally {
       setConfirmDelete(null);
+      showToast(err.message, "error");
     }
   };
   
@@ -176,6 +179,14 @@ const PlanManagement = () => {
     );
   };
 
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -224,12 +235,6 @@ const PlanManagement = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6 ">
-            {error}
-          </div>
-        )}
-
         <PlanTable
           plans={plans}
           onView={(plan) => setViewingPlan(plan)}
@@ -262,6 +267,14 @@ const PlanManagement = () => {
           onCancel={() => setConfirmDelete(null)}
           onConfirm={confirmDeletePlan}
         />
+
+        {toast.visible && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={handleCloseToast}
+          />
+        )}
       </div>
     </div>
   );

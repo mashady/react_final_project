@@ -9,6 +9,7 @@ import {
   Calendar,
   Eye,
 } from "lucide-react";
+import { useTranslation } from "../../../../../TranslationContext"; 
 
 export default function UsersModal({
   modalMode,
@@ -26,16 +27,21 @@ export default function UsersModal({
   getVerificationIcon,
   formatDate,
 }) {
+  const { t, locale } = useTranslation();
+
   return (
     <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl transform transition-all duration-300">
+      <div
+        className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl transform transition-all duration-300"
+        dir={locale === "ar" ? "rtl" : "ltr"}
+      >
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-medium text-slate-800">
             {modalMode === "create"
-              ? "Add New User"
+              ? t("addNewUserTitle")
               : modalMode === "edit"
-              ? "Edit User"
-              : "User Details"}
+              ? t("editUserTitle")
+              : t("userDetailsTitle")}
           </h3>
           <button
             onClick={() => setShowModal(false)}
@@ -44,6 +50,7 @@ export default function UsersModal({
             <X size={20} />
           </button>
         </div>
+
         {/* Error messages */}
         {errors.general && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
@@ -52,12 +59,10 @@ export default function UsersModal({
             ))}
           </div>
         )}
+
         {modalMode === "view" ? (
           <div className="space-y-4">
             <div className="text-center mb-6 mt-6">
-              {/* <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white text-2xl font-medium mx-auto mb-4">
-                {selectedUser?.name.charAt(0)}
-              </div> */}
               <h4 className="text-xl font-medium text-slate-800">
                 {selectedUser?.name}
               </h4>
@@ -75,7 +80,8 @@ export default function UsersModal({
                     selectedUser?.role
                   )}`}
                 >
-                  {selectedUser?.role}
+                  {t(selectedUser?.role)}{" "}
+                  {/* Assuming roles are also translated */}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -86,7 +92,7 @@ export default function UsersModal({
                   )}`}
                 >
                   {getVerificationIcon(selectedUser?.verification_status)}
-                  {selectedUser?.verification_status}
+                  {t(selectedUser?.verification_status)}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -98,14 +104,15 @@ export default function UsersModal({
                       : "bg-red-100 text-red-800"
                   }`}
                 >
-                  Email{" "}
-                  {selectedUser?.email_verified_at ? "Verified" : "Unverified"}
+                  {selectedUser?.email_verified_at
+                    ? t("emailVerified")
+                    : t("emailUnverified")}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <Calendar size={16} className="text-slate-400" />
                 <span className="text-slate-600">
-                  Joined {formatDate(selectedUser?.created_at)}
+                  {t("joined")} {formatDate(selectedUser?.created_at)}
                 </span>
               </div>
               {selectedUser?.verification_document && (
@@ -117,7 +124,7 @@ export default function UsersModal({
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 underline text-sm"
                   >
-                    View Document
+                    {t("viewDocument")}
                   </a>
                 </div>
               )}
@@ -128,7 +135,7 @@ export default function UsersModal({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Name*
+                  {t("nameLabel")}*
                 </label>
                 <input
                   type="text"
@@ -147,7 +154,7 @@ export default function UsersModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email*
+                  {t("emailLabel")}*
                 </label>
                 <input
                   type="email"
@@ -167,7 +174,7 @@ export default function UsersModal({
               {modalMode === "create" && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Password* (min 8 characters)
+                    {t("passwordLabel")}* ({t("min8Chars")})
                   </label>
                   <input
                     type="password"
@@ -190,7 +197,7 @@ export default function UsersModal({
               )}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Role*
+                  {t("roleLabel")}*
                 </label>
                 <select
                   value={formData.role}
@@ -202,9 +209,9 @@ export default function UsersModal({
                   } rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all duration-300`}
                   required
                 >
-                  <option value="student">Student</option>
-                  <option value="owner">Owner</option>
-                  <option value="admin">Admin</option>
+                  <option value="student">{t("studentRole")}</option>
+                  <option value="owner">{t("ownerRole")}</option>
+                  <option value="admin">{t("adminRole")}</option>
                 </select>
                 {errors.role && (
                   <p className="mt-1 text-sm text-red-600">{errors.role[0]}</p>
@@ -212,7 +219,7 @@ export default function UsersModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Verification Status*
+                  {t("verificationStatusLabel")}*
                 </label>
                 <select
                   value={formData.verification_status}
@@ -229,9 +236,9 @@ export default function UsersModal({
                   } rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all duration-300`}
                   required
                 >
-                  <option value="unverified">Unverified</option>
-                  <option value="pending">Pending</option>
-                  <option value="verified">Verified</option>
+                  <option value="unverified">{t("unverifiedStatus")}</option>
+                  <option value="pending">{t("pendingStatus")}</option>
+                  <option value="verified">{t("verifiedStatus")}</option>
                 </select>
                 {errors.verification_status && (
                   <p className="mt-1 text-sm text-red-600">
@@ -241,7 +248,7 @@ export default function UsersModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Verification Document (JPEG, JPG, PNG, PDF)
+                  {t("verificationDocumentLabel")} (JPEG, JPG, PNG, PDF)
                 </label>
                 <input
                   type="file"
@@ -260,19 +267,23 @@ export default function UsersModal({
                 )}
                 {selectedUser?.verification_document && (
                   <p className="mt-2 text-sm text-slate-500">
-                    Current document:{" "}
+                    {t("currentDocument")}:{" "}
                     {selectedUser.verification_document.split("/").pop()}
                   </p>
                 )}
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
+            <div
+              className={`flex gap-3 mt-6 ${
+                locale === "ar" ? "flex-row-reverse" : ""
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
                 className="flex-1 px-4 py-2 text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors duration-200"
               >
-                Cancel
+                {t("cancelButton")}
               </button>
               <button
                 type="button"
@@ -282,7 +293,9 @@ export default function UsersModal({
                 className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors duration-200 flex items-center justify-center gap-2"
                 disabled={!!successMessage}
               >
-                {modalMode === "create" ? "Create User" : "Update User"}
+                {modalMode === "create"
+                  ? t("createUserButton")
+                  : t("updateUserButton")}
               </button>
             </div>
           </div>
