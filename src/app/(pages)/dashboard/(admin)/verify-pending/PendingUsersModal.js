@@ -143,18 +143,18 @@ const PendingUsersModal = ({
                 locale === "ar" ? "flex-row-reverse" : ""
               }`}
             >
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <Calendar size={16} className="text-slate-400" />
                 <span className="text-slate-600">{t("pendingSinceLabel")}</span>
-              </div>
-              <div className={`text-${locale === "ar" ? "left" : "right"}`}>
+              </div> */}
+              {/* <div className={`text-${locale === "ar" ? "left" : "right"}`}>
                 <div className="text-sm font-medium text-slate-800">
                   {getTimeAgo(selectedUser.created_at)}
                 </div>
                 <div className="text-xs text-slate-500">
                   {formatDate(selectedUser.created_at)}
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
 

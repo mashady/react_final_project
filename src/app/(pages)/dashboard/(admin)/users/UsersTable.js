@@ -14,7 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
-import { useTranslation } from "../../../../../TranslationContext"; 
+import { useTranslation } from "../../../../../TranslationContext";
 
 export default function UsersTable({
   loading,
@@ -216,13 +216,6 @@ export default function UsersTable({
                 locale === "ar" ? "flex-row-reverse" : ""
               }`}
             >
-              <div className="text-sm text-slate-600">
-                {t("showingUsers", {
-                  start: indexOfFirstUser + 1,
-                  end: Math.min(indexOfLastUser, filteredUsers.length),
-                  total: filteredUsers.length,
-                })}
-              </div>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={goToFirstPage}

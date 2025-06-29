@@ -23,7 +23,6 @@ import {
 import axios from "axios";
 import { useTranslation } from "../../../../../TranslationContext";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
-// --- New Components ---
 
 import UsersHeader from "./UsersHeader";
 import UsersStats from "./UsersStats";

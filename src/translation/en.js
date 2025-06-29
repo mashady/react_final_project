@@ -719,6 +719,9 @@ const en = {
   userDeletedSuccess: " User deleted successfully",
   userVerificationStatusUpdated:
     "User verification status has been updated successfully!",
+  userUpdatedSuccess: "User updated successfully",
+  userCreatedSuccess: "User created successfully",
+  userDeletedSuccess: "User deleted successfully",
 };
 
 export default en;
