@@ -179,13 +179,6 @@ const PlanManagement = () => {
     );
   };
 
-  const showToast = (message, type) => {
-    setToast({ message, type, visible: true });
-  };
-
-  const handleCloseToast = () => {
-    setToast({ ...toast, visible: false });
-  };
 
   if (loading) {
     return (
