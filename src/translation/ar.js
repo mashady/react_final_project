@@ -713,11 +713,13 @@ const ar = {
   sendMessage: "إرسال رسالة",
   sendingMessage: "جارٍ الإرسال...",
   userUpdatedSuccess: "تم تحديث بيانات المستخدم بنجاح!",
-  ؤ: " تم حذف المستخدم بنجاح!",
   propertyDeletedSuccess: "تم حذف العقار بنجاح!",
   propertyDeletedSuccess: "تم حذف العقار بنجاح!",
-  userVerificationStatusUpdated:
-    "تم تحديث حالة التحقق للمستخدم بنجاح!",
+  userVerificationStatusUpdated: "تم تحديث حالة التحقق للمستخدم بنجاح!",
+  users: "المستخدمين",
+  userUpdatedSuccess: "تم تحديث بيانات المستخدم بنجاح!",
+  userCreatedSuccess: "تم إنشاء المستخدم بنجاح!",
+  userDeletedSuccess: "تم حذف المستخدم بنجاح!",
 };
 
 export default ar;
