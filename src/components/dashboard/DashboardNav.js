@@ -69,7 +69,7 @@ const DashboardNav = () => {
   ];
 
   const adminLinks = [
-    { href: "/dashboard/users", label: t("Users"), icon: User },
+    { href: "/dashboard/users", label: t("users"), icon: User },
     {
       href: "/dashboard/properties",
       label: t("navbarAllProperties"),

@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
+import { useTranslation } from "../../../../../TranslationContext";
 
 export default function UsersTable({
   loading,
@@ -37,11 +38,15 @@ export default function UsersTable({
   filteredUsers,
   usersPerPage,
 }) {
+  const { t, locale } = useTranslation();
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div
+      className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+      dir={locale === "ar" ? "rtl" : "ltr"}
+    >
       {loading ? (
         <div className="p-12 text-center">
-          {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div> */}
           <LoadingSpinner />
         </div>
       ) : (
@@ -50,23 +55,47 @@ export default function UsersTable({
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                    User
+                  <th
+                    className={`text-${
+                      locale === "ar" ? "right" : "left"
+                    } py-4 px-6 text-sm font-medium text-slate-600`}
+                  >
+                    {t("userColumn")}
                   </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                    Role
+                  <th
+                    className={`text-${
+                      locale === "ar" ? "right" : "left"
+                    } py-4 px-6 text-sm font-medium text-slate-600`}
+                  >
+                    {t("roleColumn")}
                   </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                    Verification
+                  <th
+                    className={`text-${
+                      locale === "ar" ? "right" : "left"
+                    } py-4 px-6 text-sm font-medium text-slate-600`}
+                  >
+                    {t("verificationColumn")}
                   </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                    Email Status
+                  <th
+                    className={`text-${
+                      locale === "ar" ? "right" : "left"
+                    } py-4 px-6 text-sm font-medium text-slate-600`}
+                  >
+                    {t("emailStatusColumn")}
                   </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                    Joined
+                  <th
+                    className={`text-${
+                      locale === "ar" ? "right" : "left"
+                    } py-4 px-6 text-sm font-medium text-slate-600`}
+                  >
+                    {t("joinedColumn")}
                   </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-slate-600">
-                    Actions
+                  <th
+                    className={`text-${
+                      locale === "ar" ? "right" : "left"
+                    } py-4 px-6 text-sm font-medium text-slate-600`}
+                  >
+                    {t("actionsColumn")}
                   </th>
                 </tr>
               </thead>
@@ -79,9 +108,6 @@ export default function UsersTable({
                     >
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          {/* <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center text-white font-medium">
-                            {user.name.charAt(0)}
-                          </div> */}
                           <div>
                             <p className="font-medium text-slate-800">
                               {user.name}
@@ -98,7 +124,7 @@ export default function UsersTable({
                             user.role
                           )}`}
                         >
-                          {user.role}
+                          {t(user.role)}
                         </span>
                       </td>
                       <td className="py-4 px-6">
@@ -109,7 +135,7 @@ export default function UsersTable({
                             )}`}
                           >
                             {getVerificationIcon(user.verification_status)}
-                            {user.verification_status}
+                            {t(user.verification_status)}
                           </span>
                         </div>
                       </td>
@@ -118,12 +144,12 @@ export default function UsersTable({
                           {user.email_verified_at ? (
                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
                               <CheckCircle size={12} />
-                              Verified
+                              {t("verified")}
                             </span>
                           ) : (
                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1">
                               <XCircle size={12} />
-                              Unverified
+                              {t("unverified")}
                             </span>
                           )}
                         </div>
@@ -139,18 +165,21 @@ export default function UsersTable({
                           <button
                             onClick={() => openModal("view", user)}
                             className="p-2 cursor-pointer text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors duration-200"
+                            aria-label={t("viewUser")}
                           >
                             <Eye size={16} />
                           </button>
                           <button
                             onClick={() => openModal("edit", user)}
                             className="p-2 cursor-pointer text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                            aria-label={t("editUser")}
                           >
                             <Edit size={16} />
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user.id)}
                             className="p-2 cursor-pointer text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            aria-label={t("deleteUser")}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -166,12 +195,12 @@ export default function UsersTable({
                         className="text-amber-400 mx-auto mb-4"
                       />
                       <h3 className="text-lg font-medium text-slate-800 mb-2">
-                        No users found
+                        {t("noUsersFound")}
                       </h3>
                       <p className="text-slate-600">
                         {filteredUsers.length === 0
-                          ? "No users available"
-                          : "No users match your search criteria"}
+                          ? t("noUsersAvailable")
+                          : t("noMatchingUsers")}
                       </p>
                     </td>
                   </tr>
@@ -182,12 +211,11 @@ export default function UsersTable({
 
           {/* Pagination - Only show if there are users */}
           {currentUsers.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
-              <div className="text-sm text-slate-600">
-                Showing {indexOfFirstUser + 1} to{" "}
-                {Math.min(indexOfLastUser, filteredUsers.length)} of{" "}
-                {filteredUsers.length} users
-              </div>
+            <div
+              className={`flex items-center justify-between px-6 py-4 border-t border-slate-200 ${
+                locale === "ar" ? "flex-row-reverse" : ""
+              }`}
+            >
               <div className="flex items-center space-x-2">
                 <button
                   onClick={goToFirstPage}
@@ -197,8 +225,13 @@ export default function UsersTable({
                       ? "text-slate-300 cursor-not-allowed"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
+                  aria-label={t("firstPage")}
                 >
-                  <ChevronsLeft size={18} />
+                  {locale === "ar" ? (
+                    <ChevronsRight size={18} />
+                  ) : (
+                    <ChevronsLeft size={18} />
+                  )}
                 </button>
                 <button
                   onClick={goToPrevPage}
@@ -208,8 +241,13 @@ export default function UsersTable({
                       ? "text-slate-300 cursor-not-allowed"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
+                  aria-label={t("previousPage")}
                 >
-                  <ChevronLeft size={18} />
+                  {locale === "ar" ? (
+                    <ChevronRight size={18} />
+                  ) : (
+                    <ChevronLeft size={18} />
+                  )}
                 </button>
                 {getPageNumbers().map((number) => (
                   <button
@@ -232,8 +270,13 @@ export default function UsersTable({
                       ? "text-slate-300 cursor-not-allowed"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
+                  aria-label={t("nextPage")}
                 >
-                  <ChevronRight size={18} />
+                  {locale === "ar" ? (
+                    <ChevronLeft size={18} />
+                  ) : (
+                    <ChevronRight size={18} />
+                  )}
                 </button>
                 <button
                   onClick={goToLastPage}
@@ -243,8 +286,13 @@ export default function UsersTable({
                       ? "text-slate-300 cursor-not-allowed"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
+                  aria-label={t("lastPage")}
                 >
-                  <ChevronsRight size={18} />
+                  {locale === "ar" ? (
+                    <ChevronsLeft size={18} />
+                  ) : (
+                    <ChevronsRight size={18} />
+                  )}
                 </button>
               </div>
             </div>

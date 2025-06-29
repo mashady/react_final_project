@@ -6,9 +6,11 @@ import PropertyList from "./PropertyList";
 import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import { useTranslation } from "../../../../../TranslationContext";
+import Toast from "@/app/(pages)/property/[id]/components/Toast";
 
 const PropertyManagement = () => {
   const { t, locale } = useTranslation();
+  const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -82,8 +84,13 @@ const PropertyManagement = () => {
 
       await fetchProperties();
       closeModal();
+      showToast(t("propertyActionSuccess"), "success");
     } catch (err) {
       setError(err.response?.data?.message || err.message || t("submitError"));
+      showToast(
+        err.response?.data?.message || err.message || t("submitError"),
+        "error"
+      );
     }
   };
 
@@ -100,8 +107,16 @@ const PropertyManagement = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       await fetchProperties();
+      showToast(
+        t("propertyDeletedSuccess") + " The property was deleted successfully!",
+        "success"
+      );
     } catch (err) {
       setError(err.response?.data?.message || err.message || t("deleteError"));
+      showToast(
+        err.response?.data?.message || err.message || t("deleteError"),
+        "error"
+      );
     } finally {
       setShowDeleteModal(false);
       setPropertyToDelete(null);
@@ -167,6 +182,14 @@ const PropertyManagement = () => {
     );
   };
 
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -181,11 +204,6 @@ const PropertyManagement = () => {
   return (
     <div className="min-h-screen " dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded mb-6">
-            {error}
-          </div>
-        )}
         <div className="bg-white">
           <PropertyList
             properties={properties}
@@ -195,6 +213,14 @@ const PropertyManagement = () => {
             t={t}
           />
         </div>
+
+        {toast.visible && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={handleCloseToast}
+          />
+        )}
       </div>
     </div>
   );
