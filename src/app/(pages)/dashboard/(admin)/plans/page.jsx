@@ -8,6 +8,7 @@ import ViewPlanModal from "./ViewPlanModal";
 import DeletePlanModal from "./DeletePlanModal";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import { useTranslation } from "../../../../../TranslationContext";
+import Toast from "../../../property/[id]/components/Toast";
 
 const PlanManagement = () => {
   const { t, locale } = useTranslation();
@@ -26,6 +27,20 @@ const PlanManagement = () => {
     ads_Limit: "",
   });
   const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+
+  const showToast = (message, type) => {
+    setToast({ message, type, visible: true });
+  };
+
+  const handleCloseToast = () => {
+    setToast({ ...toast, visible: false });
+  };
 
   // Fetch plans from API
   const fetchPlans = async () => {
@@ -83,20 +98,32 @@ const PlanManagement = () => {
   const handleDelete = async (id) => {
     setConfirmDelete(id);
   };
-
+  
   const confirmDeletePlan = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        showToast(t("Authentication token not found."), "error");
+        return;
+      }
+  
       await axios.delete(`http://127.0.0.1:8000/api/plans/${confirmDelete}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+  
+      showToast(t("Plan deleted successfully."), "success");
       await fetchPlans();
-      setConfirmDelete(null);
     } catch (err) {
-      setError(err.message);
+      if (err.response?.status === 400) {
+        showToast(t("Cannot delete plan with active subscriptions."), "error");
+      } else {
+        setError(err.message);
+      }
+    } finally {
       setConfirmDelete(null);
     }
   };
+  
 
   // Open modal for editing/creating
   const openModal = (plan = null) => {
@@ -163,6 +190,13 @@ const PlanManagement = () => {
 
   return (
     <div className="min-h-screen">
+      {toast.visible && (
+          <Toast
+              message={toast.message}
+              type={toast.type}
+              onClose={handleCloseToast}
+          />
+      )}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
