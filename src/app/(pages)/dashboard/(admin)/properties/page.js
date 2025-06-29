@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { Plus, X, Save } from "lucide-react";
 import PropertyCard from "@/components/shared/PropertyCard";
 import PropertyList from "./PropertyList";
@@ -7,6 +13,22 @@ import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import { useTranslation } from "../../../../../TranslationContext";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import { useIntersection } from "@/hooks/useIntersection";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+
+const PAGE_SIZE = 3;
+
+const fetchProperties = async ({ pageParam = 1 }) => {
+  const token = localStorage.getItem("token");
+  const params = new URLSearchParams({
+    page: pageParam.toString(),
+    per_page: PAGE_SIZE.toString(),
+  });
+  const response = await axios.get(`http://127.0.0.1:8000/api/ads?${params}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return response.data;
+};
 
 const PropertyManagement = () => {
   const { t, locale } = useTranslation();
@@ -31,25 +53,54 @@ const PropertyManagement = () => {
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const fetchProperties = useCallback(async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      const response = await axios.get("http://127.0.0.1:8000/api/ads", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      setProperties(response.data.data || []);
-    } catch (err) {
-      setError(err.message || t("fetchPropertiesError"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+  const queryClient = useQueryClient();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+    status,
+    isFetching,
+  } = useInfiniteQuery({
+    queryKey: ["admin-properties"],
+    queryFn: ({ pageParam }) => fetchProperties({ pageParam }),
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage?.data || lastPage.data.length === 0) return undefined;
+      return lastPage.data.length < PAGE_SIZE ? undefined : allPages.length + 1;
+    },
+    initialPageParam: 1,
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: (failureCount, error) => {
+      if (error.message && error.message.includes("HTTP error!")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const propertiesData = useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap((page) => page?.data || []);
+  }, [data]);
+
+  const { ref: sentinelRef } = useIntersection({
+    onIntersect: () => {
+      if (hasNextPage && !isFetchingNextPage && !isFetching) {
+        fetchNextPage();
+      }
+    },
+    rootMargin: "200px",
+  });
 
   useEffect(() => {
-    fetchProperties();
-  }, [fetchProperties]);
+    setVisibleCount(PAGE_SIZE);
+  }, [propertiesData.length]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,7 +133,7 @@ const PropertyManagement = () => {
         data: form,
       });
 
-      await fetchProperties();
+      await refetch();
       closeModal();
       showToast(t("propertyActionSuccess"), "success");
     } catch (err) {
@@ -106,7 +157,7 @@ const PropertyManagement = () => {
       await axios.delete(`http://127.0.0.1:8000/api/ads/${propertyToDelete}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      await fetchProperties();
+      await refetch();
       showToast(
         t("propertyDeletedSuccess") + " The property was deleted successfully!",
         "success"
@@ -190,7 +241,7 @@ const PropertyManagement = () => {
     setToast({ ...toast, visible: false });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -206,14 +257,22 @@ const PropertyManagement = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-white">
           <PropertyList
-            properties={properties}
+            properties={propertiesData}
             onEdit={openModal}
             onDelete={handleDelete}
             getStatusBadge={getStatusBadge}
             t={t}
           />
+          {/* Lazy loading sentinel and loading indicator */}
+          {hasNextPage && (
+            <div ref={sentinelRef} className="flex justify-center mt-10">
+              <div className="flex items-center space-x-2">
+                <LoadingSpinner />
+                <span className="text-gray-500">{t("loadingMore")}</span>
+              </div>
+            </div>
+          )}
         </div>
-
         {toast.visible && (
           <Toast
             message={toast.message}

@@ -35,12 +35,11 @@ const Footer = () => {
               {t("footerContactUS")}
             </h3>
             <div className="space-y-3">
-              <p className="text-gray-600 text-sm">
-                Staten Island, NY 10314, USA
-              </p>
-              <p className="text-gray-600 text-sm">+111 222 369 45</p>
-              <p className="text-gray-600 text-sm">+123 456 789 11</p>
-              <p className="text-gray-600 text-sm">newhome@example.com</p>
+              <p className="text-gray-600 text-sm">Egypt ,Minya ,ITI</p>
+              <p className="text-gray-600 text-sm">01025335022</p>
+              <p className="text-gray-600 text-sm">01015725203</p>
+              <p className="text-gray-600 text-sm">01551262315</p>
+              <p className="text-gray-600 text-sm">MostafaMokna78@gmail.com</p>
             </div>
           </div>
 
