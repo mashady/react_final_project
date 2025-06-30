@@ -9,6 +9,7 @@ import DeletePlanModal from "./DeletePlanModal";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import { useTranslation } from "../../../../../TranslationContext";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import RequireAuth from "@/components/shared/RequireAuth";
 
 const PlanManagement = () => {
   const { t, locale } = useTranslation();
@@ -249,4 +250,10 @@ const PlanManagement = () => {
   );
 };
 
-export default PlanManagement;
+const PlanManagementPage = () => (
+  <RequireAuth allowedRoles={["admin"]}>
+    <PlanManagement />
+  </RequireAuth>
+);
+
+export default PlanManagementPage;

@@ -209,7 +209,7 @@ const CartPageContent = () => {
 
     setIsLoading(true);
 
-    if (planId === 1) {
+    if (planId === 20) {
       const $session = "freeplan" + id;
       router.push(`/payment-success?session_id=${$session}&plan_id=${planId}`);
     } else {

@@ -29,6 +29,7 @@ import UsersStats from "./UsersStats";
 import UsersSearchBar from "./UsersSearchBar";
 import UsersTable from "./UsersTable";
 import UsersModal from "./UsersModal";
+import RequireAuth from "@/components/shared/RequireAuth";
 
 const Users = () => {
   const { t, locale } = useTranslation();
@@ -542,4 +543,10 @@ const Users = () => {
   );
 };
 
-export default Users;
+const UsersManagementPage = () => (
+  <RequireAuth allowedRoles={["admin"]}>
+    <Users />
+  </RequireAuth>
+);
+
+export default UsersManagementPage;

@@ -7,6 +7,7 @@ import axios from "axios";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import { useTranslation } from "../../../../../TranslationContext";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import RequireAuth from "@/components/shared/RequireAuth";
 
 const PropertyManagement = () => {
   const { t, locale } = useTranslation();
@@ -226,4 +227,10 @@ const PropertyManagement = () => {
   );
 };
 
-export default PropertyManagement;
+const PropertyManagementPage = () => (
+  <RequireAuth allowedRoles={["admin"]}>
+    <PropertyManagement />
+  </RequireAuth>
+);
+
+export default PropertyManagementPage;

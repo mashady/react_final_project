@@ -9,6 +9,7 @@ import PendingUsersPagination from "./PendingUsersPagination.js";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner.js";
 import { useTranslation } from "../../../../../TranslationContext";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
+import RequireAuth from "@/components/shared/RequireAuth.js";
 
 const PendingUsers = () => {
   const { t, locale } = useTranslation();
@@ -322,4 +323,10 @@ const PendingUsers = () => {
   );
 };
 
-export default PendingUsers;
+const PendingManagementPage = () => (
+  <RequireAuth allowedRoles={["admin"]}>
+    <PendingUsers />
+  </RequireAuth>
+);
+
+export default PendingManagementPage;
