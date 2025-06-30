@@ -26,10 +26,12 @@
     "@stripe/stripe-js": "^7.3.1",
     "@supabase/supabase-js": "^2.50.0",
     "@tanstack/react-query": "^5.80.7",
+    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "express": "^5.1.0",
+    "face-api.js": "^0.22.2",
     "formik": "^2.4.6",
     "framer-motion": "^12.16.0",
     "lightningcss": "^1.30.1",
@@ -61,11 +63,14 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/mapbox-gl": "^3.4.1",
+    "@types/node": "^24.0.8",
+    "@types/react": "^19.1.8",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "postcss": "^8.5.4",
     "tailwindcss": "^4.1.8",
-    "tw-animate-css": "^1.3.4"
+    "tw-animate-css": "^1.3.4",
+    "typescript": "^5.8.3"
   }
 }
