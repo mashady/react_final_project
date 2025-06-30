@@ -13,19 +13,16 @@ CORS(app)
 def decode_base64_image(base64_string):
     """Decode base64 image string to numpy array"""
     try:
-        # Remove data URL prefix if present
         if base64_string.startswith('data:image'):
             base64_string = base64_string.split(',')[1]
         
-        # Decode base64
+       
         image_data = base64.b64decode(base64_string)
         image = Image.open(io.BytesIO(image_data))
         
-        # Convert to RGB if necessary
         if image.mode != 'RGB':
             image = image.convert('RGB')
         
-        # Convert to numpy array
         return np.array(image)
     except Exception as e:
         raise ValueError(f"Failed to decode image: {str(e)}")
@@ -33,26 +30,21 @@ def decode_base64_image(base64_string):
 def compare_faces(image1_array, image2_array, tolerance=0.6):
     """Compare two face images and return similarity result"""
     try:
-        # Find face encodings for both images
         face_encodings_1 = face_recognition.face_encodings(image1_array)
         face_encodings_2 = face_recognition.face_encodings(image2_array)
         
-        # Check if faces were found in both images
         if len(face_encodings_1) == 0:
             return {"error": "No face found in first image", "same_person": False}
         
         if len(face_encodings_2) == 0:
             return {"error": "No face found in second image", "same_person": False}
         
-        # Use the first face found in each image
         face_encoding_1 = face_encodings_1[0]
         face_encoding_2 = face_encodings_2[0]
         
-        # Compare faces
         matches = face_recognition.compare_faces([face_encoding_1], face_encoding_2, tolerance=tolerance)
         face_distance = face_recognition.face_distance([face_encoding_1], face_encoding_2)[0]
         
-        # Calculate confidence percentage
         confidence = max(0, (1 - face_distance) * 100)
         
         return {
@@ -79,19 +71,16 @@ def compare_faces_endpoint():
     try:
         data = request.get_json()
         
-        # Validate input
         if not data or 'image1' not in data or 'image2' not in data:
             return jsonify({
                 "error": "Missing required fields. Please provide 'image1' and 'image2' as base64 strings",
                 "same_person": False
             }), 400
         
-        # Get optional tolerance parameter
         tolerance = data.get('tolerance', 0.6)
         if not 0.3 <= tolerance <= 1.0:
             tolerance = 0.6
         
-        # Decode images
         try:
             image1 = decode_base64_image(data['image1'])
             image2 = decode_base64_image(data['image2'])
@@ -101,7 +90,6 @@ def compare_faces_endpoint():
                 "same_person": False
             }), 400
         
-        # Compare faces
         result = compare_faces(image1, image2, tolerance)
         
         return jsonify(result)
@@ -116,7 +104,6 @@ def compare_faces_endpoint():
 def compare_face_files():
     """Alternative endpoint for file uploads"""
     try:
-        # Check if files were uploaded
         if 'image1' not in request.files or 'image2' not in request.files:
             return jsonify({
                 "error": "Please upload both image1 and image2 files",
@@ -126,18 +113,14 @@ def compare_face_files():
         file1 = request.files['image1']
         file2 = request.files['image2']
         
-        # Get tolerance parameter
         tolerance = float(request.form.get('tolerance', 0.6))
         if not 0.3 <= tolerance <= 1.0:
             tolerance = 0.6
         
-        # Convert files to numpy arrays
         image1 = np.array(Image.open(file1.stream).convert('RGB'))
         image2 = np.array(Image.open(file2.stream).convert('RGB'))
         
-        # Compare faces
         result = compare_faces(image1, image2, tolerance)
-        # Ensure all values are JSON serializable
         import json
         def make_serializable(obj):
             if isinstance(obj, np.generic):
