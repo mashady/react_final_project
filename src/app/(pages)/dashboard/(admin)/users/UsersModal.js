@@ -9,7 +9,7 @@ import {
   Calendar,
   Eye,
 } from "lucide-react";
-import { useTranslation } from "../../../../../TranslationContext"; 
+import { useTranslation } from "../../../../../TranslationContext";
 
 export default function UsersModal({
   modalMode,
@@ -172,28 +172,60 @@ export default function UsersModal({
                 )}
               </div>
               {modalMode === "create" && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {t("passwordLabel")}* ({t("min8Chars")})
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className={`w-full px-3 py-2 border ${
-                      errors.password ? "border-red-500" : "border-slate-300"
-                    } rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all duration-300`}
-                    required
-                    minLength="8"
-                  />
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.password[0]}
-                    </p>
-                  )}
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      {t("passwordLabel")}* ({t("min8Chars")})
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      className={`w-full px-3 py-2 border ${
+                        errors.password ? "border-red-500" : "border-slate-300"
+                      } rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all duration-300`}
+                      required
+                      minLength="12"
+                      maxLength="50"
+                      pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{12,50}$"
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password[0]}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      {t("passwordConfirmationLabel", "Confirm Password")}*
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password_confirmation || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          password_confirmation: e.target.value,
+                        })
+                      }
+                      className={`w-full px-3 py-2 border ${
+                        errors.password_confirmation
+                          ? "border-red-500"
+                          : "border-slate-300"
+                      } rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all duration-300`}
+                      required
+                      minLength="12"
+                      maxLength="50"
+                    />
+                    {errors.password_confirmation && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password_confirmation[0]}
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -291,7 +323,7 @@ export default function UsersModal({
                   modalMode === "create" ? handleCreateUser : handleUpdateUser
                 }
                 className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors duration-200 flex items-center justify-center gap-2"
-                disabled={!!successMessage}
+                disabled={!!successMessage || !!errors.password_confirmation}
               >
                 {modalMode === "create"
                   ? t("createUserButton")
