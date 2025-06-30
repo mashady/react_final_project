@@ -8,6 +8,7 @@ import ViewPlanModal from "./ViewPlanModal";
 import DeletePlanModal from "./DeletePlanModal";
 import LoadingSpinner from "@/app/(pages)/properties/components/LoadingSpinner";
 import { useTranslation } from "../../../../../TranslationContext";
+import RequireAuth from "@/components/shared/RequireAuth";
 import Toast from "../../../property/[id]/components/Toast";
 
 const PlanManagement = () => {
@@ -100,7 +101,7 @@ const PlanManagement = () => {
   const handleDelete = async (id) => {
     setConfirmDelete(id);
   };
-  
+
   const confirmDeletePlan = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -108,11 +109,11 @@ const PlanManagement = () => {
         showToast(t("Authentication token not found."), "error");
         return;
       }
-  
+
       await axios.delete(`http://127.0.0.1:8000/api/plans/${confirmDelete}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       showToast(t("Plan deleted successfully."), "success");
       await fetchPlans();
     } catch (err) {
@@ -126,7 +127,6 @@ const PlanManagement = () => {
       showToast(err.message, "error");
     }
   };
-  
 
   // Open modal for editing/creating
   const openModal = (plan = null) => {
@@ -179,7 +179,6 @@ const PlanManagement = () => {
     );
   };
 
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -195,11 +194,11 @@ const PlanManagement = () => {
   return (
     <div className="min-h-screen">
       {toast.visible && (
-          <Toast
-              message={toast.message}
-              type={toast.type}
-              onClose={handleCloseToast}
-          />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleCloseToast}
+        />
       )}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-6 py-8">
@@ -273,4 +272,10 @@ const PlanManagement = () => {
   );
 };
 
-export default PlanManagement;
+const PlanManagementPage = () => (
+  <RequireAuth allowedRoles={["admin"]}>
+    <PlanManagement />
+  </RequireAuth>
+);
+
+export default PlanManagementPage;

@@ -15,6 +15,7 @@ import { useTranslation } from "../../../../../TranslationContext";
 import Toast from "@/app/(pages)/property/[id]/components/Toast";
 import { useIntersection } from "@/hooks/useIntersection";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import RequireAuth from "@/components/shared/RequireAuth";
 
 const PAGE_SIZE = 3;
 
@@ -285,4 +286,10 @@ const PropertyManagement = () => {
   );
 };
 
-export default PropertyManagement;
+const PropertyManagementPage = () => (
+  <RequireAuth allowedRoles={["admin"]}>
+    <PropertyManagement />
+  </RequireAuth>
+);
+
+export default PropertyManagementPage;
