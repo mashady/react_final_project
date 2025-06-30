@@ -117,14 +117,6 @@ const MyPropertiesContent = () => {
               </div>
             </div>
           )}
-          {/* End message */}
-          {!hasNextPage && properties.length > 0 && (
-            <div className="text-center py-8 text-gray-500 border-t border-gray-200 mt-8 bg-white rounded-lg">
-              <p className="text-sm text-gray-400 mt-1">
-                {t("showingAllProperties", { count: properties.length })}
-              </p>
-            </div>
-          )}
         </>
       ) : (
         <DashboardEmptyMsg
