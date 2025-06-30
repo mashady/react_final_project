@@ -37,7 +37,7 @@ const en = {
   expertSectionListItemThreeDescription:
     "Start your renovation journey with our expert team",
   footerAboutUsDescrition:
-    "A contemporary theme we designed specifically for real estate and property showcase websites, equipped with every option, element and feature your site may need",
+    "A digital platform that connects university students in Minya Governorate with available and affordable rental accommodations near their campuses. The platform will allow property owners to list student-friendly rentals, while students can browse, compare, and book suitable housing options based on their preferences and budget. Verified reviews, interactive maps, and a secure booking system will ensure transparency, safety, and convenience throughout the process.",
   footerReadMoreButton: "Read more",
   footerContactUS: "Contact Us",
   footerCategories: "Categories",
