@@ -32,10 +32,8 @@ const Footer = () => {
             </h3>
             <div className="space-y-3">
               <p className="text-gray-600 text-sm">Egypt ,Minya ,ITI</p>
-              <p className="text-gray-600 text-sm">01025335022</p>
               <p className="text-gray-600 text-sm">01015725203</p>
               <p className="text-gray-600 text-sm">01551262315</p>
-              <p className="text-gray-600 text-sm">01146056655</p>
               <p className="text-gray-600 text-sm">MostafaMokna78@gmail.com</p>
             </div>
           </div>
@@ -51,12 +49,7 @@ const Footer = () => {
               >
                 Recent property
               </Link>
-              <Link
-                href="/properties"
-                className="block text-gray-600 text-sm hover:text-gray-900 transition-colors"
-              >
-                To Sell
-              </Link>
+
               <Link
                 href="/properties"
                 className="block text-gray-600 text-sm hover:text-gray-900 transition-colors"
@@ -72,7 +65,7 @@ const Footer = () => {
             </h3>
             <div className="space-y-3">
               <a
-                href="#"
+                href="/contact-us"
                 className="block text-gray-600 text-sm hover:text-gray-900 transition-colors"
               >
                 Contact Us
