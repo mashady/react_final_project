@@ -25,5 +25,15 @@ const userProfileSchema = Yup.object({
         .required("Please confirm your password"),
     otherwise: (schema) => schema.notRequired(),
   }),
+
+  // ✅ Phone & WhatsApp number validation
+  phone_number: Yup.string()
+    .nullable()
+    .matches(/^01[0125][0-9]{8}$/, "Invalid Egyptian phone number"),
+
+  whatsapp_number: Yup.string()
+    .nullable()
+    .matches(/^01[0125][0-9]{8}$/, "Invalid Egyptian WhatsApp number"),
 });
+
 export { userProfileSchema };
