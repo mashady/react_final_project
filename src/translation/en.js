@@ -693,7 +693,7 @@ const en = {
   rejectTooltip: "Reject",
   confirmUnverifyTitle: "Confirm Unverify",
   confirmUnverifyMessage:
-    "Are you sure you want to mark this user as {status}? This action cannot be undone.",
+    "Are you sure you want to mark this user as unverified? This action cannot be undone.",
   cancelButton: "Cancel",
   unverifyButton: "Unverify",
   // Add your role translations
@@ -725,6 +725,19 @@ const en = {
   users: "Users",
   noCommentsYet: "No comments yet",
   addingComment: "Adding comment...",
+  savingButton: "Saving...",
+  deletingButton: "Deleting...",
+  deletePlanButton: "Delete",
+  deletePlanTitle: "Delete Plan",
+  deletePlanConfirmation: "Are you sure you want to delete this plan?",
+  planActionSuccess: "Plan action completed successfully",
+  planDeletedSuccessfully: "Plan deleted successfully",
+  planUpdatedSuccessfully: "Plan updated successfully",
+  deletePlanError: "Cannot delete plan with active subscriptions.",
+  unverified: "Unverified",
+  passwordConfirmationLabel: "Confirm Password",
+  updatingUserButton: "Updating user...",
+  creatingUserButton: "Creating user...",
 };
 
 export default en;

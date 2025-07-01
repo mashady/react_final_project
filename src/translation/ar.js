@@ -722,6 +722,18 @@ const ar = {
   userDeletedSuccess: "تم حذف المستخدم بنجاح!",
   noCommentsYet: "لا يوجد تعليقات",
   addingComment: "جارٍ إضافة التعليق...",
+  savingButton: "حفظ",
+  deletingButton: "حذف",
+  deletePlanButton: "حذف الباقة",
+  deletePlanTitle: "حذف الباقة",
+  deletePlanConfirmation: "هل أنت متأكد أنك تريد حذف هذه الباقة؟",
+  planActionSuccess: "تم حذف الباقة بنجاح!",
+  deletePlanError: "فشل في حذف الباقة",
+  planDeletedSuccessfully: "تم حذف الباقة بنجاح!",
+  planUpdatedSuccessfully: "تم تحديث الباقة بنجاح!",
+  deletePlanError: "فشل في حذف الباقة",
+  unverified: "غير مؤكد",
+  passwordConfirmationLabel: "تأكيد كلمة المرور",
 };
 
 export default ar;
