@@ -29,6 +29,7 @@ import UsersStats from "./UsersStats";
 import UsersSearchBar from "./UsersSearchBar";
 import UsersTable from "./UsersTable";
 import UsersModal from "./UsersModal";
+import RequireAuth from "@/components/shared/RequireAuth";
 
 const Users = () => {
   const { t, locale } = useTranslation();
@@ -52,6 +53,7 @@ const Users = () => {
     name: "",
     email: "",
     password: "",
+    password_confirmation: "",
     role: "student",
     verification_status: "unverified",
     verification_document: null,
@@ -116,12 +118,21 @@ const Users = () => {
   }, [fetchUsers]);
 
   const handleCreateUser = async () => {
+    // Client-side password confirmation validation
+    if (formData.password !== formData.password_confirmation) {
+      setErrors({ password_confirmation: [t("passwordMismatch")] });
+      return;
+    }
     try {
       setErrors({});
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("email", formData.email);
       formDataToSend.append("password", formData.password);
+      formDataToSend.append(
+        "password_confirmation",
+        formData.password_confirmation
+      );
       formDataToSend.append("role", formData.role);
       formDataToSend.append(
         "verification_status",
@@ -183,6 +194,14 @@ const Users = () => {
         formData.verification_status
       );
       formDataToSend.append("_method", "PUT");
+
+      if (formData.password) {
+        formDataToSend.append("password", formData.password);
+        formDataToSend.append(
+          "password_confirmation",
+          formData.password_confirmation
+        );
+      }
 
       if (formData.verification_document) {
         formDataToSend.append(
@@ -273,6 +292,7 @@ const Users = () => {
         name: user.name,
         email: user.email,
         password: "",
+        password_confirmation: "",
         role: user.role,
         verification_status: user.verification_status,
         verification_document: null,
@@ -288,6 +308,7 @@ const Users = () => {
       name: "",
       email: "",
       password: "",
+      password_confirmation: "",
       role: "student",
       verification_status: "unverified",
       verification_document: null,
@@ -542,4 +563,10 @@ const Users = () => {
   );
 };
 
-export default Users;
+const UsersManagementPage = () => (
+  <RequireAuth allowedRoles={["admin"]}>
+    <Users />
+  </RequireAuth>
+);
+
+export default UsersManagementPage;
