@@ -27,6 +27,7 @@ function OwnerReviewList({
   const [deletingId, setDeletingId] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [confirm, setConfirm] = useState({ open: false, reviewId: null });
+
   const currentUser = useSelector((state) => state.user.data);
   const { t } = useTranslation();
 
@@ -125,21 +126,22 @@ function OwnerReviewList({
     currentUser && reviews.some((r) => r.user && r.user.id === currentUser.id);
 
   const isOwnProfile = currentUser && currentUser.id === Number(ownerId);
+  const isAdmin = currentUser?.role === "admin";
 
   if (loading) {
     return <LoadingSpinner />;
   }
+
   if (error && (!reviews || reviews.length === 0)) {
     return <div className="text-red-500">{error}</div>;
   }
 
   const showForm = showReviewForm && currentUser && !userHasReview;
 
-  // If no reviews, show the form (if eligible) and a message
   if (!reviews.length) {
     return (
       <>
-        <div className="text-[#888] text-lg bg-[#f7f7f7] rounded-xl p-6 border border-[#ececec] mb-4">
+        <div className="text-[#888] text-lg bg-[#f7f7f7] rounded p-6 border border-[#ececec] mb-4">
           {t("noReviewsYet")}
         </div>
         {showForm && !isOwnProfile && (
@@ -155,7 +157,6 @@ function OwnerReviewList({
     );
   }
 
-  // If there are reviews, show the form (if eligible) and the reviews
   return (
     <>
       {toast.visible && (
@@ -187,22 +188,25 @@ function OwnerReviewList({
         {reviews.map((review) => {
           const isReviewAuthor =
             currentUser && review.user && review.user.id === currentUser.id;
+
           return (
             <div
               key={review.id}
-              className="p-6 border border-[#ececec] rounded-xl bg-[#f7f7f7] shadow-sm"
+              className="p-6 border border-[#ececec] rounded bg-[#f7f7f7] shadow-sm"
             >
               <div className="font-semibold text-[#222] text-lg mb-1 flex items-center justify-between">
                 <span>{review.user?.name || t("anonymous")}</span>
-                {isReviewAuthor && editingId !== review.id && (
+                {(isReviewAuthor || isAdmin) && editingId !== review.id && (
                   <div className="flex gap-2 ml-2">
-                    <button
-                      className="text-xs text-blue-600 hover:underline"
-                      onClick={() => handleEdit(review)}
-                      disabled={editLoading || deletingId === review.id}
-                    >
-                      {t("reviewEdit")}
-                    </button>
+                    {isReviewAuthor && (
+                      <button
+                        className="text-xs text-blue-600 hover:underline"
+                        onClick={() => handleEdit(review)}
+                        disabled={editLoading || deletingId === review.id}
+                      >
+                        {t("reviewEdit")}
+                      </button>
+                    )}
                     <button
                       className="text-xs text-red-600 hover:underline"
                       onClick={() => handleDelete(review.id)}
@@ -226,7 +230,7 @@ function OwnerReviewList({
                   />
                   <div className="flex gap-2">
                     <button
-                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                      className="px-3 py-1 bg-black text-white rounded hover:bg-green-700 text-sm"
                       onClick={() => handleSave(review.id)}
                       disabled={editLoading || !editContent.trim()}
                     >

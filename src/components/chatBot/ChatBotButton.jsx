@@ -13,12 +13,10 @@ export default function ChatBotButton() {
   ]);
   const [loading, setLoading] = useState(false);
 
-  const bottomRef = useRef(null); // 👈 new ref to track bottom of messages
+  const bottomRef = useRef(null);
 
-  // Load chat history from Laravel (protected route)
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) return;
 
     axios
@@ -39,12 +37,10 @@ export default function ChatBotButton() {
       });
   }, []);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Scroll to bottom when chat opens
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
@@ -53,7 +49,6 @@ export default function ChatBotButton() {
     }
   }, [isOpen]);
 
-  // Send user message and get RAG response
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -102,7 +97,7 @@ export default function ChatBotButton() {
       {/* Toggle Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-green-500 hover:bg-green-600 cursor-pointer text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-all duration-300"
+        className="bg-fuchsia-900 hover:bg-fuchsia-700 cursor-pointer text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-all duration-300"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +118,7 @@ export default function ChatBotButton() {
       {/* Chat Window */}
       {isOpen && (
         <div className="absolute bottom-20 right-0 w-80 bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="bg-green-500 text-white p-4 flex justify-between items-center">
+          <div className="bg-fuchsia-900 text-white p-4 flex justify-between items-center">
             <h3 className="font-semibold">ChatBot</h3>
             <button
               onClick={() => setIsOpen(false)}
@@ -144,14 +139,13 @@ export default function ChatBotButton() {
             </button>
           </div>
 
-          {/* Chat Messages */}
           <div className="h-96 overflow-y-auto p-2 space-y-3">
             {messages.map((msg, index) => (
               <div
                 key={index}
                 className={`p-2 rounded-lg text-sm ${
                   msg.role === "user"
-                    ? "bg-green-100 text-right ml-auto w-fit"
+                    ? "bg-fuchsia-100 text-right ml-auto w-fit"
                     : "bg-gray-100 text-left mr-auto w-fit"
                 }`}
               >
@@ -165,25 +159,25 @@ export default function ChatBotButton() {
             ))}
 
             {loading && (
-              <div className="text-gray-500 text-sm animate-pulse">Typing...</div>
+              <div className="text-gray-500 text-sm animate-pulse">
+                Typing...
+              </div>
             )}
 
-            {/* 👇 Scroll target */}
             <div ref={bottomRef}></div>
           </div>
 
-          {/* Chat Input */}
           <div className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask something..."
-                className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 w-20"
+                className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 w-20"
               />
               <button
                 onClick={sendMessage}
-                className="bg-green-500 text-white px-4 rounded-r-lg hover:bg-green-600"
+                className="bg-fuchsia-900 text-white px-4 rounded-r-lg hover:bg-fuchsia-700"
               >
                 Send
               </button>

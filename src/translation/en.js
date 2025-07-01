@@ -723,6 +723,8 @@ const en = {
   userCreatedSuccess: "User created successfully",
   userDeletedSuccess: "User deleted successfully",
   users: "Users",
+  noCommentsYet: "No comments yet",
+  addingComment: "Adding comment...",
 };
 
 export default en;

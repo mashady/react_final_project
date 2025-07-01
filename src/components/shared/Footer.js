@@ -13,12 +13,15 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <Link href="/">
-                <Image
+                {/* <Image
                   src="https://newhome.qodeinteractive.com/wp-content/uploads/2023/03/logo-main.png"
                   alt="New Home Logo"
                   width={50}
                   height={50}
-                />
+                /> */}
+                <span className="text-xl" style={{ fontWeight: 500 }}>
+                  Homyfy
+                </span>
               </Link>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed max-w-sm">

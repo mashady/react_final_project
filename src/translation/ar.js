@@ -720,6 +720,8 @@ const ar = {
   userUpdatedSuccess: "تم تحديث بيانات المستخدم بنجاح!",
   userCreatedSuccess: "تم إنشاء المستخدم بنجاح!",
   userDeletedSuccess: "تم حذف المستخدم بنجاح!",
+  noCommentsYet: "لا يوجد تعليقات",
+  addingComment: "جارٍ إضافة التعليق...",
 };
 
 export default ar;
