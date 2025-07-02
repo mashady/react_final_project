@@ -391,7 +391,7 @@ const ar = {
   verificationDocumentSizeError: "حجم الملف كبير جدًا (الحد الأقصى 5 ميجابايت)",
   verificationDocumentTypeError:
     "تنسيق الملف غير مدعوم (فقط JPG، PNG، PDF، JPEG)",
-  chooseFile: "اختر ملفًا*",
+  chooseFile: "تحميل مستند التحقق*",
   refuseLogin: "بيانات الاعتماد غير صالحة",
   loginError: "خطأ في تسجيل الدخول",
 
@@ -720,6 +720,11 @@ const ar = {
   userUpdatedSuccess: "تم تحديث بيانات المستخدم بنجاح!",
   userCreatedSuccess: "تم إنشاء المستخدم بنجاح!",
   userDeletedSuccess: "تم حذف المستخدم بنجاح!",
+  verifyDocumentBanned: "حظر مستند التحقق",
+  verifyDocumentBannedDescription: "تم حظر مستندك لأننا لم نتمكن من التعرف عليك.",
+  verifyDocumentAction: "الاتصال بالدعم",
+  verifyDocumentationPending: "مستند التحقق قيد المراجعة",
+  verifyDocumentationPendingDescription: "يتم مراجعة مستند التحقق الخاص بك من قبل فريقنا.",
 };
 
 export default ar;

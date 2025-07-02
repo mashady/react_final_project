@@ -11,31 +11,48 @@ export default function GoogleCallback() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    const userId = searchParams.get("user_id");
+  const token = searchParams.get("token");
+  const userId = searchParams.get("user_id");
+  const status = searchParams.get("status");
 
-    if (token && userId) {
-      console.log("Token:", token);
-      console.log("User ID:", userId);
-
-      localStorage.setItem("token", token);
-
-      dispatch({
-        type: "user/login/fulfilled",
-        payload: { token },
-      });
-
-      dispatch(fetchUser(userId));
-
-      router.push("/");
+  const handleLogin = async () => {
+    
+    if (status === "pending") {
+      localStorage.setItem("status", status);
+      router.push("/admin/pending");
+      return;
+    } else if (status === "unverified") {
+      localStorage.setItem("status", status);
+      router.push("/admin/banned");
+      return;  
     } else {
-      console.error("Missing token or user_id in URL");
+        localStorage.setItem("token", token);
+
+        dispatch({
+          type: "user/login/fulfilled",
+          payload: { token },
+        });
+
+        try {
+          await dispatch(fetchUser(userId)).unwrap(); 
+
+          // Fetch user data and update the state
+          router.push("/");
+        } catch (error) {
+          console.error("Failed to fetch user:", error);
+        }
+        return;
     }
-  }, [searchParams, router, dispatch]);
+      
+  };
+
+  handleLogin();
+}, [searchParams, router, dispatch]);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      Processing Google login...
+      <p className="text-gray-600 text-lg animate-pulse">Processing Google login...</p>
     </div>
   );
 }

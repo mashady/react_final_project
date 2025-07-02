@@ -394,7 +394,7 @@ const en = {
   verificationDocumentSizeError: "File size is too large (max 5MB)",
   verificationDocumentTypeError:
     "Unsupported file format (only JPG, PNG, PDF, JPEG)",
-  chooseFile: "Choose File*",
+  chooseFile: "Upload Verification Document*",
   refuseLogin: "Invalid credentials",
   loginError: "Login Error",
 
@@ -723,6 +723,11 @@ const en = {
   userCreatedSuccess: "User created successfully",
   userDeletedSuccess: "User deleted successfully",
   users: "Users",
+  verifyDocumentBanned: "Verification Document Banned",
+  verifyDocumentBannedDescription: "Your document has been banned as we couldn't recognize you.",
+  verifyDocumentAction: "Contact Support",
+  verifyDocumentationPending: "Verification Document Pending",
+  verifyDocumentationPendingDescription: "Your verification document is being reviewed by our team.",
 };
 
 export default en;

@@ -42,9 +42,10 @@ const GooglePage = () => {
   const user = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already authenticated and profile is complete
+  // Redirect if already authenticated and profile is completed
   useEffect(() => {
     const token = localStorage.getItem("token");
+
     if (token && user?.data) {
       router.push("/");
     }
@@ -86,11 +87,23 @@ const GooglePage = () => {
 
       const { token, user } = response.data;
 
-      localStorage.setItem("token", token);
-      dispatch({ type: "user/login/fulfilled", payload: { token } });
-      dispatch(fetchUser(user.id));
+    
 
-      router.push("/");
+      
+      if (user.verification_status === "verified") {
+        localStorage.setItem("token", token);
+        dispatch({ type: "user/login/fulfilled", payload: { token } });
+        dispatch(fetchUser(user.id));
+        router.push("/");
+      } else {
+        localStorage.setItem("status", user.verification_status);
+        router.push(
+          user.verification_status === "pending"
+            ? "/admin/pending"
+            : "/admin/banned"
+        );
+      }
+
     } catch (error) {
       showToast(
         error.response?.data?.message || "Failed to complete profile",
