@@ -91,11 +91,14 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20">
           <div className="flex-1 flex items-center">
             <Link href="/">
-              <img
+              {/* <img
                 src="https://newhome.qodeinteractive.com/wp-content/uploads/2023/03/logo-main.png"
                 alt="New Home Logo"
                 className="h-10 w-auto"
-              />
+              /> */}
+              <span className="text-xl" style={{ fontWeight: 500 }}>
+                Homyfy
+              </span>
             </Link>
           </div>
 

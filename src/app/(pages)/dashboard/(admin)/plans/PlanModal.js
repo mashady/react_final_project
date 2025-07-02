@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Save } from "lucide-react";
+import { X } from "lucide-react";
 import { useTranslation } from "../../../../../TranslationContext";
 
 const validate = (formData, t) => {
@@ -31,10 +31,11 @@ export default function PlanModal({
   formData,
   setFormData,
   editingPlan,
+  submitLoading,
 }) {
   const [errors, setErrors] = useState({});
-  let { t } = useTranslation();
-  // Clear errors when modal is closed
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!isOpen) {
       setErrors({});
@@ -51,11 +52,8 @@ export default function PlanModal({
     onSubmit(e);
   };
 
-  // Clear specific error when user starts typing/correcting
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-
-    // Clear the error for this field if it exists
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -71,13 +69,12 @@ export default function PlanModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#000000e0]  bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-semibold text-gray-900">
             {editingPlan ? t("editPlanTitle") : t("createPlanTitle")}
           </h2>
-
           <button
             onClick={handleClose}
             className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
@@ -124,7 +121,6 @@ export default function PlanModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t("durationLabel")} *
               </label>
-
               <input
                 type="number"
                 min="1"
@@ -167,7 +163,6 @@ export default function PlanModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t("adsLimitLabel")} *
               </label>
-
               <input
                 type="number"
                 min="0"
@@ -183,7 +178,7 @@ export default function PlanModal({
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Features
+                {t("featuresLabel") || "Features"}
               </label>
               <textarea
                 value={formData.features}
@@ -200,14 +195,18 @@ export default function PlanModal({
               onClick={handleClose}
               className="px-6 py-3 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              {t("cancelButton")}{" "}
+              {t("cancelButton")}
             </button>
             <button
               type="submit"
-              className="px-6 py-3 cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg transition-colors flex items-center gap-2"
+              disabled={submitLoading}
+              className="px-6 py-3 cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
             >
-              {/* <Save className="w-5 h-5" /> */}
-              {editingPlan ? t("updatePlanButton") : t("createPlanButton")}
+              {submitLoading
+                ? t("savingButton")
+                : editingPlan
+                ? t("updatePlanButton")
+                : t("createPlanButton")}
             </button>
           </div>
         </form>

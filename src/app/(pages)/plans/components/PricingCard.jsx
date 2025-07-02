@@ -91,7 +91,7 @@ const PricingCard = ({
         visible: true,
       });
 
-      router.push("/cart");
+      // router.push("/cart");
     } catch (err) {
       console.error("Add to cart error:", err);
       setToast("Error adding to cart", "error");

@@ -26,6 +26,7 @@ export default function UsersModal({
   getVerificationStatusColor,
   getVerificationIcon,
   formatDate,
+  actionLoading,
 }) {
   const { t, locale } = useTranslation();
 
@@ -51,7 +52,6 @@ export default function UsersModal({
           </button>
         </div>
 
-        {/* Error messages */}
         {errors.general && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
             {errors.general.map((msg, i) => (
@@ -80,8 +80,7 @@ export default function UsersModal({
                     selectedUser?.role
                   )}`}
                 >
-                  {t(selectedUser?.role)}{" "}
-                  {/* Assuming roles are also translated */}
+                  {t(selectedUser?.role)}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -199,7 +198,7 @@ export default function UsersModal({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      {t("passwordConfirmationLabel", "Confirm Password")}*
+                      {t("passwordConfirmationLabel")}*
                     </label>
                     <input
                       type="password"
@@ -305,6 +304,7 @@ export default function UsersModal({
                 )}
               </div>
             </div>
+
             <div
               className={`flex gap-3 mt-6 ${
                 locale === "ar" ? "flex-row-reverse" : ""
@@ -325,7 +325,11 @@ export default function UsersModal({
                 className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors duration-200 flex items-center justify-center gap-2"
                 disabled={!!successMessage || !!errors.password_confirmation}
               >
-                {modalMode === "create"
+                {actionLoading
+                  ? modalMode === "create"
+                    ? t("creatingUserButton")
+                    : t("updatingUserButton")
+                  : modalMode === "create"
                   ? t("createUserButton")
                   : t("updateUserButton")}
               </button>

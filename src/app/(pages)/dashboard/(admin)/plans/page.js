@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Plus, Target } from "lucide-react";
+import { Plus } from "lucide-react";
 import axios from "axios";
 import PlanTable from "./PlanTable";
 import PlanModal from "./PlanModal";
@@ -12,13 +12,16 @@ import RequireAuth from "@/components/shared/RequireAuth";
 import Toast from "../../../property/[id]/components/Toast";
 
 const PlanManagement = () => {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false); // NEW STATE
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [viewingPlan, setViewingPlan] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -43,7 +46,6 @@ const PlanManagement = () => {
     setToast({ ...toast, visible: false });
   };
 
-  // Fetch plans from API
   const fetchPlans = async () => {
     try {
       setLoading(true);
@@ -63,9 +65,9 @@ const PlanManagement = () => {
     fetchPlans();
   }, []);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitLoading(true);
     try {
       const url = editingPlan
         ? `http://127.0.0.1:8000/api/plans/${editingPlan.id}`
@@ -73,7 +75,7 @@ const PlanManagement = () => {
       const method = editingPlan ? "put" : "post";
       const token = localStorage.getItem("token");
 
-      const response = await axios({
+      await axios({
         url,
         method,
         headers: {
@@ -94,15 +96,18 @@ const PlanManagement = () => {
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       showToast(err.message, "error");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
-  // Handle delete
   const handleDelete = async (id) => {
     setConfirmDelete(id);
   };
 
   const confirmDeletePlan = async () => {
+    setDeleteLoading(true);
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -114,21 +119,21 @@ const PlanManagement = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      showToast(t("Plan deleted successfully."), "success");
+      showToast(t("planDeletedSuccessfully"), "success");
       await fetchPlans();
     } catch (err) {
       if (err.response?.status === 400) {
-        showToast(t("Cannot delete plan with active subscriptions."), "error");
+        showToast(t(""), "error");
       } else {
         setError(err.message);
       }
     } finally {
+      setDeleteLoading(false);
+
       setConfirmDelete(null);
-      showToast(err.message, "error");
     }
   };
 
-  // Open modal for editing/creating
   const openModal = (plan = null) => {
     setEditingPlan(plan);
     setFormData(
@@ -182,11 +187,8 @@ const PlanManagement = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div> */}
-          <LoadingSpinner />
-          <span className="sr-only">{t("loadingPlans")}</span>
-        </div>
+        <LoadingSpinner />
+        <span className="sr-only">{t("loadingPlans")}</span>
       </div>
     );
   }
@@ -242,6 +244,7 @@ const PlanManagement = () => {
           formData={formData}
           setFormData={setFormData}
           editingPlan={editingPlan}
+          submitLoading={submitLoading}
         />
 
         <ViewPlanModal
@@ -258,15 +261,8 @@ const PlanManagement = () => {
           open={!!confirmDelete}
           onCancel={() => setConfirmDelete(null)}
           onConfirm={confirmDeletePlan}
+          loading={deleteLoading}
         />
-
-        {toast.visible && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={handleCloseToast}
-          />
-        )}
       </div>
     </div>
   );

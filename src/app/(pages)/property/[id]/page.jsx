@@ -18,6 +18,7 @@ import {
   ChevronUp,
   ChevronDown,
   X,
+  User,
 } from "lucide-react";
 import ReviewList from "./components/ReviewList";
 import ReviewForm from "./components/ReviewForm";
@@ -467,29 +468,31 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
                   <div className="flex items-center space-x-4 mb-4">
                     <Image
                       src={
-                        ownerDetails.picture
-                          ? `${ownerDetails.picture}`
-                          : "/owner.jpg"
+                        ownerDetails?.picture
+                          ? ownerDetails.picture
+                          : "https://secure.gravatar.com/avatar/placeholder?s=341&d=mm&r=g"
                       }
-                      alt={ownerDetails.user?.name || "Owner"}
-                      className="w-16 h-16 rounded-full object-cover"
-                      width={16}
-                      height={16}
+                      alt={ownerDetails?.user?.name || "Owner"}
+                      className="rounded object-cover"
+                      width={64} // or 128 if you want larger
+                      height={64}
+                      priority
                     />
                     <div>
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
                         {t("propertyOwner")}
                       </div>
                       <h3 className="font-bold text-gray-900">
-                        {ownerDetails.user?.name}
+                        {ownerDetails?.user?.name}
                       </h3>
-                      {ownerDetails.bio && (
+                      {ownerDetails?.bio && (
                         <p className="text-sm text-gray-600">
                           {ownerDetails.bio}
                         </p>
                       )}
                     </div>
                   </div>
+
                   <div className="space-y-2 text-sm">
                     {ownerDetails.phone_number && (
                       <div className="flex justify-between">

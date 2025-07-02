@@ -49,6 +49,7 @@ const Users = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("create");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -124,6 +125,7 @@ const Users = () => {
       return;
     }
     try {
+      setActionLoading(true);
       setErrors({});
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
@@ -179,11 +181,14 @@ const Users = () => {
           ],
         });
       }
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleUpdateUser = async () => {
     try {
+      setActionLoading(true);
       setErrors({});
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
@@ -243,6 +248,8 @@ const Users = () => {
           ],
         });
       }
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -548,6 +555,7 @@ const Users = () => {
             getVerificationIcon={getVerificationIcon}
             formatDate={formatDate}
             t={t}
+            actionLoading={actionLoading}
           />
         )}
 

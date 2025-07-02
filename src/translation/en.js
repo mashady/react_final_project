@@ -37,7 +37,7 @@ const en = {
   expertSectionListItemThreeDescription:
     "Start your renovation journey with our expert team",
   footerAboutUsDescrition:
-    "A digital platform that connects university students in Minya Governorate with available and affordable rental accommodations near their campuses. The platform will allow property owners to list student-friendly rentals, while students can browse, compare, and book suitable housing options based on their preferences and budget. Verified reviews, interactive maps, and a secure booking system will ensure transparency, safety, and convenience throughout the process.",
+    "A digital platform that connects university students in Minya Governorate with available and affordable rental accommodations near their campuses. ",
   footerReadMoreButton: "Read more",
   footerContactUS: "Contact Us",
   footerCategories: "Categories",
@@ -693,7 +693,7 @@ const en = {
   rejectTooltip: "Reject",
   confirmUnverifyTitle: "Confirm Unverify",
   confirmUnverifyMessage:
-    "Are you sure you want to mark this user as {status}? This action cannot be undone.",
+    "Are you sure you want to mark this user as unverified? This action cannot be undone.",
   cancelButton: "Cancel",
   unverifyButton: "Unverify",
   // Add your role translations
@@ -723,11 +723,28 @@ const en = {
   userCreatedSuccess: "User created successfully",
   userDeletedSuccess: "User deleted successfully",
   users: "Users",
+  noCommentsYet: "No comments yet",
+  addingComment: "Adding comment...",
+  savingButton: "Saving...",
+  deletingButton: "Deleting...",
+  deletePlanButton: "Delete",
+  deletePlanTitle: "Delete Plan",
+  deletePlanConfirmation: "Are you sure you want to delete this plan?",
+  planActionSuccess: "Plan action completed successfully",
+  planDeletedSuccessfully: "Plan deleted successfully",
+  planUpdatedSuccessfully: "Plan updated successfully",
+  deletePlanError: "Cannot delete plan with active subscriptions.",
+  unverified: "Unverified",
+  passwordConfirmationLabel: "Confirm Password",
+  updatingUserButton: "Updating user...",
+  creatingUserButton: "Creating user...",
   verifyDocumentBanned: "Verification Document Banned",
-  verifyDocumentBannedDescription: "Your document has been banned as we couldn't recognize you.",
+  verifyDocumentBannedDescription:
+    "Your document has been banned as we couldn't recognize you.",
   verifyDocumentAction: "Contact Support",
   verifyDocumentationPending: "Verification Document Pending",
-  verifyDocumentationPendingDescription: "Your verification document is being reviewed by our team.",
+  verifyDocumentationPendingDescription:
+    "Your verification document is being reviewed by our team.",
 };
 
 export default en;

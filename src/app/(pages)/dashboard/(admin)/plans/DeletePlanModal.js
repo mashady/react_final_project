@@ -3,7 +3,12 @@ import React from "react";
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "../../../../../TranslationContext";
 
-export default function DeletePlanModal({ open, onCancel, onConfirm }) {
+export default function DeletePlanModal({
+  open,
+  onCancel,
+  onConfirm,
+  loading,
+}) {
   const { t, locale } = useTranslation();
 
   if (!open) return null;
@@ -27,15 +32,17 @@ export default function DeletePlanModal({ open, onCancel, onConfirm }) {
           <div className="flex items-center justify-center space-x-4">
             <button
               onClick={onCancel}
-              className="px-6 py-3 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              disabled={loading}
+              className="px-6 py-3 border cursor-pointer border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
             >
               {t("cancelButton")}
             </button>
             <button
               onClick={onConfirm}
-              className="px-6 py-3 bg-red-600 cursor-pointer hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center gap-2"
+              disabled={loading}
+              className="px-6 py-3 bg-red-600 cursor-pointer hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
             >
-              {t("deletePlanButton")}
+              {loading ? t("deletingButton") : t("deletePlanButton")}
             </button>
           </div>
         </div>
