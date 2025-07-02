@@ -18,7 +18,7 @@ const UserProfileCardContent = () => {
       </div>
     );
   }
-
+  console.log(user);
   const profile =
     user.role === "student" ? user.student_profile : user.owner_profile;
 
@@ -49,7 +49,7 @@ const UserProfileCardContent = () => {
         </h2>
 
         <div className="space-y-4">
-          <ProfileField label={t("dashboardProfileName")} value={user.email} />
+          <ProfileField label={t("ownerProfileEmail")} value={user.email} />
           {user.role === "student" && (
             <ProfileField
               label={t("dashboardProfileUniversity")}
