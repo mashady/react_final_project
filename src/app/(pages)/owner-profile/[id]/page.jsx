@@ -76,7 +76,7 @@ const OwnerProfilePage = () => {
     try {
       setSubmittingReview(true);
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      await axios.post(`http://127.0.0.1:8000/api/owner-reviews`, {
+      await axios.post("http://127.0.0.1:8000/api/owner-reviews", {
         owner_id: id,
         content: reviewForm.comment.trim(),
       }, { headers });
