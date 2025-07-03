@@ -15,13 +15,14 @@ import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/api/axiosConfig";
 import { useTranslation } from "@/TranslationContext";
-
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const email = searchParams.get("email");
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -101,28 +102,58 @@ export default function ResetPasswordPage() {
             >
               {({ isSubmitting }) => (
                 <Form className="flex flex-col gap-6">
-                  <div className="grid gap-2">
+                  <div className="grid gap-2 relative">
                     <Field
                       name="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       as={Input}
                       placeholder={t("newPassword")}
                       className="border rounded-none p-6 md:text-1xl"
                     />
+                    {showPassword ? (<button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                      >
+                        <IoMdEye size={20}/>
+                      </button>) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                        >
+                          <IoMdEyeOff size={20}/>
+                        </button>
+                    ) }
                     <ErrorMessage
                       name="password"
                       component="div"
                       className="text-red-500 text-sm"
                     />
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-2 relative">
                     <Field
                       name="password_confirmation"
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       as={Input}
                       placeholder={t("confirmNewPassword")}
                       className="border rounded-none p-6 md:text-1xl"
                     />
+                    {showConfirmPassword ? (<button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                    >
+                      <IoMdEye size={20}/>
+                    </button>) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                      >
+                        <IoMdEyeOff size={20}/>
+                      </button>
+                    ) }
                     <ErrorMessage
                       name="password_confirmation"
                       component="div"
