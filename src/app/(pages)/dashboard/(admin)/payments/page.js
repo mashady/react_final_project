@@ -71,7 +71,7 @@ const getSafeData = (payment, locale) => {
     paymentMethod: (payment.payment_method || "unknown").toLowerCase(),
     details: payment.plan?.features || "No details available",
     user: payment.user || { name: "Unknown User" },
-    currency: payment.currency || "USD",
+    currency: payment.currency || "EGP",
   };
 };
 
@@ -161,7 +161,7 @@ const PaymentHistoryContent = () => {
     return sum + payment.amount;
   }, 0);
 
-  const formatCurrency = (amount, currency = "USD") => {
+  const formatCurrency = (amount, currency = "EGP") => {
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: currency,
@@ -286,9 +286,9 @@ const PaymentHistoryContent = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t("userHeader")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t("transactionIdHeader")}
-                    </th>
+                    </th> */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t("dateHeader")}
                     </th>
@@ -315,11 +315,11 @@ const PaymentHistoryContent = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {payment.user?.name || "Unknown User"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {payment.transactionId.length > 8
                           ? `${payment.transactionId.substring(0, 8)}...`
                           : payment.transactionId}
-                      </td>
+                      </td> */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {payment.date}
                       </td>
