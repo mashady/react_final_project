@@ -198,7 +198,7 @@ const PendingUsersTable = ({
         </table>
       </div>
       {confirmUserId && (
-        <div className="fixed inset-0 bg-[000000e0] bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#000000e0] bg-opacity-50 flex items-center justify-center z-50">
           <div
             className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6"
             dir={locale === "ar" ? "rtl" : "ltr"}
@@ -207,13 +207,7 @@ const PendingUsersTable = ({
               {t("confirmUnverifyTitle")}
             </h3>
             <p className="text-gray-700 text-center mb-6">
-              {t("confirmUnverifyMessage", {
-                status: (
-                  <span className="font-semibold text-red-600">
-                    {t("unverified")}
-                  </span>
-                ),
-              })}
+              {t("confirmUnverifyMessage")}
             </p>
             <div
               className={`flex justify-center gap-4 ${

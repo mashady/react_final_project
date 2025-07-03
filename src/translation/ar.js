@@ -35,7 +35,7 @@ const ar = {
     "تواصل مع مهندسين ومصممين ذوي خبرة لمشروعك",
   expertSectionListItemThreeDescription: "ابدأ رحلة التجديد مع فريقنا الخبير",
   footerAboutUsDescrition:
-    "منصة رقمية تربط طلاب الجامعات في محافظة المنيا بخيارات السكن المتاحة والميسورة التكلفة بالقرب من جامعاتهم. تتيح المنصة لأصحاب العقارات عرض وحدات سكنية مناسبة للطلاب، بينما يمكن للطلاب تصفح هذه الوحدات، ومقارنتها، وحجز ما يناسب احتياجاتهم وميزانياتهم. ستوفر المنصة مراجعات موثوقة، وخرائط تفاعلية، ونظام حجز آمن لضمان الشفافية، والأمان، والراحة طوال عملية البحث والحجز.",
+    "منصة رقمية تربط طلاب الجامعات في محافظة المنيا بخيارات السكن المتاحة والميسورة التكلفة بالقرب من جامعاتهم.",
   footerReadMoreButton: "اقرأ المزيد",
   footerContactUS: "اتصل بنا",
   footerCategories: "الفئات",
@@ -391,7 +391,7 @@ const ar = {
   verificationDocumentSizeError: "حجم الملف كبير جدًا (الحد الأقصى 5 ميجابايت)",
   verificationDocumentTypeError:
     "تنسيق الملف غير مدعوم (فقط JPG، PNG، PDF، JPEG)",
-  chooseFile: "اختر ملفًا*",
+  chooseFile: "تحميل مستند التحقق*",
   refuseLogin: "بيانات الاعتماد غير صالحة",
   loginError: "خطأ في تسجيل الدخول",
 
@@ -720,6 +720,27 @@ const ar = {
   userUpdatedSuccess: "تم تحديث بيانات المستخدم بنجاح!",
   userCreatedSuccess: "تم إنشاء المستخدم بنجاح!",
   userDeletedSuccess: "تم حذف المستخدم بنجاح!",
+  noCommentsYet: "لا يوجد تعليقات",
+  addingComment: "جارٍ إضافة التعليق...",
+  savingButton: "حفظ",
+  deletingButton: "حذف",
+  deletePlanButton: "حذف الباقة",
+  deletePlanTitle: "حذف الباقة",
+  deletePlanConfirmation: "هل أنت متأكد أنك تريد حذف هذه الباقة؟",
+  planActionSuccess: "تم حذف الباقة بنجاح!",
+  deletePlanError: "فشل في حذف الباقة",
+  planDeletedSuccessfully: "تم حذف الباقة بنجاح!",
+  planUpdatedSuccessfully: "تم تحديث الباقة بنجاح!",
+  deletePlanError: "فشل في حذف الباقة",
+  unverified: "غير مؤكد",
+  passwordConfirmationLabel: "تأكيد كلمة المرور",
+  verifyDocumentBanned: "حظر مستند التحقق",
+  verifyDocumentBannedDescription:
+    "تم حظر مستندك لأننا لم نتمكن من التعرف عليك.",
+  verifyDocumentAction: "الاتصال بالدعم",
+  verifyDocumentationPending: "مستند التحقق قيد المراجعة",
+  verifyDocumentationPendingDescription:
+    "يتم مراجعة مستند التحقق الخاص بك من قبل فريقنا.",
 };
 
 export default ar;

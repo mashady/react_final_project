@@ -10,14 +10,14 @@ export default function OwnerReviewForm({
 }) {
   return (
     <form
-      className="flex flex-col gap-4 bg-[#f7f7f7] p-6 rounded-xl border border-[#ececec] shadow-sm"
+      className="flex flex-col gap-4 bg-[#f7f7f7] p-6 rounded border border-[#ececec] shadow-sm"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
       }}
     >
       <textarea
-        className="w-full h-[105px] p-3 rounded-lg border border-[#ececec]  text-lg text-[#222] bg-white min-h-[80px] resize-none"
+        className="w-full h-[105px] p-3 rounded border border-[#ececec]  text-lg text-[#222] bg-white min-h-[80px] resize-none"
         placeholder="Write your review..."
         value={reviewForm.comment}
         onChange={(e) =>
