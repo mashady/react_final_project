@@ -63,8 +63,7 @@ export default function PlanTable({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center text-gray-900">
-                      <DollarSign className="w-4 h-4 mr-1" />
-                      {plan.price}
+                      EGP {plan.price}
                     </div>
                   </td>
                   <td className="px-6 py-4">

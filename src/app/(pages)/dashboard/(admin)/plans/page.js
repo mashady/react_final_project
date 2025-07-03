@@ -123,7 +123,10 @@ const PlanManagement = () => {
       await fetchPlans();
     } catch (err) {
       if (err.response?.status === 400) {
-        showToast(t(""), "error");
+        showToast(
+          t("You cannot delete plan with active subscription."),
+          "error"
+        );
       } else {
         setError(err.message);
       }
