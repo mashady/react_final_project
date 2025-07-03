@@ -55,8 +55,8 @@ const MyPackagesContent = () => {
           status: data.active ? "Active" : "Expired",
           price:
             data?.plan?.price !== undefined
-              ? `${Number(data.plan.price).toFixed(2)} $`
-              : "0.00 $",
+              ? `${Number(data.plan.price).toFixed(2)} EGP`
+              : "0.00 EGP",
           orderStatus: "completed",
         };
 
@@ -77,7 +77,7 @@ const MyPackagesContent = () => {
               itemsRemaining: 5,
               status: "Active",
               orderId: "#3548",
-              price: "0.00 $",
+              price: "0.00 EGP",
               orderStatus: "completed",
             },
           ]);

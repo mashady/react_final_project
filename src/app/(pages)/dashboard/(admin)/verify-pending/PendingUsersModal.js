@@ -125,7 +125,7 @@ const PendingUsersModal = ({
               </div>
               {selectedUser.verification_document ? (
                 <a
-                  href={selectedUser.verification_document}
+                  href={`http://localhost:8000/${selectedUser.verification_document}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 underline text-sm flex items-center gap-1"
