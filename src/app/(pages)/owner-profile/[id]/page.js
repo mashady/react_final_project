@@ -18,8 +18,8 @@ const OwnerProfilePage = () => {
   const user = useSelector((state) => state.user.data);
   const token =
     useSelector((state) => state.user.token) || localStorage.getItem("token");
-  let { t } = useTranslation();
-  // Review state and logic
+  const { t } = useTranslation();
+
   const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
   const [reviewForm, setReviewForm] = useState({ comment: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -107,7 +107,7 @@ const OwnerProfilePage = () => {
             id="infoCard"
             className="bg-[#edf9f9] rounded-sm flex flex-col justify-center items-center px-5 py-5 space-y-3 lg:relative lg:top-[-80px]"
           >
-            <section id="profileImage" className="">
+            <section id="profileImage">
               {userProfile.image ? (
                 <Image
                   src={userProfile.image}
@@ -123,40 +123,57 @@ const OwnerProfilePage = () => {
               )}
             </section>
             <section id="ownerInfo" className="my-6 space-y-3 w-full">
-              <div className="flex justify-between border-b-1 border-gray-200 py-2">
-                <p className="text-gray-600">{t("ownerProfileAdress")}:</p>
-                <p> {userProfile.address || t("onwerPnoAddress")} </p>
-              </div>
-              <div className="flex justify-between border-b-1 border-gray-200 py-2">
-                <p className="text-gray-600"> {t("ownerProfilePNumber")}:</p>
-                <p> {userProfile.phone || t("onwerPnoPhoneNumber")} </p>
-              </div>
-              <div className="flex justify-between border-b-1 border-gray-200 py-2">
-                <p className="text-gray-600"> {t("ownerProfileWhatsapp")}:</p>
-                <p> {userProfile.whatsapp || t("onwerPnoWhatsappNumber")} </p>
-              </div>
-              <div className="flex justify-between py-2">
-                <p className="text-gray-600"> {t("ownerProfileEmail")}:</p>
-                <p> {userProfile.email} </p>
-              </div>
+              {user ? (
+                <>
+                  <div className="flex justify-between border-b-1 border-gray-200 py-2">
+                    <p className="text-gray-600">{t("ownerProfileAdress")}:</p>
+                    <p>{userProfile.address}</p>
+                  </div>
+                  <div className="flex justify-between border-b-1 border-gray-200 py-2">
+                    <p className="text-gray-600">{t("ownerProfilePNumber")}:</p>
+                    <p>{userProfile.phone}</p>
+                  </div>
+                  <div className="flex justify-between border-b-1 border-gray-200 py-2">
+                    <p className="text-gray-600">
+                      {t("ownerProfileWhatsapp")}:
+                    </p>
+                    <p>{userProfile.whatsapp}</p>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <p className="text-gray-600">{t("ownerProfileEmail")}:</p>
+                    <p>{userProfile.email}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-gray-600 mt-4">
+                  <p className="mb-2">{t("loginToViewOwnerDetails")}</p>
+                  <a
+                    href="/login"
+                    className="inline-block bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600 transition"
+                  >
+                    {t("loginNow")}
+                  </a>
+                </div>
+              )}
             </section>
           </article>
         </section>
+
         <section id="rightSide">
           <article
             id="ownerProfile"
             className="w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm"
           >
-            <h3 className="text-5xl font-medium mb-8"> {userProfile.name} </h3>
-            <p className="text-gray-500 my-2"> {userProfile.bio} </p>
+            <h3 className="text-5xl font-medium mb-8">{userProfile.name}</h3>
+            <p className="text-gray-500 my-2">{userProfile.bio}</p>
           </article>
+
           <article
             id="ownerProperties"
             className="w-full bg-white px-5 border-b-1 border-gray-200 py-3 rounded-sm mt-5"
           >
             <h3 className="text-3xl font-medium mb-8">
-              {" "}
-              {t("ownerProfileListing")}{" "}
+              {t("ownerProfileListing")}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {userProfile?.ads?.map((property, i) => (
@@ -164,7 +181,7 @@ const OwnerProfilePage = () => {
               ))}
             </div>
           </article>
-          {/* Owner Reviews Section under My Listing */}
+
           <article className="w-full bg-white px-5 py-6 rounded-sm mt-5 mb-5">
             <h3 className="text-2xl mb-4" style={{ fontWeight: 500 }}>
               {t("ownerReviews")}
