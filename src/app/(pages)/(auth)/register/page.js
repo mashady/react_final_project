@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { getRegisterSchema, RegisterSchema } from "@/validation/register-validation";
+import { getRegisterSchema } from "@/validation/register-validation";
 import Toast from "../../property/[id]/components/Toast";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,7 +18,7 @@ import { registerUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/TranslationContext";
 import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
-
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 const RegisterPage = () => {
   let { t } = useTranslation();
@@ -26,7 +26,8 @@ const RegisterPage = () => {
   const router = useRouter();
   const { loading, error } = useSelector((state) => state.user);
   const [selectedFileName, setSelectedFileName] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -118,14 +119,31 @@ const RegisterPage = () => {
                     />
                   </div>
 
-                  <div className="grid gap-2">
+                  <div className="grid gap-2 relative">
                     <Field
                       name="password"
-                      type="password"
                       as={Input}
                       placeholder={t("registerPasswordPlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
+                      type={showPassword ? "text" : "password"}
+
                     />
+                    {showPassword ? (<button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                    >
+                      <IoMdEye size={20}/>
+                    </button>) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                      >
+                        <IoMdEyeOff size={20}/>
+                      </button>
+                    ) }
+
                     <ErrorMessage
                       name="password"
                       component="div"
@@ -133,14 +151,29 @@ const RegisterPage = () => {
                     />
                   </div>
 
-                  <div className="grid gap-2">
+                  <div className="grid gap-2 relative">
                     <Field
                       name="password_confirmation"
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       as={Input}
                       placeholder={t("registerConfirmPasswordPlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
                     />
+                    {showConfirmPassword ? (<button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                    >
+                      <IoMdEye size={20}/>
+                    </button>) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                      >
+                        <IoMdEyeOff size={20}/>
+                      </button>
+                    ) }
                     <ErrorMessage
                       name="password_confirmation"
                       component="div"
