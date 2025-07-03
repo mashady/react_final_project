@@ -741,6 +741,8 @@ const ar = {
   verifyDocumentationPending: "مستند التحقق قيد المراجعة",
   verifyDocumentationPendingDescription:
     "يتم مراجعة مستند التحقق الخاص بك من قبل فريقنا.",
+  loginToViewOwnerDetails: "دخول للاطلاع على تفاصيل المالك",
+  loginNow: "دخول الآن",
 };
 
 export default ar;
