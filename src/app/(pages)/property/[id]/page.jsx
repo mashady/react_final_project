@@ -459,10 +459,19 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
               </div>
             </div>
 
-            {/* Agent Card (Owner Details) */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               {property && property.owner === null ? (
                 <div className="text-gray-500">Owner not found</div>
+              ) : !localStorage.getItem("token") ? (
+                <div className="text-center text-gray-600">
+                  <p className="mb-2">{t("loginToViewOwnerDetails")}</p>
+                  <a
+                    href="/login"
+                    className="inline-block bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600 transition"
+                  >
+                    {t("loginNow")}
+                  </a>
+                </div>
               ) : ownerDetails ? (
                 <>
                   <div className="flex items-center space-x-4 mb-4">

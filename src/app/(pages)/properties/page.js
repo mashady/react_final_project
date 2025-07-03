@@ -397,9 +397,6 @@ const PropertyList = () => {
               {isFetchingNextPage ? (
                 <div className="flex items-center space-x-2">
                   <LoadingSpinner />
-                  <span className="text-gray-500">
-                    Loading more properties...
-                  </span>
                 </div>
               ) : hasNextPage ? (
                 <div className="text-center">
