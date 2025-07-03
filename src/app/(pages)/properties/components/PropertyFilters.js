@@ -164,7 +164,6 @@ export default function PropertyFiltersWithSorting({
       className="bg-[#fbfbfb] text-[#555] rounded p-6 md:p-6 mb-10"
       style={{ border: "1px solid #e8e8e8" }}
     >
-      {/* Sort Section */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2">
           <ArrowUpDown className="w-5 h-5 text-gray-600" />
@@ -293,7 +292,7 @@ export default function PropertyFiltersWithSorting({
           onKeyPress={handleKeyPress}
           min="0"
         />
-        <input
+        {/* <input
           type="number"
           placeholder="Space (m²)"
           className="w-full pl-4 p-2 text-sm border border-gray-300 bg-white placeholder:text-gray-700 h-[50px] rounded"
@@ -301,7 +300,7 @@ export default function PropertyFiltersWithSorting({
           onChange={(e) => handleLocalChange("space", e.target.value)}
           onKeyPress={handleKeyPress}
           min="0"
-        />
+        /> */}
         <div className="md:col-span-1">
           <div className="px-1">
             <div className="flex justify-between text-xs text-gray-500 mb-3">
