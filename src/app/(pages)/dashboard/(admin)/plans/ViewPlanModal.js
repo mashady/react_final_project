@@ -47,7 +47,7 @@ export default function ViewPlanModal({
                 {t("priceLabel")}
               </h3>
               <p className="text-lg font-semibold text-green-600 flex items-center">
-                {plan.price}
+                {plan.price} EGP
               </p>
             </div>
             <div>

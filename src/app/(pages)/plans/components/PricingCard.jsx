@@ -124,7 +124,7 @@ const PricingCard = ({
             <span className="text-4xl font-bold text-gray-900">Free</span>
           ) : (
             <div className="flex items-center justify-center">
-              <span className="text-4xl font-bold text-gray-900">${price}</span>
+              <span className="text-4xl font-bold text-gray-900">EGP {price}</span>
               <span className="text-gray-600 ml-1">{duration}</span>
             </div>
           )}
@@ -133,7 +133,7 @@ const PricingCard = ({
         {/* Full price */}
         {fullPrice && (
           <div className="text-sm text-gray-600">
-            full payment: ${fullPrice}
+            Full payment: EGP {fullPrice}
           </div>
         )}
       </div>
