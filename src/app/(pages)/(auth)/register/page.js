@@ -21,9 +21,13 @@ import { registerUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/TranslationContext";
 import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 const RegisterPage = () => {
   let { t } = useTranslation();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error } = useSelector((state) => state.user);
@@ -151,23 +155,24 @@ const RegisterPage = () => {
                       placeholder={t("registerPasswordPlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
                       type={showPassword ? "text" : "password"}
-
                     />
-                    {showPassword ? (<button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-                    >
-                      <IoMdEye size={20}/>
-                    </button>) : (
+                    {showPassword ? (
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
                       >
-                        <IoMdEyeOff size={20}/>
+                        <IoMdEye size={20} />
                       </button>
-                    ) }
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                      >
+                        <IoMdEyeOff size={20} />
+                      </button>
+                    )}
 
                     <ErrorMessage
                       name="password"
@@ -184,21 +189,27 @@ const RegisterPage = () => {
                       placeholder={t("registerConfirmPasswordPlaceholder")}
                       className="border rounded-none p-6 text-muted-foreground"
                     />
-                    {showConfirmPassword ? (<button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-                    >
-                      <IoMdEye size={20}/>
-                    </button>) : (
+                    {showConfirmPassword ? (
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
                       >
-                        <IoMdEyeOff size={20}/>
+                        <IoMdEye size={20} />
                       </button>
-                    ) }
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                      >
+                        <IoMdEyeOff size={20} />
+                      </button>
+                    )}
                     <ErrorMessage
                       name="password_confirmation"
                       component="div"
