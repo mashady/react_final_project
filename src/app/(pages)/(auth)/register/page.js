@@ -10,7 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { getRegisterSchema, RegisterSchema } from "@/validation/register-validation";
+import {
+  getRegisterSchema,
+  RegisterSchema,
+} from "@/validation/register-validation";
 import Toast from "../../property/[id]/components/Toast";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,13 +22,14 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "@/TranslationContext";
 import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
 
-
 const RegisterPage = () => {
   let { t } = useTranslation();
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error } = useSelector((state) => state.user);
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [selectedPersonalImageName, setSelectedPersonalImageName] =
+    useState("");
 
   const [toast, setToast] = useState({
     message: "",
@@ -43,13 +47,35 @@ const RegisterPage = () => {
 
   const handleRegister = async (values) => {
     try {
-      const resultAction = await dispatch(registerUser(values));
-
+      if (!values.verification_document || !values.picture) {
+        showToast(t("bothFilesRequired"), "error");
+        return;
+      }
+      const compareFormData = new FormData();
+      compareFormData.append("image1", values.verification_document);
+      compareFormData.append("image2", values.picture);
+      compareFormData.append("tolerance", 0.6);
+      const compareRes = await fetch("http://localhost:5000/compare-files", {
+        method: "POST",
+        body: compareFormData,
+      });
+      const compareData = await compareRes.json();
+      let verificationStatus = "pending";
+      if (compareData.same_person) {
+        verificationStatus = "verified";
+      }
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("email", values.email);
+      formData.append("password", values.password);
+      formData.append("password_confirmation", values.password_confirmation);
+      formData.append("role", values.role);
+      formData.append("verification_status", verificationStatus);
+      formData.append("verification_document", values.verification_document);
+      formData.append("picture", values.picture);
+      const resultAction = await dispatch(registerUser(formData));
       if (registerUser.fulfilled.match(resultAction)) {
-        showToast(
-          t("registerSuccessMsg"),
-          "success"
-        );
+        showToast(t("registerSuccessMsg"), "success");
         setTimeout(() => {
           router.push("/login");
         }, 2000);
@@ -60,7 +86,6 @@ const RegisterPage = () => {
       showToast(error || t("registerError"), "error");
     }
   };
-
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -79,14 +104,15 @@ const RegisterPage = () => {
                 password_confirmation: "",
                 role: "",
                 verification_document: null,
+                picture: null,
               }}
               validationSchema={getRegisterSchema(t)}
-              onSubmit={(values, actions) => {
-                handleRegister(values);
+              onSubmit={async (values, actions) => {
+                await handleRegister(values);
                 actions.setSubmitting(false);
               }}
             >
-              {({ isSubmitting, setFieldValue }) => (
+              {({ isSubmitting, setFieldValue, values }) => (
                 <Form className="flex flex-col gap-6">
                   <div className="grid gap-2">
                     <Field
@@ -170,7 +196,6 @@ const RegisterPage = () => {
                   </div>
 
                   <div className="grid gap-2">
-
                     <input
                       id="fileUpload"
                       name="verification_document"
@@ -198,6 +223,33 @@ const RegisterPage = () => {
                     />
                   </div>
 
+                  <div className="grid gap-2">
+                    <input
+                      id="personalImageUpload"
+                      name="picture"
+                      type="file"
+                      accept=".jpg,.jpeg,.png"
+                      onChange={(event) => {
+                        const file = event.currentTarget.files[0];
+                        setFieldValue("picture", file);
+                        setSelectedPersonalImageName(file?.name || "");
+                      }}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="personalImageUpload"
+                      className="cursor-pointer text-muted-foreground border border-gray-300 px-4 py-4 rounded w-full hover:bg-gray-100"
+                    >
+                      {selectedPersonalImageName
+                        ? selectedPersonalImageName
+                        : t("choosePersonalImage")}
+                    </label>
+                    <ErrorMessage
+                      name="picture"
+                      component="div"
+                      className="text-red-500 text-sm"
+                    />
+                  </div>
 
                   <Button
                     type="submit"

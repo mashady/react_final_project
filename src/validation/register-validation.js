@@ -3,17 +3,11 @@ import * as Yup from "yup";
 export const getRegisterSchema = (t) =>
   Yup.object().shape({
     name: Yup.string()
-      .matches(
-        /^[A-Za-zÀ-ÿ' -]{3,70}$/,
-        t("nameComplexity")
-      )
+      .matches(/^[A-Za-zÀ-ÿ' -]{3,70}$/, t("nameComplexity"))
       .required(t("nameRequired")),
 
     email: Yup.string()
-      .matches(
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        t("emailInvalidRegister")
-      )
+      .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, t("emailInvalidRegister"))
       .required(t("emailRequired")),
 
     password: Yup.string()
@@ -45,4 +39,5 @@ export const getRegisterSchema = (t) =>
           value &&
           ["image/jpeg", "image/png", "application/pdf"].includes(value.type)
       ),
+    picture: Yup.mixed().required("personal Image Required"),
   });
