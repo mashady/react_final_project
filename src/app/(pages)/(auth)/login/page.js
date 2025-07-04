@@ -18,6 +18,7 @@ import { loginUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/TranslationContext";
 import GoogleSignInButton from "@/components/shared/GoogleSignInButton";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 
 
@@ -26,7 +27,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading, error, data } = useSelector((state) => state.user);
-
+  const [showPassword, setShowPassword] = useState(false);
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -57,8 +58,8 @@ const LoginPage = () => {
         showToast(t("Login successful!"), "success");
 
         setTimeout(() => {
-          router.push("/");
-        }, 3000);
+          router.push("/dashboard");
+        }, 1000);
       } else {
         const { status, message } = resultAction.payload;
 
@@ -132,14 +133,30 @@ const LoginPage = () => {
                     />
                   </div>
 
-                  <div className="grid gap-2">
-                    <Field
-                      name="password"
-                      type="password"
-                      as={Input}
-                      placeholder={t("loginPasswordPlaceholder")}
-                      className="border rounded-none p-6 md:text-1xl"
-                    />
+                  <div className="grid gap-2 relative">
+                                      <Field
+                                        name="password"
+                                        as={Input}
+                                        placeholder={t("registerPasswordPlaceholder")}
+                                        className="border rounded-none p-6 text-muted-foreground"
+                                        type={showPassword ? "text" : "password"}
+                  
+                                      />
+                                      {showPassword ? (<button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                                      >
+                                        <IoMdEye size={20}/>
+                                      </button>) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => setShowPassword(!showPassword)}
+                                          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                                        >
+                                          <IoMdEyeOff size={20}/>
+                                        </button>
+                                      ) }
                     <ErrorMessage
                       name="password"
                       component="div"

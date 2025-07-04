@@ -3,7 +3,11 @@ import * as Yup from "yup";
 export const getRegisterSchema = (t) =>
   Yup.object().shape({
     name: Yup.string()
-      .matches(/^[A-Za-zÀ-ÿ' -]{3,70}$/, t("nameComplexity"))
+       .matches(
+          /^[A-Za-zÀ-ÿ\u0621-\u064A' -]{3,70}$/,
+          t("nameComplexity")
+        )
+
       .required(t("nameRequired")),
 
     email: Yup.string()

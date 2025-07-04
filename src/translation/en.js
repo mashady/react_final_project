@@ -745,6 +745,8 @@ const en = {
   verifyDocumentationPending: "Verification Document Pending",
   verifyDocumentationPendingDescription:
     "Your verification document is being reviewed by our team.",
+  loginToViewOwnerDetails: "Login to view owner details",
+  loginNow: "Login Now",
 };
 
 export default en;
