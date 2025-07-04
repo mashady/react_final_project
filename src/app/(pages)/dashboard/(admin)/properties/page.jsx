@@ -17,7 +17,7 @@ import { useIntersection } from "@/hooks/useIntersection";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import RequireAuth from "@/components/shared/RequireAuth";
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 6;
 
 const fetchProperties = async ({ pageParam = 1 }) => {
   const token = localStorage.getItem("token");
