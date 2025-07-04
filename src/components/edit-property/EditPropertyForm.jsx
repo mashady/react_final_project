@@ -41,7 +41,7 @@ const EditPropertyForm = ({ propertyId }) => {
                 media_type: m.media_type, // مهم علشان نعرف هل هو صورة ولا فيديو
               })) || [],
           });
-          showToast(t("propertyUpdatedSuccessfully"), "success");
+          // showToast(t("propertyUpdatedSuccessfully"), "success");
           setLoading(false);
         })
         .catch((err) => {
