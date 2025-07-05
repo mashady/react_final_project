@@ -15,7 +15,7 @@ import {
   RegisterSchema,
 } from "@/validation/register-validation";
 import Toast from "../../property/[id]/components/Toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "@/features/user/userSlice";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,7 @@ const RegisterPage = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { loading, error } = useSelector((state) => state.user);
+  const { loading, error, data } = useSelector((state) => state.user);
   const [selectedFileName, setSelectedFileName] = useState("");
   const [selectedPersonalImageName, setSelectedPersonalImageName] =
     useState("");
@@ -88,6 +88,13 @@ const RegisterPage = () => {
       showToast(error || t("registerError"), "error");
     }
   };
+  useEffect(() => {
+    if (data) {
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    }
+  }, [data, router]);
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
