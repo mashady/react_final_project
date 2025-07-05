@@ -23,7 +23,8 @@ export default function ImageCarousel({
         src={images[currentImageIndex]}
         alt="Property"
         className="w-full h-full object-cover rounded-2xl"
-        width={800}
+        width={1200}
+        unoptimized={true}
         height={420}
       />
       {images.length > 1 && (
