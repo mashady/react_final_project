@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Button } from "@/components/ui/button";
@@ -19,12 +18,15 @@ import api from "@/api/axiosConfig";
 import { toast } from "react-toastify";
 import { FaSpinner } from "react-icons/fa";
 import Toast from "../../property/[id]/components/Toast"; // Adjust the import path as necessary
+import { useTranslation } from "@/TranslationContext";
 const GooglePage = () => {
+  let { t } = useTranslation();
   const router = useRouter();
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const userId = searchParams.get("user_id");
-
+  const [selectedPersonalImageName, setSelectedPersonalImageName] =
+    useState("");
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -69,16 +71,45 @@ const GooglePage = () => {
             value.type
           )
       ),
+    picture: 
+        Yup.mixed()
+        .required("personal Image Required")
+        .test(
+          "fileSize",
+          t("File size is too large (max 5MB)"),
+          (value) => value && value.size <= 5242880
+        )
+        .test(
+          "fileType",
+          t("Unsupported file format (only JPG, PNG, PDF, JPEG)"),
+          (value) =>
+            value &&
+            ["image/jpeg", "image/png", "application/pdf"].includes(value.type)
+        )
   });
 
   const handleGoogleSignIn = async (values) => {
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("role", values.role);
-    formData.append("verification_document", values.verification_document);
-    formData.append("user_id", userId);
-
     try {
+      setLoading(true);
+      const compareFormData = new FormData();
+      compareFormData.append("image1", values.verification_document);
+      compareFormData.append("image2", values.picture);
+      compareFormData.append("tolerance", 0.6);
+      const compareRes = await fetch("http://localhost:5001/compare-files", {
+        method: "POST",
+        body: compareFormData,
+      });
+      const compareData = await compareRes.json();
+      let verificationStatus = "pending";
+      if (compareData.same_person) {
+        verificationStatus = "verified";
+      }
+      const formData = new FormData();
+      formData.append("role", values.role);
+      formData.append("verification_document", values.verification_document);
+      formData.append("verification_status", verificationStatus);
+      formData.append("profile_image", values.picture);
+      formData.append("user_id", userId);
       const response = await api.post("/auth/google/complete-profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -86,10 +117,6 @@ const GooglePage = () => {
       showToast("Profile completed successfully!", "success");
 
       const { token, user } = response.data;
-
-    
-
-      
       if (user.verification_status === "verified") {
         localStorage.setItem("token", token);
         dispatch({ type: "user/login/fulfilled", payload: { token } });
@@ -164,6 +191,34 @@ const GooglePage = () => {
                   />
                   <ErrorMessage
                     name="verification_document"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <input
+                    id="personalImageUpload"
+                    name="picture"
+                    type="file"
+                    accept=".jpg,.jpeg,.png"
+                    onChange={(event) => {
+                      const file = event.currentTarget.files[0];
+                      setFieldValue("picture", file);
+                      setSelectedPersonalImageName(file?.name || "");
+                    }}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="personalImageUpload"
+                    className="cursor-pointer text-muted-foreground border border-gray-300 px-4 py-4 rounded w-full hover:bg-gray-100"
+                  >
+                    {selectedPersonalImageName
+                      ? selectedPersonalImageName
+                      : t("choosePersonalImage")}
+                  </label>
+                  <ErrorMessage
+                    name="picture"
                     component="div"
                     className="text-red-500 text-sm"
                   />

@@ -40,5 +40,20 @@ export const getRegisterSchema = (t) =>
           value &&
           ["image/jpeg", "image/png", "application/pdf"].includes(value.type)
       ),
-    picture: Yup.mixed().required("personal Image Required"),
+    picture: 
+      Yup.mixed()
+      .required("personal Image Required")
+      .test(
+        "fileSize",
+        t("File size is too large (max 5MB)"),
+        (value) => value && value.size <= 5242880
+      )
+      .test(
+        "fileType",
+        t("Unsupported file format (only JPG, PNG, PDF, JPEG)"),
+        (value) =>
+          value &&
+          ["image/jpeg", "image/png", "application/pdf"].includes(value.type)
+      )
+
   });

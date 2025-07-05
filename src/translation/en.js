@@ -390,11 +390,11 @@ const en = {
   nameComplexity:
     "Invalid name! Name must be 3–70 characters and only include letters, spaces, hyphens, or apostrophes.",
   roleRequired: "Role is required",
-  verificationDocumentRequired: "Verification document is required",
+  verificationDocumentRequired: "Verification document (National ID) is required",
   verificationDocumentSizeError: "File size is too large (max 5MB)",
   verificationDocumentTypeError:
     "Unsupported file format (only JPG, PNG, PDF, JPEG)",
-  chooseFile: "Upload Verification Document*",
+  chooseFile: "Upload Your National ID*",
   refuseLogin: "Invalid credentials",
   loginError: "Login Error",
 
@@ -599,7 +599,7 @@ const en = {
   unverifiedStatus: "Unverified",
   pendingStatus: "Pending",
   verifiedStatus: "Verified",
-  verificationDocumentLabel: "Verification Document",
+  verificationDocumentLabel: "Verification Document (National ID)",
   currentDocument: "Current document",
   emailVerified: "Email Verified",
   emailUnverified: "Email Unverified",

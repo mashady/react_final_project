@@ -49,10 +49,6 @@ const RegisterPage = () => {
 
   const handleRegister = async (values) => {
     try {
-      if (!values.verification_document || !values.picture) {
-        showToast(t("bothFilesRequired"), "error");
-        return;
-      }
       const compareFormData = new FormData();
       compareFormData.append("image1", values.verification_document);
       compareFormData.append("image2", values.picture);
