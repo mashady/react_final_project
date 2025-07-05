@@ -124,7 +124,9 @@ const PricingCard = ({
             <span className="text-4xl font-bold text-gray-900">Free</span>
           ) : (
             <div className="flex items-center justify-center">
-              <span className="text-4xl font-bold text-gray-900">EGP {price}</span>
+              <span className="text-4xl font-bold text-gray-900">
+                EGP {price}
+              </span>
               <span className="text-gray-600 ml-1">{duration}</span>
             </div>
           )}
@@ -160,18 +162,18 @@ const PricingCard = ({
           onClick={handleAddToCart}
           disabled={
             loading ||
-            (planId === 1 && hasUsedFreePlan) || // Disable Free if used before
+            (planId === 20 && hasUsedFreePlan) || // Disable Free if used before
             isDisabled
           }
           className={`w-full py-3 px-6 rounded-none font-medium transition-colors cursor-pointer ${
-            isDisabled || (planId === 1 && hasUsedFreePlan)
+            isDisabled || (planId === 20 && hasUsedFreePlan)
               ? "bg-gray-300 text-gray-600 cursor-not-allowed"
               : "bg-yellow-500 hover:bg-yellow-600 text-black"
           } ${loading && "opacity-50 cursor-wait"}`}
         >
           {loading
             ? "Adding..."
-            : planId === 1 && hasUsedFreePlan
+            : planId === 20 && hasUsedFreePlan
             ? "Already Taken"
             : isDisabled
             ? "Current Plan"
