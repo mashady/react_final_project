@@ -12,6 +12,7 @@ const PropertyList = ({ properties, onEdit, onView, onDelete, t }) => {
           key={property.id}
           property={property}
           isDashboard={true}
+          onDelete={onDelete}
           className="hover:shadow-lg transition-shadow duration-300"
         >
           <div
