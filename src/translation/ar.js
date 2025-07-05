@@ -26,14 +26,15 @@ const ar = {
   findAperfectHomeListItemFourDescription:
     "أكمل عملية الشراء أو الإيجار واستلم مفاتيح منزلك الجديد",
   expertSection: "خبراؤنا سيساعدونك في التجديد",
-  expertSectionListItemOneHeading: "ابحث عن إلهام",
-  expertSectionListItemTwoHeading: "ابحث عن مهندس/مصمم",
-  expertSectionListItemThreeHeading: "ابدأ التجديد",
+  expertSectionListItemOneHeading: "تصفح العقارات",
+  expertSectionListItemTwoHeading: " تواصل مع الملاك أو الوكلاء",
+  expertSectionListItemThreeHeading: "احجز زيارة أو قدم طلبك إلكترونيًا",
   expertSectionListItemOneDescription:
-    "تصفح معرضنا للحصول على أفكار تصميم وإلهام",
+    "استعرض مجموعة متنوعة من العقارات الموثوقة المناسبة للطلاب، العائلات، والمهنيين.",
   expertSectionListItemTwoDescription:
-    "تواصل مع مهندسين ومصممين ذوي خبرة لمشروعك",
-  expertSectionListItemThreeDescription: "ابدأ رحلة التجديد مع فريقنا الخبير",
+    "تواصل مباشرة مع الملاك أو الوكلاء الموثوقين – بدون وسطاء أو تعقيدات.",
+  expertSectionListItemThreeDescription:
+    "حدد موعدًا لزيارة العقار أو قدّم طلبك بسهولة عبر منصتنا.",
   footerAboutUsDescrition:
     "منصة رقمية تربط طلاب الجامعات في محافظة المنيا بخيارات السكن المتاحة والميسورة التكلفة بالقرب من جامعاتهم.",
   footerReadMoreButton: "اقرأ المزيد",

@@ -27,17 +27,17 @@ const en = {
   findAperfectHomeListItemFourDescription:
     "Complete the purchase or rental and receive the keys to your new home",
   expertSection: "Our expert will help you make the renovation",
-  expertSectionListItemOneHeading: "Find inspiration",
-  expertSectionListItemTwoHeading: "Find architect/designer",
-  expertSectionListItemThreeHeading: "Begin renovation",
+  expertSectionListItemOneHeading: "Explore listings",
+  expertSectionListItemTwoHeading: "Connect with landlords/agents",
+  expertSectionListItemThreeHeading: "Call for a tour",
   expertSectionListItemOneDescription:
     "Browse our gallery for design ideas and inspiration",
   expertSectionListItemTwoDescription:
-    "Connect with experienced architects and designers for your project",
+    "Browse a wide range of verified properties suited for students, families, and professionals.",
   expertSectionListItemThreeDescription:
-    "Start your renovation journey with our expert team",
+    "Get in touch directly with trusted landlords and agents—no middlemen, no hassle.",
   footerAboutUsDescrition:
-    "A digital platform that connects university students in Minya Governorate with available and affordable rental accommodations near their campuses. ",
+    "Schedule property visits or apply instantly through our streamlined platform. ",
   footerReadMoreButton: "Read more",
   footerContactUS: "Contact Us",
   footerCategories: "Categories",
