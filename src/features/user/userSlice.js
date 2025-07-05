@@ -39,25 +39,20 @@ export const loginUser = createAsyncThunk(
         "Login failed";
 
       return rejectWithValue({ status, message });
-      }
+    }
   }
 );
 
 export const registerUser = createAsyncThunk(
   "user/register",
-  async (userData, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      const formData = new FormData();
-      Object.entries(userData).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-
       const response = await api.post("/register", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      // localStorage.setItem("token", response.data.token);
+
       return response.data;
     } catch (err) {
       return rejectWithValue(

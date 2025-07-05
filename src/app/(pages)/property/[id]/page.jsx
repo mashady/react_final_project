@@ -55,7 +55,6 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   let { t } = useTranslation();
-  // Fetch property data
   useEffect(() => {
     const fetchProperty = async () => {
       try {
@@ -343,6 +342,10 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
               className="w-full h-full object-cover"
               width={800}
               height={420}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/fallback-image.jpg";
+              }}
             />
             {images.length > 1 && (
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
@@ -596,6 +599,7 @@ const PropertyListing = ({ toggleChat, showChat, senderId, ownerUserId }) => {
 import dynamic from "next/dynamic";
 import CommentSection from "./components/CommentSection";
 import { useTranslation } from "@/TranslationContext";
+import Head from "next/head";
 const DynamicChatWindow = dynamic(
   () => import("@/components/chat/ChatWindow"),
   { ssr: false }

@@ -743,6 +743,7 @@ const ar = {
     "يتم مراجعة مستند التحقق الخاص بك من قبل فريقنا.",
   loginToViewOwnerDetails: "دخول للاطلاع على تفاصيل المالك",
   loginNow: "دخول الآن",
+  choosePersonalImage: "اختر صورة شخصية",
 };
 
 export default ar;

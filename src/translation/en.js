@@ -747,6 +747,7 @@ const en = {
     "Your verification document is being reviewed by our team.",
   loginToViewOwnerDetails: "Login to view owner details",
   loginNow: "Login Now",
+  choosePersonalImage: "Choose a personal image",
 };
 
 export default en;
