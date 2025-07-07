@@ -146,11 +146,20 @@ const PropertyManagement = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    setPropertyToDelete(id);
-    setShowDeleteModal(true);
-  };
+  const handleDelete = (deletedId) => {
+    queryClient.setQueryData(["admin-properties"], (oldData) => {
+      if (!oldData) return oldData;
 
+      const updatedPages = oldData.pages.map((page) => ({
+        ...page,
+        data: page.data.filter((property) => property.id !== deletedId),
+      }));
+
+      return { ...oldData, pages: updatedPages };
+    });
+
+    showToast(t("propertyDeletedSuccess"), "success");
+  };
   const confirmDelete = async () => {
     if (!propertyToDelete) return;
     try {
